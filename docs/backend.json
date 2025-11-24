@@ -1,0 +1,297 @@
+{
+  "entities": {
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
+      "type": "object",
+      "description": "Represents a user profile in the Swasthya application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UserProfile entity."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "First name of the user."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "Last name of the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the user.",
+          "format": "email"
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "Phone number of the user."
+        },
+        "preferredLanguage": {
+          "type": "string",
+          "description": "Preferred language of the user."
+        },
+        "healthRecordIds": {
+          "type": "array",
+          "description": "References to HealthRecords. (Relationship: UserProfile 1:N HealthRecord)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "firstName",
+        "lastName",
+        "email"
+      ]
+    },
+    "VaccinationDrive": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "VaccinationDrive",
+      "type": "object",
+      "description": "Represents a vaccination drive event.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the VaccinationDrive entity."
+        },
+        "location": {
+          "type": "string",
+          "description": "Location of the vaccination drive."
+        },
+        "schedule": {
+          "type": "string",
+          "description": "Schedule of the vaccination drive (e.g., date and time).",
+          "format": "date-time"
+        },
+        "vaccineType": {
+          "type": "string",
+          "description": "Type of vaccine offered at the drive."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the vaccination drive."
+        }
+      },
+      "required": [
+        "id",
+        "location",
+        "schedule",
+        "vaccineType"
+      ]
+    },
+    "HealthCamp": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "HealthCamp",
+      "type": "object",
+      "description": "Represents a health camp event.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the HealthCamp entity."
+        },
+        "location": {
+          "type": "string",
+          "description": "Location of the health camp."
+        },
+        "startTime": {
+          "type": "string",
+          "description": "Starting time of the health camp.",
+          "format": "date-time"
+        },
+        "endTime": {
+          "type": "string",
+          "description": "Ending time of the health camp.",
+          "format": "date-time"
+        },
+        "availableServices": {
+          "type": "string",
+          "description": "Details of available services at the health camp."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the health camp."
+        }
+      },
+      "required": [
+        "id",
+        "location",
+        "startTime",
+        "endTime",
+        "availableServices"
+      ]
+    },
+    "MedicalNotification": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "MedicalNotification",
+      "type": "object",
+      "description": "Represents a medical notification sent to users.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the MedicalNotification entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to UserProfile. (Relationship: UserProfile 1:N MedicalNotification)"
+        },
+        "message": {
+          "type": "string",
+          "description": "The content of the medical notification."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Timestamp of when the notification was sent.",
+          "format": "date-time"
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of medical notification (e.g., appointment reminder, medication alert)."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "message",
+        "timestamp",
+        "type"
+      ]
+    },
+    "HealthRecord": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "HealthRecord",
+      "type": "object",
+      "description": "Represents a user's health record.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the HealthRecord entity."
+        },
+        "recordType": {
+          "type": "string",
+          "description": "Type of health record (e.g., vaccination record, medical history)."
+        },
+        "details": {
+          "type": "string",
+          "description": "Detailed information contained within the health record."
+        },
+        "dateCreated": {
+          "type": "string",
+          "description": "Date when the health record was created.",
+          "format": "date-time"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to UserProfile. (Relationship: UserProfile 1:N HealthRecord)"
+        }
+      },
+      "required": [
+        "id",
+        "recordType",
+        "details",
+        "dateCreated",
+        "userId"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores user profile information. Path-based ownership ensures only the authenticated user can access their profile.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/healthRecords/{healthRecordId}",
+        "definition": {
+          "entityName": "HealthRecord",
+          "schema": {
+            "$ref": "#/backend/entities/HealthRecord"
+          },
+          "description": "Stores user's health records. Path-based ownership ensures only the authenticated user can access their health records.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "healthRecordId",
+              "description": "The unique identifier of the health record."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/vaccinationDrives/{vaccinationDriveId}",
+        "definition": {
+          "entityName": "VaccinationDrive",
+          "schema": {
+            "$ref": "#/backend/entities/VaccinationDrive"
+          },
+          "description": "Stores information about vaccination drives.",
+          "params": [
+            {
+              "name": "vaccinationDriveId",
+              "description": "The unique identifier of the vaccination drive."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/healthCamps/{healthCampId}",
+        "definition": {
+          "entityName": "HealthCamp",
+          "schema": {
+            "$ref": "#/backend/entities/HealthCamp"
+          },
+          "description": "Stores information about health camps.",
+          "params": [
+            {
+              "name": "healthCampId",
+              "description": "The unique identifier of the health camp."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/notifications/{notificationId}",
+        "definition": {
+          "entityName": "MedicalNotification",
+          "schema": {
+            "$ref": "#/backend/entities/MedicalNotification"
+          },
+          "description": "Stores medical notifications for users. Path-based ownership ensures only the authenticated user can access their notifications.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "notificationId",
+              "description": "The unique identifier of the medical notification."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure is designed to support the Swasthya application's core features, including user authentication, vaccination drive information, health camp details, medical notifications, user health records, and multilingual support. The structure prioritizes authorization independence, clarity, and scalability.\n\n**Authorization Independence and QAPs:**\n\n*   **UserProfile:** User profiles are stored under `/users/{userId}`, providing path-based ownership for private user data. This eliminates the need for complex rules involving `get()` calls, as access control is directly tied to the user's ID.\n*   **HealthRecord:** Health records are stored under `/users/{userId}/healthRecords/{healthRecordId}`, establishing a clear ownership hierarchy. Authorization rules can efficiently verify that only the authenticated user can access their own health records. This supports QAPs because listing health records for a specific user is straightforward and secure without filtering based on document content.\n*   **VaccinationDrive and HealthCamp:** Vaccination drives and health camps are stored in root-level collections (`/vaccinationDrives` and `/healthCamps`). This segregation simplifies data management and allows for different security rules to be applied to public events versus private user data.\n*   **MedicalNotification:** Medical notifications are stored under `/users/{userId}/notifications/{notificationId}`. The `userId` field ensures that only the intended user can access the notifications, supporting QAPs by allowing secure and efficient listing of notifications for a specific user without complex filtering.\n\nThis design adheres to the core principles by avoiding hierarchical authorization dependencies (`get()`), making authorization intent explicit, using path-based ownership for private data, and enabling secure `list` operations by segregating data based on access needs."
+  }
+}
