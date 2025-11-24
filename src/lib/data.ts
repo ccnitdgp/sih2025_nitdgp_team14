@@ -71,25 +71,36 @@ export const vaccinationDrives = [
 export const visitingCamps = [
   {
     id: 1,
-    name: 'General Health Check-up',
-    location: 'Sunshine Park',
-    date: '30th July, 2024',
+    name: 'General Health Check-up Camp',
+    location: 'Community Hall, Near Labour Chowk',
+    date: 'August 15, 2024',
     time: '8:00 AM - 2:00 PM',
+    details: 'Free general health check-ups, including blood pressure monitoring, blood sugar tests, and a consultation with a general physician. Basic medicines will be provided free of cost.'
   },
   {
     id: 2,
-    name: 'Dental Care Camp',
-    location: 'Riverside School',
-    date: '5th August, 2024',
+    name: 'Eye Care & Vision Screening',
+    location: 'Sector 18 Community Center',
+    date: 'August 22, 2024',
     time: '9:00 AM - 1:00 PM',
+    details: 'Comprehensive eye examinations, vision tests, and distribution of free eyeglasses for those in need. Minor eye ailments will also be treated.'
   },
   {
     id: 3,
-    name: 'Eye Check-up Camp',
-    location: 'Central Library',
-    date: '10th August, 2024',
+    name: 'Dental Health Camp',
+    location: 'Govt. Primary School, Phase 3',
+    date: 'September 1, 2024',
     time: '10:00 AM - 5:00 PM',
+    details: 'Free dental check-ups, cleaning, and basic treatments. Consultations on oral hygiene will also be available.'
   },
+  {
+    id: 4,
+    name: 'Women\'s Health & Awareness Camp',
+    location: 'Anganwadi Center, Near Site 5',
+    date: 'September 10, 2024',
+    time: '10:00 AM - 4:00 PM',
+    details: 'Specialized health check-ups for women, including screenings and consultations. Awareness sessions on various health issues.'
+  }
 ];
 
 export const testimonials = [

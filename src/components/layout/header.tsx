@@ -12,7 +12,7 @@ import { Logo } from "@/components/logo";
 
 const navLinks = [
   { href: "/vaccination", label: "Vaccination Drive" },
-  { href: "/#camps", label: "Visiting Camps" },
+  { href: "/camps", label: "Visiting Camps" },
   { href: "/records", label: "Medical Notification" },
 ];
 
