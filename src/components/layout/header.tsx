@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Logo } from "@/components/logo";
+import { AuthDialog } from "@/components/auth/auth-dialog";
 
 const navLinks = [
   { href: "/vaccination", label: "Vaccination Drive" },
@@ -37,12 +38,9 @@ export function Header() {
         </nav>
 
         <div className="flex flex-1 items-center justify-end gap-2 sm:gap-4">
-          <Button asChild className="hidden md:inline-flex" variant="outline">
-            <Link href="/login">Login</Link>
-          </Button>
-          <Button asChild className="hidden md:inline-flex">
-            <Link href="/signup">Sign Up</Link>
-          </Button>
+          <AuthDialog trigger={<Button variant="outline">Login</Button>} />
+          <AuthDialog trigger={<Button>Sign Up</Button>} />
+          
 
           <div className="md:hidden">
             <Sheet>
@@ -67,12 +65,8 @@ export function Header() {
                     ))}
                   </nav>
                   <div className="flex flex-col gap-2">
-                    <Button asChild variant="outline">
-                      <Link href="/login">Login</Link>
-                    </Button>
-                    <Button asChild>
-                      <Link href="/signup">Sign Up</Link>
-                    </Button>
+                     <AuthDialog trigger={<Button variant="outline">Login</Button>} defaultTab="login" />
+                     <AuthDialog trigger={<Button>Sign Up</Button>} defaultTab="signup" />
                   </div>
                 </div>
               </SheetContent>

@@ -24,7 +24,7 @@ export default function CampsPage() {
             Find information about upcoming free health camps organized for your community.
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="space-y-8">
           {visitingCamps.map((camp) => (
             <Card key={camp.id} className="w-full">
               <Accordion type="single" collapsible className="w-full">
