@@ -11,9 +11,9 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Logo } from "@/components/logo";
 
 const navLinks = [
-  { href: "/#vaccination", label: "Vaccination" },
-  { href: "/#camps", label: "Camps" },
-  { href: "/records", label: "My Records" },
+  { href: "/vaccination", label: "Vaccination Drive" },
+  { href: "/#camps", label: "Visiting Camps" },
+  { href: "/records", label: "Medical Notification" },
 ];
 
 export function Header() {
@@ -37,25 +37,11 @@ export function Header() {
         </nav>
 
         <div className="flex flex-1 items-center justify-end gap-2 sm:gap-4">
-          <Button variant="ghost" size="icon" aria-label="Notifications">
-            <Bell className="h-5 w-5" />
-          </Button>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Language">
-                <Globe className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem>English</DropdownMenuItem>
-              <DropdownMenuItem>हिन्दी</DropdownMenuItem>
-              <DropdownMenuItem>বাংলা</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
           <Button asChild className="hidden md:inline-flex" variant="outline">
             <Link href="/login">Login</Link>
+          </Button>
+          <Button asChild className="hidden md:inline-flex">
+            <Link href="/signup">Sign Up</Link>
           </Button>
 
           <div className="md:hidden">
@@ -80,9 +66,14 @@ export function Header() {
                       </Link>
                     ))}
                   </nav>
-                  <Button asChild variant="outline">
-                    <Link href="/login">Login</Link>
-                  </Button>
+                  <div className="flex flex-col gap-2">
+                    <Button asChild variant="outline">
+                      <Link href="/login">Login</Link>
+                    </Button>
+                    <Button asChild>
+                      <Link href="/signup">Sign Up</Link>
+                    </Button>
+                  </div>
                 </div>
               </SheetContent>
             </Sheet>

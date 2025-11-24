@@ -36,25 +36,36 @@ export const stats: Stat[] = [
 export const vaccinationDrives = [
   {
     id: 1,
-    name: 'Polio Vaccine',
-    location: 'City Health Center',
-    date: '25th July, 2024',
+    name: 'COVID-19 Booster Dose Drive',
+    location: 'Community Hall, Near Labour Chowk',
+    date: 'August 20, 2024',
     time: '9:00 AM - 5:00 PM',
+    details: 'Free COVID-19 booster shots (Covishield & Covaxin) available for all eligible individuals. Please bring your previous vaccination certificate and Aadhar card for registration.'
   },
   {
     id: 2,
-    name: 'COVID-19 Booster',
-    location: 'Community Hall',
-    date: '28th July, 2024',
+    name: 'Children\'s Immunization Camp (Polio & MMR)',
+    location: 'Anganwadi Center, Near Site 5',
+    date: 'August 25, 2024',
     time: '10:00 AM - 4:00 PM',
+    details: 'Free Polio and MMR vaccines for children under 5. Please bring the child\'s birth certificate and immunization card.'
   },
   {
     id: 3,
-    name: 'MMR Vaccine',
-    location: 'Green Valley Hospital',
-    date: '1st August, 2024',
+    name: 'Tetanus & Diphtheria (Td) Vaccination for Adults',
+    location: 'Sector 18 Community Center',
+    date: 'September 5, 2024',
     time: '11:00 AM - 3:00 PM',
+    details: 'Td vaccine for adults. Recommended for everyone, especially those with recent injuries. No prior registration required.'
   },
+  {
+    id: 4,
+    name: 'Hepatitis B Vaccination Drive',
+    location: 'Govt. Primary School, Phase 3',
+    date: 'September 12, 2024',
+    time: '9:00 AM - 4:00 PM',
+    details: 'First and second doses of Hepatitis B vaccine available. Open for all age groups.'
+  }
 ];
 
 export const visitingCamps = [
