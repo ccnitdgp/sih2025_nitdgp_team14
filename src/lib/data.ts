@@ -3,6 +3,10 @@ import {
   Stethoscope,
   HeartPulse,
   type LucideIcon,
+  TriangleAlert,
+  ShieldCheck,
+  Info,
+  CheckCircle,
 } from 'lucide-react';
 
 type Stat = {
@@ -156,4 +160,63 @@ export const healthRecords = [
         details: 'Routine cleaning and check-up',
         issuer: 'Riverside Dental Clinic',
     }
+];
+
+export type MedicalNotification = {
+  id: number;
+  title: string;
+  category: 'WEATHER ADVISORY' | 'DISEASE PREVENTION' | 'PUBLIC HEALTH' | 'VACCINATION';
+  date: string;
+  details: string;
+  Icon: LucideIcon;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+};
+
+export const medicalNotifications: MedicalNotification[] = [
+  {
+    id: 1,
+    title: 'Heatwave Alert & Precautionary Measures',
+    category: 'WEATHER ADVISORY',
+    date: 'August 10, 2024',
+    details: 'High temperatures are expected over the next few days. Stay hydrated, avoid direct sun exposure between 11 AM and 4 PM, and wear light clothing. Ensure the elderly and children are well-protected. Seek medical help if you experience dizziness or nausea.',
+    Icon: TriangleAlert,
+    color: 'text-yellow-600',
+    bgColor: 'bg-yellow-50',
+    borderColor: 'border-yellow-500',
+  },
+  {
+    id: 2,
+    title: 'Dengue & Malaria Prevention Advisory',
+    category: 'DISEASE PREVENTION',
+    date: 'August 5, 2024',
+    details: 'With the monsoon season, it\'s crucial to prevent mosquito breeding. Do not let water stagnate in coolers, pots, or tires. Use mosquito repellents and nets. See a doctor immediately if you develop a high fever with body aches.',
+    Icon: ShieldCheck,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-50',
+    borderColor: 'border-blue-500',
+  },
+  {
+    id: 3,
+    title: 'Public Health Notice: Contaminated Water Supply',
+    category: 'PUBLIC HEALTH',
+    date: 'August 1, 2024',
+    details: 'A recent report indicates potential contamination of the water supply in Sector 15. Residents are advised to boil water before drinking or use a reliable water purifier. The local authorities are working to resolve the issue.',
+    Icon: Info,
+    color: 'text-red-600',
+    bgColor: 'bg-red-50',
+    borderColor: 'border-red-500',
+  },
+  {
+    id: 4,
+    title: 'Flu Vaccination Campaign',
+    category: 'VACCINATION',
+    date: 'July 28, 2024',
+    details: 'A free flu vaccination drive is being organized next week. Getting vaccinated is the best way to protect yourself and others from the flu. Details about locations and times will be announced shortly.',
+    Icon: CheckCircle,
+    color: 'text-green-600',
+    bgColor: 'bg-green-50',
+    borderColor: 'border-green-500',
+  },
 ];
