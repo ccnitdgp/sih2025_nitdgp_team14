@@ -5,6 +5,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Stethoscope, User } from "lucide-react";
+import { useAuth } from "@/firebase";
+import { initiateEmailSignIn, initiateEmailSignUp } from "@/firebase/non-blocking-login";
+import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { doc } from 'firebase/firestore';
+import { useFirestore } from "@/firebase";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +32,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -35,7 +41,8 @@ const loginSchema = z.object({
 
 const signupSchema = z.object({
   role: z.enum(["patient", "doctor"]),
-  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+  firstName: z.string().min(2, { message: "First name must be at least 2 characters." }),
+  lastName: z.string().min(2, { message: "Last name must be at least 2 characters." }),
   email: z.string().email({ message: "Invalid email address." }),
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
 });
@@ -47,6 +54,9 @@ type AuthDialogProps = {
 
 export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
   const [open, setOpen] = useState(false);
+  const auth = useAuth();
+  const firestore = useFirestore();
+  const { toast } = useToast();
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -60,23 +70,49 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
     resolver: zodResolver(signupSchema),
     defaultValues: {
       role: "patient",
-      name: "",
+      firstName: "",
+      lastName: "",
       email: "",
       password: "",
     },
   });
 
   function onLoginSubmit(values: z.infer<typeof loginSchema>) {
-    console.log("Login values:", values);
-    // Handle login logic
+    initiateEmailSignIn(auth, values.email, values.password);
     setOpen(false);
   }
 
-  function onSignupSubmit(values: z.infer<typeof signupSchema>) {
-    console.log("Signup values:", values);
-    // Handle signup logic
-    setOpen(false);
+  async function onSignupSubmit(values: z.infer<typeof signupSchema>) {
+    try {
+      const userCredential = await initiateEmailSignUp(auth, values.email, values.password);
+      if (userCredential && userCredential.user) {
+        const user = userCredential.user;
+        const userProfile = {
+          id: user.uid,
+          firstName: values.firstName,
+          lastName: values.lastName,
+          email: user.email,
+        };
+        const userDocRef = doc(firestore, 'users', user.uid);
+        setDocumentNonBlocking(userDocRef, userProfile, { merge: true });
+      }
+      setOpen(false);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Sign up failed",
+        description: error.message,
+      });
+    }
   }
+  
+  const handleSignUp = async (values: z.infer<typeof signupSchema>) => {
+    try {
+      await onSignupSubmit(values);
+    } catch (error) {
+      // The error is already handled and displayed as a toast in onSignupSubmit
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -143,7 +179,7 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
               Start your journey to better health management.
             </DialogDescription>
             <Form {...signupForm}>
-              <form onSubmit={signupForm.handleSubmit(onSignupSubmit)} className="space-y-4">
+              <form onSubmit={signupForm.handleSubmit(handleSignUp)} className="space-y-4">
                 <FormField
                   control={signupForm.control}
                   name="role"
@@ -183,19 +219,34 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
                   )}
                 />
 
+                <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={signupForm.control}
-                  name="name"
+                  name="firstName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Full Name</FormLabel>
+                      <FormLabel>First Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="Anjali Sharma" {...field} />
+                        <Input placeholder="Anjali" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={signupForm.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Last Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Sharma" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                </div>
                 <FormField
                   control={signupForm.control}
                   name="email"
