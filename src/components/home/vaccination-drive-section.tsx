@@ -1,25 +1,25 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { vaccinationDrives } from "@/lib/data";
-import { MapPin, CalendarDays, Clock, ArrowRight } from "lucide-react";
+import { MapPin, CalendarDays, ArrowRight, Syringe } from "lucide-react";
 import Link from "next/link";
 
 export function VaccinationDriveSection() {
   return (
-    <section id="vaccination" className="bg-card py-12 sm:py-24">
+    <section id="vaccination" className="py-12 sm:py-24">
       <div className="container mx-auto max-w-7xl px-6">
-        <div className="flex items-center justify-between mb-12">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-12 gap-4">
             <div className="text-left">
                 <h2 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl">
-                    Vaccination Drives
+                    Upcoming Vaccination Drives
                 </h2>
-                <p className="mt-4 text-muted-foreground">
-                    Find and register for upcoming vaccination drives in your area.
+                <p className="mt-2 text-muted-foreground max-w-2xl">
+                    Find and register for vaccination drives in your area to stay protected.
                 </p>
             </div>
-            <Button asChild variant="outline">
+            <Button asChild variant="outline" className="shrink-0">
                 <Link href="/vaccination">
-                    View All <ArrowRight className="ml-2 h-4 w-4" />
+                    View All Drives <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
             </Button>
         </div>
@@ -27,7 +27,12 @@ export function VaccinationDriveSection() {
           {vaccinationDrives.slice(0, 3).map((drive) => (
             <Card key={drive.id} className="flex flex-col transition-shadow hover:shadow-xl">
               <CardHeader>
-                <CardTitle>{drive.name}</CardTitle>
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-primary/10 rounded-full">
+                    <Syringe className="h-6 w-6 text-primary" />
+                  </div>
+                  <CardTitle>{drive.name}</CardTitle>
+                </div>
               </CardHeader>
               <CardContent className="flex-grow space-y-4">
                  <div className="flex items-center gap-2 text-muted-foreground">
@@ -39,6 +44,13 @@ export function VaccinationDriveSection() {
                   <span>{drive.date}</span>
                 </div>
               </CardContent>
+              <CardFooter>
+                 <Button asChild variant="secondary" className="w-full">
+                    <Link href="/vaccination">
+                      View Details & Register
+                    </Link>
+                  </Button>
+              </CardFooter>
             </Card>
           ))}
         </div>

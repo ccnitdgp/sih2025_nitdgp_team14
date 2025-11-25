@@ -26,13 +26,13 @@ export default function CampsPage() {
         </div>
         <div className="space-y-8">
           {visitingCamps.map((camp) => (
-            <Card key={camp.id} className="w-full">
+            <Card key={camp.id} className="w-full transition-shadow hover:shadow-lg">
               <Accordion type="single" collapsible className="w-full">
                 <AccordionItem value={`item-${camp.id}`} className="border-b-0">
                   <AccordionTrigger className="p-6 hover:no-underline text-left">
                     <div className="flex items-start w-full gap-4">
-                      <div className="p-3 bg-accent/20 rounded-full">
-                        <Stethoscope className="h-6 w-6 text-accent" />
+                      <div className="p-3 bg-primary/10 rounded-full">
+                        <Stethoscope className="h-6 w-6 text-primary" />
                       </div>
                       <div className="flex-1 space-y-1">
                         <h3 className="font-semibold text-lg">{camp.name}</h3>

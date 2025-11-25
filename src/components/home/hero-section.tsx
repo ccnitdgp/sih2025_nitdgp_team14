@@ -8,7 +8,7 @@ export function HeroSection() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-image');
 
   return (
-    <section className="bg-card py-12 sm:py-24">
+    <section className="bg-muted/40 py-12 sm:py-24">
       <div className="container mx-auto max-w-7xl px-6">
         <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
           <div className="flex flex-col items-start gap-6">
@@ -18,7 +18,7 @@ export function HeroSection() {
             <p className="max-w-[600px] text-lg text-muted-foreground">
               Access vaccination drives, health camps, and your medical records with ease.
             </p>
-            <form className="flex w-full max-w-md items-center space-x-2">
+            <form className="flex w-full max-w-md items-center space-x-2" suppressHydrationWarning>
               <Input type="text" placeholder="Search for camps, vaccines..." className="flex-1" suppressHydrationWarning />
               <Button type="submit" variant="default" suppressHydrationWarning>
                 <Search className="mr-2 h-4 w-4" /> Search

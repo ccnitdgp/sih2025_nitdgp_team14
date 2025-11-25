@@ -26,14 +26,14 @@ const CustomAccordionTrigger = React.forwardRef<
     <AccordionPrimitive.Trigger
       ref={ref}
       className={cn(
-        'flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline [&[data-state=open]>svg]:rotate-180',
+        'flex flex-1 items-center justify-between py-4 font-medium transition-all hover:no-underline [&[data-state=open]>[data-chevron]]:rotate-180',
         className
       )}
       {...props}
     >
       {children}
       {!hideChevron && (
-        <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+        <ChevronDown data-chevron className="h-4 w-4 shrink-0 transition-transform duration-200" />
       )}
     </AccordionPrimitive.Trigger>
   </AccordionPrimitive.Header>
@@ -73,6 +73,9 @@ export default function NotificationsPage() {
                           </div>
                         </div>
                       </div>
+                       <CustomAccordionTrigger className="p-2 w-auto hover:no-underline text-sm font-medium text-primary self-center" hideChevron={false}>
+                          <span className="sr-only">View Details</span>
+                      </CustomAccordionTrigger>
                     </div>
                   </CustomAccordionTrigger>
                   <AccordionContent className="px-6 pb-6">
@@ -80,19 +83,11 @@ export default function NotificationsPage() {
                       <p className="text-muted-foreground">{notification.details}</p>
                     </div>
                   </AccordionContent>
-                   <div className="px-6 pb-4 flex justify-end">
-                      <CustomAccordionTrigger className="p-2 w-auto hover:no-underline text-sm font-medium text-primary" hideChevron={false}>
-                          View details
-                      </CustomAccordionTrigger>
-                   </div>
                   </AccordionItem>
               </Accordion>
             </Card>
           ))}
         </div>
-      </div>
-      <div className="fixed bottom-4 right-1/2 translate-x-1/2">
-        <Button size="lg" className="bg-gray-800 text-white shadow-lg hover:bg-gray-700">Get Medical Notifications</Button>
       </div>
     </div>
   );

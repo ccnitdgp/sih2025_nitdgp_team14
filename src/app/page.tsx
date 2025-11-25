@@ -6,12 +6,16 @@ import { TestimonialsSection } from '@/components/home/testimonials-section';
 
 export default function Home() {
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col bg-background">
       <HeroSection />
       <StatsSection />
-      <VaccinationDriveSection />
+      <div className="bg-muted/40">
+        <VaccinationDriveSection />
+      </div>
       <VisitingCampsSection />
-      <TestimonialsSection />
+      <div className="bg-muted/40">
+        <TestimonialsSection />
+      </div>
     </div>
   );
 }

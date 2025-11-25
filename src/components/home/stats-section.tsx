@@ -7,13 +7,15 @@ export function StatsSection() {
       <div className="container mx-auto max-w-7xl px-6">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           {stats.map((stat) => (
-            <Card key={stat.id} className="text-center transition-transform hover:scale-105 hover:shadow-lg">
-              <CardHeader className="flex flex-col items-center gap-4">
-                <stat.icon className="h-8 w-8 text-primary" />
-                <CardTitle className="text-4xl font-bold">{stat.value}</CardTitle>
+            <Card key={stat.id} className="text-center transition-all duration-300 hover:scale-105 hover:shadow-xl border-t-4 border-primary">
+              <CardHeader className="flex flex-col items-center gap-4 pb-2">
+                <div className="p-4 bg-primary/10 rounded-full">
+                  <stat.icon className="h-8 w-8 text-primary" />
+                </div>
+                <CardTitle className="text-5xl font-bold">{stat.value}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">{stat.name}</p>
+                <p className="text-muted-foreground font-semibold">{stat.name}</p>
               </CardContent>
             </Card>
           ))}
