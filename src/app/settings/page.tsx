@@ -174,7 +174,7 @@ export default function SettingsPage() {
               title="Delete/Deactivate Account"
               description="Permanently delete or temporarily deactivate your account."
               control={
-                <Button variant="destructive" outline>
+                <Button variant="destructive">
                   Manage Account
                 </Button>
               }
