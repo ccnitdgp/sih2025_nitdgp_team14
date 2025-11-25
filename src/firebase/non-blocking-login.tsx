@@ -5,6 +5,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   UserCredential,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 
 /** Initiate anonymous sign-in (non-blocking). */
@@ -20,4 +21,9 @@ export function initiateEmailSignUp(authInstance: Auth, email: string, password:
 /** Initiate email/password sign-in (non-blocking). */
 export function initiateEmailSignIn(authInstance: Auth, email: string, password: string): void {
   signInWithEmailAndPassword(authInstance, email, password);
+}
+
+/** Send a password reset email. */
+export function sendPasswordReset(authInstance: Auth, email: string): Promise<void> {
+    return sendPasswordResetEmail(authInstance, email);
 }
