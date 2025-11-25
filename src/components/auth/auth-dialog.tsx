@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -603,3 +604,5 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
     </Dialog>
   );
 }
+
+    
