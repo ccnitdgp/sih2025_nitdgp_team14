@@ -122,7 +122,7 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
       const userCredential = await initiateEmailSignUp(auth, values.email, values.password);
       if (userCredential && userCredential.user) {
         const user = userCredential.user;
-        const userProfile = {
+        const userProfile: any = {
           id: user.uid,
           firstName: values.firstName,
           lastName: values.lastName,
@@ -139,8 +139,12 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
             phone: values.emergencyContactPhone,
             relation: values.emergencyContactRelation,
           },
-          doctorId: values.role === 'patient' ? HARDCODED_DOCTOR_ID : undefined,
         };
+        
+        if (values.role === 'patient') {
+          userProfile.doctorId = HARDCODED_DOCTOR_ID;
+        }
+
         const userDocRef = doc(firestore, 'users', user.uid);
         setDocumentNonBlocking(userDocRef, userProfile, { merge: true });
 
@@ -623,3 +627,5 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
     </Dialog>
   );
 }
+
+    
