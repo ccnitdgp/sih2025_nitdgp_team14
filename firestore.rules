@@ -66,9 +66,11 @@ service cloud.firestore {
 
     /**
      * Enforces that the UserProfile 'id' field is immutable on update.
+     * It allows the update if the 'id' field is not present in the request data,
+     * or if it is present, it must match the existing document's id.
      */
     function userProfileIdIsImmutable() {
-      return request.resource.data.id == resource.data.id;
+      return !('id' in request.resource.data) || request.resource.data.id == resource.data.id;
     }
     
     /**
