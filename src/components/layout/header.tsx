@@ -20,6 +20,8 @@ import { signOut } from "firebase/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { RoleRedirect } from "@/components/auth/role-redirect";
 import { doc } from 'firebase/firestore';
+import { useState, useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const patientNavLinks = [
   { href: "/patient-dashboard", label: "Home" },
@@ -43,6 +45,11 @@ export function Header() {
   const auth = useAuth();
   const firestore = useFirestore();
   const router = useRouter();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const userDocRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
@@ -65,6 +72,8 @@ export function Header() {
     { href: "/notifications", label: "Medical Notification" },
   ];
 
+  const linksToShow = user ? navLinks : publicNavLinks;
+
   return (
     <>
     <RoleRedirect />
@@ -75,7 +84,7 @@ export function Header() {
         </div>
         
         <nav className="hidden md:flex flex-1 items-center justify-center md:gap-6 text-sm font-medium">
-          {(user ? navLinks : publicNavLinks).map((link) => (
+          {isClient && !isUserLoading && linksToShow.map((link) => (
             <Link
               key={link.label}
               href={link.href}
@@ -84,11 +93,19 @@ export function Header() {
               {link.label}
             </Link>
           ))}
+          {isUserLoading && isClient && (
+            <div className="flex items-center gap-6">
+                {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-4 w-20" />)}
+            </div>
+          )}
         </nav>
 
         <div className="flex flex-1 items-center justify-end gap-2 sm:gap-4">
-          {isUserLoading ? (
-            <div className="h-8 w-20 animate-pulse rounded-md bg-muted" />
+          {isUserLoading || !isClient ? (
+            <div className="flex items-center gap-2">
+                <Skeleton className="h-8 w-20" />
+                <Skeleton className="h-8 w-20" />
+            </div>
           ) : user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
