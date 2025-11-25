@@ -1,9 +1,10 @@
 
 'use client';
 
-import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 
 import {
   Bell,
@@ -77,15 +78,46 @@ export default function SettingsPage() {
     }, [user, firestore]);
 
     const { data: userProfile, isLoading } = useDoc(userDocRef);
+    
+    const [preferredLanguage, setPreferredLanguage] = useState(userProfile?.preferredLanguage || 'en');
+    const [dateFormat, setDateFormat] = useState(userProfile?.dateFormat || 'dd-mm-yyyy');
+    const [notificationSettings, setNotificationSettings] = useState(userProfile?.notificationSettings || {});
 
-    const handlePreferenceChange = (key: string, value: any) => {
+    useEffect(() => {
+        if (userProfile) {
+            setPreferredLanguage(userProfile.preferredLanguage || 'en');
+            setDateFormat(userProfile.dateFormat || 'dd-mm-yyyy');
+            setNotificationSettings(userProfile.notificationSettings || {});
+        }
+    }, [userProfile]);
+
+    const handlePreferenceChange = async (key: string, value: any) => {
         if (!userDocRef) return;
-        updateDocumentNonBlocking(userDocRef, { [key]: value });
+
+        if (key === 'preferredLanguage') {
+            setPreferredLanguage(value);
+        } else if (key === 'dateFormat') {
+            setDateFormat(value);
+        }
+
+        try {
+            await updateDoc(userDocRef, { [key]: value });
+        } catch (error) {
+            console.error("Failed to update preference:", error);
+        }
     };
 
-    const handleNotificationChange = (key: string, value: boolean) => {
+    const handleNotificationChange = async (key: string, value: boolean) => {
         if (!userDocRef) return;
-        updateDocumentNonBlocking(userDocRef, { [`notificationSettings.${key}`]: value });
+        
+        const newSettings = { ...notificationSettings, [key]: value };
+        setNotificationSettings(newSettings);
+        
+        try {
+            await updateDoc(userDocRef, { [`notificationSettings.${key}`]: value });
+        } catch (error) {
+            console.error("Failed to update notification setting:", error);
+        }
     };
     
     if (isLoading) {
@@ -143,7 +175,7 @@ export default function SettingsPage() {
               description="Choose your preferred language for the app."
               control={
                 <Select 
-                    value={userProfile?.preferredLanguage || 'en'} 
+                    value={preferredLanguage} 
                     onValueChange={(value) => handlePreferenceChange('preferredLanguage', value)}
                 >
                   <SelectTrigger className="w-[180px]">
@@ -163,7 +195,7 @@ export default function SettingsPage() {
               description="Select your preferred date and time display format."
               control={
                 <Select 
-                    value={userProfile?.dateFormat || 'dd-mm-yyyy'} 
+                    value={dateFormat} 
                     onValueChange={(value) => handlePreferenceChange('dateFormat', value)}
                 >
                   <SelectTrigger className="w-[180px]">
@@ -247,25 +279,25 @@ export default function SettingsPage() {
               icon={Bell}
               title="Appointment Reminders"
               description="Get notified about your upcoming appointments."
-              control={<Switch id="appointment-reminders" checked={userProfile?.notificationSettings?.appointmentReminders ?? true} onCheckedChange={(checked) => handleNotificationChange('appointmentReminders', checked)} />}
+              control={<Switch id="appointment-reminders" checked={notificationSettings?.appointmentReminders ?? true} onCheckedChange={(checked) => handleNotificationChange('appointmentReminders', checked)} />}
             />
             <SettingItem
               icon={Bell}
               title="Prescription / Medicine Reminders"
               description="Receive alerts to take your medication on time."
-              control={<Switch id="prescription-reminders" checked={userProfile?.notificationSettings?.prescriptionReminders ?? false} onCheckedChange={(checked) => handleNotificationChange('prescriptionReminders', checked)} />}
+              control={<Switch id="prescription-reminders" checked={notificationSettings?.prescriptionReminders ?? false} onCheckedChange={(checked) => handleNotificationChange('prescriptionReminders', checked)} />}
             />
             <SettingItem
               icon={Bell}
               title="Vaccination Reminders"
               description="Stay updated on vaccine schedules."
-              control={<Switch id="vaccination-reminders" checked={userProfile?.notificationSettings?.vaccinationReminders ?? true} onCheckedChange={(checked) => handleNotificationChange('vaccinationReminders', checked)} />}
+              control={<Switch id="vaccination-reminders" checked={notificationSettings?.vaccinationReminders ?? true} onCheckedChange={(checked) => handleNotificationChange('vaccinationReminders', checked)} />}
             />
             <SettingItem
               icon={Bell}
               title="Health Tips / AI Suggestions"
               description="Receive occasional wellness tips and suggestions."
-              control={<Switch id="health-tips" checked={userProfile?.notificationSettings?.healthTips ?? false} onCheckedChange={(checked) => handleNotificationChange('healthTips', checked)} />}
+              control={<Switch id="health-tips" checked={notificationSettings?.healthTips ?? false} onCheckedChange={(checked) => handleNotificationChange('healthTips', checked)} />}
             />
 
             <div className="pt-6">
@@ -275,19 +307,19 @@ export default function SettingsPage() {
                   icon={Mail}
                   title="Email Preferences"
                   description="Receive notifications via email."
-                  control={<Switch id="email-prefs" checked={userProfile?.notificationSettings?.email ?? true} onCheckedChange={(checked) => handleNotificationChange('email', checked)} />}
+                  control={<Switch id="email-prefs" checked={notificationSettings?.email ?? true} onCheckedChange={(checked) => handleNotificationChange('email', checked)} />}
                 />
                 <SettingItem
                   icon={Smartphone}
                   title="SMS Preferences"
                   description="Receive critical alerts via text message."
-                  control={<Switch id="sms-prefs" checked={userProfile?.notificationSettings?.sms ?? false} onCheckedChange={(checked) => handleNotificationChange('sms', checked)} />}
+                  control={<Switch id="sms-prefs" checked={notificationSettings?.sms ?? false} onCheckedChange={(checked) => handleNotificationChange('sms', checked)} />}
                 />
                 <SettingItem
                   icon={Bell}
                   title="Push Preferences"
                   description="Get notifications directly on your device."
-                  control={<Switch id="push-prefs" checked={userProfile?.notificationSettings?.push ?? true} onCheckedChange={(checked) => handleNotificationChange('push', checked)} />}
+                  control={<Switch id="push-prefs" checked={notificationSettings?.push ?? true} onCheckedChange={(checked) => handleNotificationChange('push', checked)} />}
                 />
               </div>
             </div>
