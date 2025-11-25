@@ -240,8 +240,14 @@ export default function AppointmentsPage() {
                   setSelectedTime(undefined);
                 }}
                 disabled={(date) => {
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  if (date < today) {
+                    return true;
+                  }
                   const dateString = format(date, 'yyyy-MM-dd');
-                  return !selectedDoctor?.availableSlots[dateString] || date < new Date(new Date().setHours(0,0,0,0));
+                  const availableSlots = selectedDoctor?.availableSlots[dateString];
+                  return !availableSlots || availableSlots.length === 0;
                 }}
                 initialFocus
               />
@@ -281,5 +287,3 @@ export default function AppointmentsPage() {
     </>
   );
 }
-
-    
