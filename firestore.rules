@@ -114,8 +114,8 @@ service cloud.firestore {
        * @description A doctor's list of their patients. Only the doctor can manage this list.
        */
       match /patients/{patientId} {
-        allow read, list: if isOwner(userId); // Only the doctor can see their own patient list
-        allow write: if isOwner(userId); // Only the doctor can add/remove patients from their list
+        // A doctor can list, read, and write to their own patient list.
+        allow read, list, write: if isOwner(userId); 
       }
 
       /**
