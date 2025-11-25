@@ -52,6 +52,29 @@
           "items": {
             "type": "string"
           }
+        },
+        "bloodGroup": {
+            "type": "string",
+            "description": "User's blood group.",
+            "enum": ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
+        },
+        "maritalStatus": {
+            "type": "string",
+            "description": "User's marital status.",
+            "enum": ["Single", "Married", "Divorced", "Widowed", "Prefer not to say"]
+        },
+        "address": {
+            "type": "string",
+            "description": "User's full address (City, State, ZIP)."
+        },
+        "emergencyContact": {
+            "type": "object",
+            "description": "User's emergency contact information.",
+            "properties": {
+                "name": {"type": "string"},
+                "phone": {"type": "string"},
+                "relation": {"type": "string"}
+            }
         }
       },
       "required": [

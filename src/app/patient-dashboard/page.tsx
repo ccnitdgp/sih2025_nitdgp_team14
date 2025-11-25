@@ -179,7 +179,7 @@ export default function PatientDashboardPage() {
                           <h3 className="font-semibold text-xl">{userProfile?.firstName} {userProfile?.lastName}</h3>
                           <p className="text-sm text-muted-foreground">{user?.email}</p>
                           <Button variant="link" asChild className="mt-4 text-primary">
-                              <Link href="#">
+                              <Link href="/patient-profile">
                                   View Full Profile <ArrowRight className="ml-2 h-4 w-4" />
                               </Link>
                           </Button>
