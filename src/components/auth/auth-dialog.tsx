@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { CalendarIcon, Eye, EyeOff } from "lucide-react";
+import { CalendarIcon, Eye, EyeOff, User, Stethoscope } from "lucide-react";
 import { useAuth } from "@/firebase";
 import { initiateEmailSignIn, initiateEmailSignUp, sendPasswordReset } from "@/firebase/non-blocking-login";
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
@@ -38,7 +38,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import Link from "next/link";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -48,7 +49,9 @@ const loginSchema = z.object({
 const signupSchema = z.object({
   firstName: z.string().min(2, { message: "First name must be at least 2 characters." }),
   lastName: z.string().min(2, { message: "Last name must be at least 2 characters." }),
-  role: z.string({ required_error: "Please select a role." }),
+  role: z.enum(["patient", "doctor"], {
+    required_error: "You need to select a role.",
+  }),
   dateOfBirth: z.date({
     required_error: "A date of birth is required.",
   }),
@@ -166,8 +169,10 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
     }}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-md p-0">
+        <ScrollArea className="max-h-[90vh]">
+        <div className="p-6">
         <Tabs defaultValue={defaultTab} className="w-full">
-          <DialogHeader className="p-6 pb-0">
+          <DialogHeader className="pb-0">
             <div className="flex justify-center mb-4">
               <Logo />
             </div>
@@ -180,7 +185,7 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
           </DialogHeader>
 
           {isForgotPassword ? (
-            <div className="p-6">
+            <div className="pt-6">
               <DialogTitle className="text-xl font-bold text-center mb-1">
                 Forgot Password
               </DialogTitle>
@@ -213,7 +218,7 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
             </div>
           ) : (
             <>
-              <TabsContent value="login" className="p-6">
+              <TabsContent value="login" className="pt-6">
                 <DialogTitle className="text-xl font-bold text-center mb-1">
                   Welcome Back
                 </DialogTitle>
@@ -265,7 +270,7 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
                 </Form>
               </TabsContent>
 
-              <TabsContent value="signup" className="p-6">
+              <TabsContent value="signup" className="pt-6">
                 <DialogTitle className="text-xl font-bold text-center mb-1">
                   Join Swasthya
                 </DialogTitle>
@@ -274,6 +279,42 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
                 </DialogDescription>
                 <Form {...signupForm}>
                   <form onSubmit={signupForm.handleSubmit(handleSignUp)} className="space-y-4">
+                    <FormField
+                      control={signupForm.control}
+                      name="role"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <FormLabel>I am a...</FormLabel>
+                          <FormControl>
+                            <RadioGroup
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                              className="grid grid-cols-2 gap-4"
+                            >
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="patient" id="patient" className="sr-only" />
+                                </FormControl>
+                                <FormLabel htmlFor="patient" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer w-full">
+                                  <User className="mb-3 h-6 w-6" />
+                                  Patient
+                                </FormLabel>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="doctor" id="doctor" className="sr-only" />
+                                </FormControl>
+                                <FormLabel htmlFor="doctor" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer w-full">
+                                  <Stethoscope className="mb-3 h-6 w-6" />
+                                  Doctor
+                                </FormLabel>
+                              </FormItem>
+                            </RadioGroup>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     <div className="grid grid-cols-2 gap-4">
                       <FormField
                         control={signupForm.control}
@@ -302,29 +343,6 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
                         )}
                       />
                     </div>
-                    
-                    <FormField
-                      control={signupForm.control}
-                      name="role"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Role</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select your role" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="patient">Patient</SelectItem>
-                              <SelectItem value="doctor">Doctor</SelectItem>
-                              <SelectItem value="admin">Administrator</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
 
                     <FormField
                       control={signupForm.control}
@@ -446,6 +464,8 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
             </>
           )}
         </Tabs>
+        </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
