@@ -18,7 +18,7 @@ export function HeroSection() {
             <p className="max-w-[600px] text-lg text-muted-foreground">
               Access vaccination drives, health camps, and your medical records with ease.
             </p>
-            <form className="flex w-full max-w-md items-center space-x-2">
+            <form className="flex w-full max-w-md items-center space-x-2" suppressHydrationWarning>
               <Input type="text" placeholder="Search for camps, vaccines..." className="flex-1" />
               <Button type="submit" variant="default">
                 <Search className="mr-2 h-4 w-4" /> Search
