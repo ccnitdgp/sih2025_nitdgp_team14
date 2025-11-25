@@ -66,7 +66,11 @@ export default function AppointmentsPage() {
     }
   };
 
-  const suggestedDoctors = suggestion ? doctors.filter(doc => doc.specialty === suggestion.specialistSuggestion) : doctors;
+  const filteredDoctors = suggestion
+    ? doctors.filter(doc => doc.specialty === suggestion.specialistSuggestion)
+    : doctors;
+    
+  const doctorsToShow = filteredDoctors.length > 0 ? filteredDoctors : doctors;
 
   return (
     <div className="container mx-auto max-w-4xl px-6 py-12">
@@ -115,9 +119,16 @@ export default function AppointmentsPage() {
         </Card>
 
         <div>
-          <h2 className="text-3xl font-bold tracking-tight mb-6">Doctors Near You</h2>
+          <h2 className="text-3xl font-bold tracking-tight mb-6">
+            {suggestion ? `Suggested ${suggestion.specialistSuggestion}s` : 'Doctors Near You'}
+          </h2>
+          {suggestion && filteredDoctors.length === 0 && (
+              <p className="text-center text-muted-foreground mb-6">
+                No doctors found for the suggested specialty. Showing all doctors.
+              </p>
+          )}
           <div className="space-y-6">
-            {(suggestion ? suggestedDoctors : doctors).map((doctor, index) => (
+            {doctorsToShow.map((doctor, index) => (
               <Card key={index} className="transition-shadow hover:shadow-lg">
                 <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
                   <div className="flex items-center gap-4">
@@ -150,9 +161,6 @@ export default function AppointmentsPage() {
                 </CardContent>
               </Card>
             ))}
-            {suggestion && suggestedDoctors.length === 0 && (
-                <p className="text-center text-muted-foreground">No doctors found for the suggested specialty. Showing all doctors.</p>
-            )}
           </div>
         </div>
       </div>
