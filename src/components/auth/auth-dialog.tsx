@@ -8,8 +8,8 @@ import * as z from "zod";
 import { CalendarIcon, Eye, EyeOff, User, Stethoscope } from "lucide-react";
 import { useAuth } from "@/firebase";
 import { initiateEmailSignIn, initiateEmailSignUp, sendPasswordReset } from "@/firebase/non-blocking-login";
-import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { doc } from 'firebase/firestore';
+import { setDocumentNonBlocking, addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { doc, collection } from 'firebase/firestore';
 import { useFirestore } from "@/firebase";
 import { format } from "date-fns";
 
@@ -66,12 +66,16 @@ const signupSchema = z.object({
   phoneNumber: z.string().min(10, { message: "Phone number must be at least 10 digits." }),
   email: z.string().email({ message: "Invalid email address." }),
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+  doctorId: z.string().optional(),
 });
 
 type AuthDialogProps = {
   trigger: React.ReactNode;
   defaultTab?: "login" | "signup";
 };
+
+// This is a placeholder. In a real app, you'd have a system to assign doctors.
+const HARDCODED_DOCTOR_ID = "Y43GFgpcD3QY6xGM3f83hTzYV5i2";
 
 export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
   const [open, setOpen] = useState(false);
@@ -104,6 +108,7 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
       emergencyContactName: "",
       emergencyContactPhone: "",
       emergencyContactRelation: "",
+      doctorId: HARDCODED_DOCTOR_ID,
     },
   });
 
@@ -134,9 +139,23 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
             phone: values.emergencyContactPhone,
             relation: values.emergencyContactRelation,
           },
+          doctorId: values.role === 'patient' ? HARDCODED_DOCTOR_ID : undefined,
         };
         const userDocRef = doc(firestore, 'users', user.uid);
         setDocumentNonBlocking(userDocRef, userProfile, { merge: true });
+
+        // If a patient signs up, add them to the doctor's patient list
+        if (userProfile.role === 'patient' && userProfile.doctorId) {
+          const doctorPatientsColRef = collection(firestore, 'users', userProfile.doctorId, 'patients');
+          const patientLinkDoc = {
+            patientId: user.uid,
+            firstName: values.firstName,
+            lastName: values.lastName,
+            email: values.email
+          };
+          const patientDocInDoctorList = doc(doctorPatientsColRef, user.uid);
+          setDocumentNonBlocking(patientDocInDoctorList, patientLinkDoc, {});
+        }
       }
       setOpen(false);
     } catch (error: any) {
@@ -604,5 +623,3 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
     </Dialog>
   );
 }
-
-    

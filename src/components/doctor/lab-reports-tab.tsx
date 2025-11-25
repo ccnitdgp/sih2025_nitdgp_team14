@@ -10,18 +10,17 @@ import {
 } from '@/components/ui/card';
 import { FlaskConical, PlusCircle, FileDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export default function LabReportsPage() {
-  const { user } = useUser();
+export function LabReportsTab({ patientId }: { patientId: string }) {
   const firestore = useFirestore();
 
   const labReportsRef = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
-    return collection(firestore, `users/${user.uid}/healthRecords`);
-  }, [user, firestore]);
+    if (!patientId || !firestore) return null;
+    return collection(firestore, `users/${patientId}/healthRecords`);
+  }, [patientId, firestore]);
   
   const { data: labReports, isLoading } = useCollection(labReportsRef);
 
@@ -48,10 +47,10 @@ export default function LabReportsPage() {
             <CardTitle className="text-2xl">Lab Reports</CardTitle>
             </div>
             <CardDescription>
-                View and manage your diagnostic lab reports.
+                View and manage patient's diagnostic lab reports.
             </CardDescription>
         </div>
-        <Button disabled>
+        <Button>
             <PlusCircle className="mr-2 h-4 w-4"/>
             Upload Report
         </Button>
@@ -68,14 +67,14 @@ export default function LabReportsPage() {
                           Date: {report.details.date} - Issued by: {report.details.issuer}
                       </p>
                   </div>
-                   <Button variant="outline" size="sm" disabled>
+                   <Button variant="outline" size="sm">
                       <FileDown className="mr-2 h-4 w-4"/>
                       Download
                   </Button>
               </Card>
             ))
         ) : (
-          !isLoading && <p className="text-muted-foreground text-center py-4">No lab reports uploaded yet.</p>
+          !isLoading && <p className="text-muted-foreground text-center py-4">No lab reports uploaded for this patient yet.</p>
         )}
       </CardContent>
     </Card>

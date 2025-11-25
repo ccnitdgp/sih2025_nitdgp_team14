@@ -1,31 +1,27 @@
+
 /**
  * Core Philosophy: This ruleset enforces a strict user-ownership model for all private data,
  * while allowing public read access to general information like health camps and vaccination drives.
- * The primary goal is to ensure that a user can only ever access their own information.
+ * The primary goal is to ensure that a user can only ever access their own information, unless
+ * they are a doctor, in which case they can access the data of patients assigned to them.
  *
- * Data Structure: All private user data, including profiles, health records, and notifications,
- * is nested under the `/users/{userId}` path. This path-based ownership is the cornerstone of
- * the security model. Publicly accessible data, such as `vaccinationDrives` and `healthCamps`,
- * is stored in separate top-level collections for clear segregation and simpler access rules.
+ * Data Structure: All user data is stored under `/users/{userId}`. Private subcollections like
+ * `healthRecords` are nested within this structure. For doctors, a `patients` subcollection
+ * exists at `/users/{doctorId}/patients/{patientId}` which links them to their patients' data.
+ * This structure is key to our security model.
  *
  * Key Security Decisions:
  * - User Enumeration is explicitly disallowed by disabling list access on the top-level `/users` collection.
- * - Public data collections (`vaccinationDrives`, `healthCamps`) are read-only for all users. Write access
- *   is currently disabled pending the addition of an admin role system or document-level ownership fields.
+ * - Public data collections (`vaccinationDrives`, `healthCamps`) are read-only for all users.
  * - All write operations on user-owned data require the user to be authenticated and their UID to match
  *   the `userId` in the document path.
- * - Relational integrity is enforced on create and update for fields critical to authorization (e.g., ensuring a
- *   health record's `userId` field matches the path it's created under).
+ * - Doctors can read patient data (`/users/{patientId}`) ONLY IF a corresponding document exists in their
+ *   own patient list (`/users/{request.auth.uid}/patients/{patientId}`). This is a critical security check.
  *
  * Denormalization for Authorization: The data structure is designed to be self-sufficient for authorization.
  * By nesting user-specific collections like `healthRecords` under `/users/{userId}`, we can write fast, simple
- * rules that rely only on the document path (`isOwner(userId)`) without needing slow and costly `get()` calls
- * to other documents to verify ownership.
- *
- * Structural Segregation: The design separates private user data (e.g., `healthRecords`) from public data
- * (`healthCamps`) by placing them in different collections (`/users/{userId}/healthRecords` vs. `/healthCamps`).
- * This is a highly secure and performant pattern that prevents accidental data exposure and simplifies rules
- * for list operations.
+ * rules that rely only on the document path (`isOwner(userId)`) or the doctor-patient link. This avoids
+ * slow and costly `get()` calls to other documents to verify ownership.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -56,7 +52,22 @@ service cloud.firestore {
     function isExistingOwner(userId) {
       return isOwner(userId) && resource != null;
     }
-    
+
+    /**
+     * Checks if the requesting user is a doctor.
+     */
+    function isDoctor() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor';
+    }
+
+    /**
+     * Checks if the requesting user is the assigned doctor for the given patient (userId).
+     * This is the core of the doctor-patient access control.
+     */
+    function isAssignedDoctor(patientId) {
+      return isDoctor() && exists(/databases/$(database)/documents/users/$(request.auth.uid)/patients/$(patientId));
+    }
+
     /**
      * Validates that the UserProfile 'id' field matches the document ID on create.
      */
@@ -84,8 +95,7 @@ service cloud.firestore {
      * Ensures the 'id' field of a UserProfile cannot be changed on update.
      */
     function userProfileIdIsImmutable() {
-      // Allow update if 'id' field is not being modified.
-      return !('id' in request.resource.data) || request.resource.data.id == resource.data.id;
+      return request.resource.data.id == resource.data.id;
     }
 
 
@@ -93,49 +103,37 @@ service cloud.firestore {
     // User Data Collections
     // =====================================================================
 
-    /**
-     * @description Manages user profile documents. Only the owner can manage their own profile.
-     * @path /users/{userId}
-     * @allow (create) An authenticated user creating their own profile: `auth.uid == 'user_abc'`, `create /users/user_abc`
-     * @deny (get) An authenticated user trying to read another user's profile: `auth.uid == 'user_123'`, `get /users/user_abc`
-     * @deny (list) Any user trying to list all user profiles.
-     * @principle Restricts access to a user's own data tree and prevents user enumeration.
-     */
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false;
+      allow get: if isOwner(userId) || isAssignedDoctor(userId);
+      allow list: if false; // Prevent listing all users
       allow create: if isOwner(userId) && userProfileIdMatchesDocIdOnCreate(userId);
       allow update: if isOwner(userId) && userProfileIdIsImmutable();
-      allow delete: if isExistingOwner(userId);
+      allow delete: if isOwner(userId);
+
+      /**
+       * @description A doctor's list of their patients. Only the doctor can manage this list.
+       */
+      match /patients/{patientId} {
+        allow get, list, create, update, delete: if isOwner(userId); // Only the doctor can manage their patient list
+      }
 
       /**
        * @description Manages a user's private health records.
-       * @path /users/{userId}/healthRecords/{healthRecordId}
-       * @allow (create) A user creating a health record for themselves: `auth.uid == 'user_abc'`, `create /users/user_abc/healthRecords/rec_1`
-       * @deny (list) A user trying to list health records for another user: `auth.uid == 'user_123'`, `list /users/user_abc/healthRecords`
-       * @principle Enforces strict document ownership within a user's private subcollection.
+       * Access is granted to the patient themselves or their assigned doctor.
        */
       match /healthRecords/{healthRecordId} {
-        allow get: if isOwner(userId);
-        allow list: if isOwner(userId);
-        allow create: if isOwner(userId) && hasCorrectUserIdOnCreate(userId);
-        allow update: if isExistingOwner(userId) && userIdIsImmutable();
-        allow delete: if isExistingOwner(userId);
+        allow read, list: if isOwner(userId) || isAssignedDoctor(userId);
+        allow create: if (isOwner(userId) || isAssignedDoctor(userId)) && hasCorrectUserIdOnCreate(userId);
+        allow update, delete: if isAssignedDoctor(userId) && userIdIsImmutable();
       }
 
       /**
        * @description Manages a user's private medical notifications.
-       * @path /users/{userId}/notifications/{notificationId}
-       * @allow (get) A user reading their own notification: `auth.uid == 'user_abc'`, `get /users/user_abc/notifications/notif_1`
-       * @deny (create) A user trying to create a notification for another user: `auth.uid == 'user_123'`, `create /users/user_abc/notifications/notif_1`
-       * @principle Enforces strict document ownership within a user's private subcollection.
        */
       match /notifications/{notificationId} {
-        allow get: if isOwner(userId);
-        allow list: if isOwner(userId);
+        allow get, list: if isOwner(userId);
         allow create: if isOwner(userId) && hasCorrectUserIdOnCreate(userId);
-        allow update: if isExistingOwner(userId) && userIdIsImmutable();
-        allow delete: if isExistingOwner(userId);
+        allow update, delete: if isOwner(userId) && userIdIsImmutable();
       }
     }
 
@@ -143,36 +141,14 @@ service cloud.firestore {
     // Public Data Collections
     // =====================================================================
 
-    /**
-     * @description Publicly readable information about vaccination drives. Writes are disabled.
-     * @path /vaccinationDrives/{vaccinationDriveId}
-     * @allow (get, list) Any user, signed in or not, can read this information.
-     * @deny (create, update, delete) All write operations are denied for security.
-     * @principle Provides public read access while defaulting to secure (denied) writes.
-     */
     match /vaccinationDrives/{vaccinationDriveId} {
-      allow get: if true;
-      allow list: if true;
-      // CRITICAL: Cannot implement owner-only writes. The 'VaccinationDrive' entity is missing an 'ownerId' or 'authorId' field.
-      allow create: if false; // TODO: Add admin validation or an ownership model to allow writes.
-      allow update: if false; // TODO: Add admin validation or an ownership model to allow writes.
-      allow delete: if false; // TODO: Add admin validation or an ownership model to allow writes.
+      allow read: if true;
+      allow write: if false; // Secure by default
     }
 
-    /**
-     * @description Publicly readable information about health camps. Writes are disabled.
-     * @path /healthCamps/{healthCampId}
-     * @allow (get, list) Any user, signed in or not, can read this information.
-     * @deny (create, update, delete) All write operations are denied for security.
-     * @principle Provides public read access while defaulting to secure (denied) writes.
-     */
     match /healthCamps/{healthCampId} {
-      allow get: if true;
-      allow list: if true;
-      // CRITICAL: Cannot implement owner-only writes. The 'HealthCamp' entity is missing an 'ownerId' or 'authorId' field.
-      allow create: if false; // TODO: Add admin validation or an ownership model to allow writes.
-      allow update: if false; // TODO: Add admin validation or an ownership model to allow writes.
-      allow delete: if false; // TODO: Add admin validation or an ownership model to allow writes.
+      allow read: if true;
+      allow write: if false; // Secure by default
     }
   }
 }

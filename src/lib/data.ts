@@ -1,3 +1,4 @@
+
 import {
   Syringe,
   Stethoscope,
@@ -9,6 +10,7 @@ import {
   CheckCircle,
   Activity,
   Pill,
+  UserPlus
 } from 'lucide-react';
 
 type Stat = {

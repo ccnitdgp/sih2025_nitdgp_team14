@@ -1,6 +1,29 @@
 
 {
   "entities": {
+    "PatientLink": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PatientLink",
+      "type": "object",
+      "description": "Represents a link to a patient in a doctor's patient list.",
+      "properties": {
+        "patientId": {
+          "type": "string",
+          "description": "The UID of the linked patient."
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string",
+          "format": "email"
+        }
+      },
+      "required": ["patientId", "firstName", "lastName", "email"]
+    },
     "UserProfile": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "UserProfile",
@@ -10,6 +33,10 @@
         "id": {
           "type": "string",
           "description": "Unique identifier for the UserProfile entity."
+        },
+        "doctorId": {
+          "type": "string",
+          "description": "The UID of the assigned doctor (for patients)."
         },
         "firstName": {
           "type": "string",
@@ -279,6 +306,18 @@
         }
       },
       {
+        "path": "/users/{doctorId}/patients/{patientId}",
+        "definition": {
+          "entityName": "PatientLink",
+          "schema": { "$ref": "#/backend/entities/PatientLink" },
+          "description": "Stores a link to a patient associated with a doctor.",
+          "params": [
+            { "name": "doctorId", "description": "The UID of the doctor." },
+            { "name": "patientId", "description": "The UID of the patient." }
+          ]
+        }
+      },
+      {
         "path": "/users/{userId}/healthRecords/{healthRecordId}",
         "definition": {
           "entityName": "HealthRecord",
@@ -354,5 +393,3 @@
     "reasoning": "The Firestore data structure is designed to support the Swasthya application's core features, including user authentication, vaccination drive information, health camp details, medical notifications, user health records, and multilingual support. The structure prioritizes authorization independence, clarity, and scalability.\\n\\n**Authorization Independence and QAPs:**\\n\\n*   **UserProfile:** User profiles are stored under `/users/{userId}`, providing path-based ownership for private user data. This eliminates the need for complex rules involving `get()` calls, as access control is directly tied to the user's ID.\\n*   **HealthRecord:** Health records are stored under `/users/{userId}/healthRecords/{healthRecordId}`, establishing a clear ownership hierarchy. Authorization rules can efficiently verify that only the authenticated user can access their own health records. This supports QAPs because listing health records for a specific user is straightforward and secure without filtering based on document content.\\n*   **VaccinationDrive and HealthCamp:** Vaccination drives and health camps are stored in root-level collections (`/vaccinationDrives` and `/healthCamps`). This segregation simplifies data management and allows for different security rules to be applied to public events versus private user data.\\n*   **MedicalNotification:** Medical notifications are stored under `/users/{userId}/notifications/{notificationId}`. The `userId` field ensures that only the intended user can access the notifications, supporting QAPs by allowing secure and efficient listing of notifications for a specific user without complex filtering.\\n\\nThis design adheres to the core principles by avoiding hierarchical authorization dependencies (`get()`), making authorization intent explicit, using path-based ownership for private data, and enabling secure `list` operations by segregating data based on access needs."
   }
 }
-
-    
