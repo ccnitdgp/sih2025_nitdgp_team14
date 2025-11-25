@@ -5,10 +5,9 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Lightbulb, Sparkles, User, MapPin, Calendar, Star } from 'lucide-react';
+import { Lightbulb, Sparkles, MapPin, Calendar as CalendarIcon, Star, Clock } from 'lucide-react';
 import { getSpecialistSuggestion, type SymptomCheckerOutput } from '@/ai/flows/symptom-checker-flow';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
@@ -18,6 +17,10 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { Calendar } from '@/components/ui/calendar';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { format } from 'date-fns';
 
 const doctors = [
   {
@@ -28,12 +31,11 @@ const doctors = [
     rating: 4.9,
     reviews: 120,
     avatar: 'https://picsum.photos/seed/doc1/200',
-    availableSlots: [
-        { date: '2024-09-01', time: '10:00 AM' },
-        { date: '2024-09-01', time: '11:30 AM' },
-        { date: '2024-09-02', time: '02:00 PM' },
-        { date: '2024-09-02', time: '04:00 PM' },
-    ],
+    availableSlots: {
+      '2024-09-01': ['10:00 AM', '11:30 AM'],
+      '2024-09-02': ['02:00 PM', '04:00 PM'],
+      '2024-09-03': ['10:00 AM', '11:00 AM', '12:00 PM'],
+    }
   },
   {
     name: 'Dr. Vikram Singh',
@@ -43,11 +45,10 @@ const doctors = [
     rating: 4.8,
     reviews: 85,
     avatar: 'https://picsum.photos/seed/doc2/200',
-    availableSlots: [
-        { date: '2024-08-31', time: '04:30 PM' },
-        { date: '2024-08-31', time: '05:00 PM' },
-        { date: '2024-09-01', time: '09:00 AM' },
-    ],
+     availableSlots: {
+      '2024-08-31': ['04:30 PM', '05:00 PM'],
+      '2024-09-01': ['09:00 AM'],
+    }
   },
   {
     name: 'Dr. Priya Gupta',
@@ -57,22 +58,22 @@ const doctors = [
     rating: 4.9,
     reviews: 210,
     avatar: 'https://picsum.photos/seed/doc3/200',
-    availableSlots: [
-        { date: '2024-08-31', time: '02:00 PM' },
-        { date: '2024-08-31', time: '03:15 PM' },
-        { date: '2024-09-01', time: '10:00 AM' },
-    ],
+    availableSlots: {
+      '2024-08-31': ['02:00 PM', '03:15 PM'],
+      '2024-09-01': ['10:00 AM'],
+    }
   },
 ];
 
 type Doctor = (typeof doctors)[0];
-type Slot = (typeof doctors)[0]['availableSlots'][0];
 
 export default function AppointmentsPage() {
   const [symptoms, setSymptoms] = useState('');
   const [suggestion, setSuggestion] = useState<SymptomCheckerOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedTime, setSelectedTime] = useState<string | undefined>(undefined);
   const { toast } = useToast();
 
   const handleGetSuggestion = async () => {
@@ -96,14 +97,24 @@ export default function AppointmentsPage() {
 
   const handleOpenSlots = (doctor: Doctor) => {
     setSelectedDoctor(doctor);
+    setSelectedDate(undefined);
+    setSelectedTime(undefined);
   };
 
-  const handleBookAppointment = (doctorName: string, slot: Slot) => {
-    setSelectedDoctor(null); // Close the dialog
+  const handleCloseDialog = () => {
+    setSelectedDoctor(null);
+    setSelectedDate(undefined);
+    setSelectedTime(undefined);
+  }
+
+  const handleBookAppointment = () => {
+    if (!selectedDoctor || !selectedDate || !selectedTime) return;
+    
     toast({
       title: 'Appointment Booked!',
-      description: `Your appointment with ${doctorName} on ${new Date(slot.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} at ${slot.time} has been successfully scheduled.`,
+      description: `Your appointment with ${selectedDoctor.name} on ${format(selectedDate, 'PPP')} at ${selectedTime} has been successfully scheduled.`,
     });
+    handleCloseDialog();
   };
 
   const filteredDoctors = suggestion
@@ -111,6 +122,10 @@ export default function AppointmentsPage() {
     : doctors;
     
   const doctorsToShow = filteredDoctors.length > 0 ? filteredDoctors : doctors;
+
+  const availableTimesForSelectedDate = selectedDoctor && selectedDate 
+    ? selectedDoctor.availableSlots[format(selectedDate, 'yyyy-MM-dd')] || []
+    : [];
 
   return (
     <>
@@ -188,7 +203,7 @@ export default function AppointmentsPage() {
                         <span>{doctor.location}</span>
                      </div>
                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-primary"/>
+                        <CalendarIcon className="h-4 w-4 text-primary"/>
                         <span>Next available: {doctor.nextAvailable}</span>
                      </div>
                      <div className="flex items-center gap-2">
@@ -207,34 +222,64 @@ export default function AppointmentsPage() {
       </div>
     </div>
     
-    <Dialog open={!!selectedDoctor} onOpenChange={(isOpen) => !isOpen && setSelectedDoctor(null)}>
-        <DialogContent>
+    <Dialog open={!!selectedDoctor} onOpenChange={(isOpen) => !isOpen && handleCloseDialog()}>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Book Appointment with {selectedDoctor?.name}</DialogTitle>
             <DialogDescription>
-              Select an available time slot below.
+              Select an available date and time slot below.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            <div className="grid grid-cols-2 gap-3">
-              {selectedDoctor?.availableSlots.map((slot, index) => (
-                <Button 
-                  key={index} 
-                  variant="outline"
-                  onClick={() => handleBookAppointment(selectedDoctor.name, slot)}
-                  className="flex flex-col h-auto py-2"
-                >
-                  <span>{new Date(slot.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
-                  <span className="font-bold text-base">{slot.time}</span>
-                </Button>
-              ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
+            <div className="flex justify-center">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => {
+                  setSelectedDate(date);
+                  setSelectedTime(undefined);
+                }}
+                disabled={(date) => {
+                  const dateString = format(date, 'yyyy-MM-dd');
+                  return !selectedDoctor?.availableSlots[dateString] || date < new Date(new Date().setHours(0,0,0,0));
+                }}
+                initialFocus
+              />
+            </div>
+            <div className="space-y-4">
+              <h4 className="font-semibold text-center md:text-left">Available Time Slots</h4>
+              {selectedDate ? (
+                  availableTimesForSelectedDate.length > 0 ? (
+                  <RadioGroup 
+                    value={selectedTime}
+                    onValueChange={setSelectedTime}
+                    className="grid grid-cols-2 gap-2"
+                  >
+                    {availableTimesForSelectedDate.map(time => (
+                      <div key={time} className="flex items-center">
+                        <RadioGroupItem value={time} id={time} className="peer sr-only" />
+                        <Label htmlFor={time} className="flex items-center justify-center gap-2 rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground cursor-pointer w-full peer-data-[state=checked]:border-primary [&:has(.peer[data-state=checked])]:border-primary">
+                          <Clock className="h-4 w-4"/> {time}
+                        </Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center md:text-left">No slots available on this date.</p>
+                )
+              ) : (
+                <p className="text-sm text-muted-foreground text-center md:text-left">Please select a date to see available times.</p>
+              )}
             </div>
           </div>
-          <DialogFooter>
-             <Button variant="outline" onClick={() => setSelectedDoctor(null)}>Cancel</Button>
+          <DialogFooter className="sm:justify-between">
+             <Button variant="outline" onClick={handleCloseDialog}>Cancel</Button>
+             <Button onClick={handleBookAppointment} disabled={!selectedDate || !selectedTime}>Confirm Booking</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
   );
 }
+
+    
