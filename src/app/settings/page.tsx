@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
+import { doc } from 'firebase/firestore';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
@@ -91,7 +91,7 @@ export default function SettingsPage() {
         }
     }, [userProfile]);
 
-    const handlePreferenceChange = async (key: string, value: any) => {
+    const handlePreferenceChange = (key: string, value: any) => {
         if (!userDocRef) return;
 
         if (key === 'preferredLanguage') {
@@ -100,24 +100,16 @@ export default function SettingsPage() {
             setDateFormat(value);
         }
 
-        try {
-            await updateDoc(userDocRef, { [key]: value });
-        } catch (error) {
-            console.error("Failed to update preference:", error);
-        }
+        updateDocumentNonBlocking(userDocRef, { [key]: value });
     };
 
-    const handleNotificationChange = async (key: string, value: boolean) => {
+    const handleNotificationChange = (key: string, value: boolean) => {
         if (!userDocRef) return;
         
         const newSettings = { ...notificationSettings, [key]: value };
         setNotificationSettings(newSettings);
         
-        try {
-            await updateDoc(userDocRef, { [`notificationSettings.${key}`]: value });
-        } catch (error) {
-            console.error("Failed to update notification setting:", error);
-        }
+        updateDocumentNonBlocking(userDocRef, { [`notificationSettings.${key}`]: value });
     };
     
     if (isLoading) {
