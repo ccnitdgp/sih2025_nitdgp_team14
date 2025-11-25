@@ -16,6 +16,7 @@ import { AuthDialog } from "@/components/auth/auth-dialog";
 import { useAuth, useUser } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { RoleRedirect } from "@/components/auth/role-redirect";
 
 const navLinks = [
   { href: "/vaccination", label: "Vaccination Drive" },
@@ -32,6 +33,8 @@ export function Header() {
   };
 
   return (
+    <>
+    <RoleRedirect />
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 max-w-7xl items-center justify-between">
         <div className="mr-4 flex">
@@ -121,5 +124,6 @@ export function Header() {
         </div>
       </div>
     </header>
+    </>
   );
 }
