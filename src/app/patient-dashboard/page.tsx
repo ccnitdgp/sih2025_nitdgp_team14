@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CalendarPlus, Receipt, ScanText, Mic, ArrowRight, Sparkles, Bot } from 'lucide-react';
+import { CalendarPlus, Receipt, ScanText, Mic, ArrowRight, Sparkles, Bot, BookUser, FlaskConical, History, ShieldCheck, FileText, ChevronRight } from 'lucide-react';
 import { doc } from 'firebase/firestore';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -188,6 +188,92 @@ export default function PatientDashboardPage() {
               </div>
           </div>
 
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle>My Health Records</CardTitle>
+                <CardDescription>View your medical history, prescriptions, and more.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                      <Link href="/records/medical-history" className="flex items-center gap-3 p-3 rounded-md hover:bg-muted">
+                        <History className="h-5 w-5 text-primary"/>
+                        <span className="font-medium">Medical History</span>
+                      </Link>
+                       <Link href="/records/prescriptions" className="flex items-center gap-3 p-3 rounded-md hover:bg-muted">
+                        <BookUser className="h-5 w-5 text-primary"/>
+                        <span className="font-medium">Prescriptions</span>
+                      </Link>
+                       <Link href="/records/lab-reports" className="flex items-center gap-3 p-3 rounded-md hover:bg-muted">
+                        <FlaskConical className="h-5 w-5 text-primary"/>
+                        <span className="font-medium">Lab Reports</span>
+                      </Link>
+                       <Link href="/records/vaccination-records" className="flex items-center gap-3 p-3 rounded-md hover:bg-muted">
+                        <ShieldCheck className="h-5 w-5 text-primary"/>
+                        <span className="font-medium">Vaccinations</span>
+                      </Link>
+                  </div>
+                  <Button variant="link" asChild className="mt-4 text-primary p-0 h-auto">
+                    <Link href="/records">View All <ChevronRight className="ml-1 h-4 w-4" /></Link>
+                  </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-sm">
+                <CardHeader>
+                    <CardTitle>My Bills</CardTitle>
+                    <CardDescription>A summary of your recent medical expenses.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ul className="space-y-3">
+                        <li className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Doctor's Fees</span>
+                            <span className="font-semibold">Rs. 1,500</span>
+                        </li>
+                        <li className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Medicines</span>
+                            <span className="font-semibold">Rs. 3,250</span>
+                        </li>
+                         <li className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Lab Reports & X-Rays</span>
+                            <span className="font-semibold">Rs. 5,800</span>
+                        </li>
+                         <li className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Operation Fee</span>
+                            <span className="font-semibold">Rs. 85,000</span>
+                        </li>
+                    </ul>
+                     <Button variant="link" asChild className="mt-4 text-primary p-0 h-auto">
+                        <Link href="/billing">View All Bills <ChevronRight className="ml-1 h-4 w-4" /></Link>
+                    </Button>
+                </CardContent>
+            </Card>
+
+             <div className="lg:col-span-2">
+                <Card className="shadow-sm">
+                  <CardHeader>
+                    <CardTitle>My Documents</CardTitle>
+                    <CardDescription>Manage your insurance and vaccination files.</CardDescription>
+                  </CardHeader>
+                   <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Link href="#" className="flex items-center gap-3 p-4 rounded-lg border hover:bg-muted">
+                        <FileText className="h-6 w-6 text-primary"/>
+                        <div>
+                            <h4 className="font-semibold">Insurance Policy</h4>
+                            <p className="text-sm text-muted-foreground">View and download your policy.</p>
+                        </div>
+                      </Link>
+                      <Link href="/records/vaccination-records" className="flex items-center gap-3 p-4 rounded-lg border hover:bg-muted">
+                        <FileText className="h-6 w-6 text-primary"/>
+                        <div>
+                            <h4 className="font-semibold">Vaccination Certificate</h4>
+                            <p className="text-sm text-muted-foreground">Access your COVID-19 certificate.</p>
+                        </div>
+                      </Link>
+                   </CardContent>
+                </Card>
+            </div>
+          </div>
         </div>
       </div>
     </div>
