@@ -76,6 +76,23 @@
                 "relation": {"type": "string"}
             },
             "required": ["name", "phone", "relation"]
+        },
+        "dateFormat": {
+          "type": "string",
+          "description": "User's preferred date format."
+        },
+        "notificationSettings": {
+            "type": "object",
+            "description": "User's notification preferences.",
+            "properties": {
+                "appointmentReminders": {"type": "boolean"},
+                "prescriptionReminders": {"type": "boolean"},
+                "vaccinationReminders": {"type": "boolean"},
+                "healthTips": {"type": "boolean"},
+                "email": {"type": "boolean"},
+                "sms": {"type": "boolean"},
+                "push": {"type": "boolean"}
+            }
         }
       },
       "required": [
