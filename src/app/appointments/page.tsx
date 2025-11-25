@@ -28,7 +28,12 @@ const doctors = [
     rating: 4.9,
     reviews: 120,
     avatar: 'https://picsum.photos/seed/doc1/200',
-    availableSlots: ['10:00 AM', '10:30 AM', '11:00 AM', '02:00 PM', '02:30 PM', '04:00 PM'],
+    availableSlots: [
+        { date: '2024-09-01', time: '10:00 AM' },
+        { date: '2024-09-01', time: '11:30 AM' },
+        { date: '2024-09-02', time: '02:00 PM' },
+        { date: '2024-09-02', time: '04:00 PM' },
+    ],
   },
   {
     name: 'Dr. Vikram Singh',
@@ -38,7 +43,11 @@ const doctors = [
     rating: 4.8,
     reviews: 85,
     avatar: 'https://picsum.photos/seed/doc2/200',
-    availableSlots: ['04:30 PM', '05:00 PM', '05:30 PM'],
+    availableSlots: [
+        { date: '2024-08-31', time: '04:30 PM' },
+        { date: '2024-08-31', time: '05:00 PM' },
+        { date: '2024-09-01', time: '09:00 AM' },
+    ],
   },
   {
     name: 'Dr. Priya Gupta',
@@ -48,11 +57,16 @@ const doctors = [
     rating: 4.9,
     reviews: 210,
     avatar: 'https://picsum.photos/seed/doc3/200',
-    availableSlots: ['02:00 PM', '02:15 PM', '02:30 PM', '03:00 PM'],
+    availableSlots: [
+        { date: '2024-08-31', time: '02:00 PM' },
+        { date: '2024-08-31', time: '03:15 PM' },
+        { date: '2024-09-01', time: '10:00 AM' },
+    ],
   },
 ];
 
 type Doctor = (typeof doctors)[0];
+type Slot = (typeof doctors)[0]['availableSlots'][0];
 
 export default function AppointmentsPage() {
   const [symptoms, setSymptoms] = useState('');
@@ -84,11 +98,11 @@ export default function AppointmentsPage() {
     setSelectedDoctor(doctor);
   };
 
-  const handleBookAppointment = (doctorName: string, slot: string) => {
+  const handleBookAppointment = (doctorName: string, slot: Slot) => {
     setSelectedDoctor(null); // Close the dialog
     toast({
       title: 'Appointment Booked!',
-      description: `Your appointment with ${doctorName} at ${slot} has been successfully scheduled.`,
+      description: `Your appointment with ${doctorName} on ${new Date(slot.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} at ${slot.time} has been successfully scheduled.`,
     });
   };
 
@@ -202,14 +216,16 @@ export default function AppointmentsPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <div className="grid grid-cols-3 gap-3">
-              {selectedDoctor?.availableSlots.map((slot) => (
+            <div className="grid grid-cols-2 gap-3">
+              {selectedDoctor?.availableSlots.map((slot, index) => (
                 <Button 
-                  key={slot} 
+                  key={index} 
                   variant="outline"
                   onClick={() => handleBookAppointment(selectedDoctor.name, slot)}
+                  className="flex flex-col h-auto py-2"
                 >
-                  {slot}
+                  <span>{new Date(slot.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+                  <span className="font-bold text-base">{slot.time}</span>
                 </Button>
               ))}
             </div>
