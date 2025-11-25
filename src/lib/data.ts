@@ -131,36 +131,85 @@ export const testimonials = [
   },
 ];
 
-export const healthRecords = [
+export const medicalHistory = [
+  "Irregular periods",
+  "Fracture in left hand",
+  "Appendix",
+];
+
+
+export const prescriptions = [
+  {
+    id: 1,
+    medication: 'Metformin',
+    dosage: '500mg, twice a day',
+    doctor: 'Dr. Anjali Sharma',
+    date: '2024-07-15',
+    status: 'Active',
+  },
+  {
+    id: 2,
+    medication: 'Amlodipine',
+    dosage: '5mg, once a day',
+    doctor: 'Dr. Anjali Sharma',
+    date: '2024-07-15',
+    status: 'Active',
+  },
+  {
+    id: 3,
+    medication: 'Amoxicillin',
+    dosage: '250mg, three times a day for 7 days',
+    doctor: 'Dr. Vikram Singh',
+    date: '2024-06-01',
+    status: 'Finished',
+  },
+];
+
+export const labReports = [
+  {
+    id: 1,
+    name: 'Complete Blood Count (CBC)',
+    date: '2024-07-10',
+    issuer: 'Apollo Diagnostics',
+  },
+  {
+    id: 2,
+    name: 'Lipid Profile',
+    date: '2024-07-10',
+    issuer: 'Apollo Diagnostics',
+  },
+  {
+    id: 3,
+    name: 'Thyroid Function Test',
+    date: '2024-05-20',
+    issuer: 'Max Labs',
+  },
+];
+
+export const vaccinationRecords = [
     {
-        id: 'REC001',
-        recordType: 'Vaccination Certificate',
-        date: '2023-05-15',
-        details: 'COVID-19 Booster (Pfizer)',
-        issuer: 'City Health Center',
+        id: 1,
+        vaccine: 'COVID-19 (Covishield)',
+        dose: 1,
+        date: '2021-04-12',
+        location: 'City General Hospital'
     },
     {
-        id: 'REC002',
-        recordType: 'Blood Test Report',
-        date: '2024-01-20',
-        details: 'Complete Blood Count (CBC)',
-        issuer: 'Green Valley Hospital',
+        id: 2,
+        vaccine: 'COVID-19 (Covishield)',
+        dose: 2,
+        date: '2021-07-05',
+        location: 'City General Hospital'
     },
     {
-        id: 'REC003',
-        recordType: 'Doctor\'s Prescription',
-        date: '2024-06-10',
-        details: 'Prescription for seasonal allergies',
-        issuer: 'Dr. Rahul Verma',
-    },
-    {
-        id: 'REC004',
-        recordType: 'Dental Check-up',
-        date: '2024-02-18',
-        details: 'Routine cleaning and check-up',
-        issuer: 'Riverside Dental Clinic',
+        id: 3,
+        vaccine: 'Tetanus (TT)',
+        dose: 1,
+        date: '2023-11-20',
+        location: 'Community Health Center'
     }
 ];
+
 
 export type MedicalNotification = {
   id: number;

@@ -23,15 +23,16 @@ import { doc } from 'firebase/firestore';
 const patientNavLinks = [
   { href: "/patient-dashboard", label: "Home" },
   { href: "#", label: "Assistant" },
-  { href: "#", label: "Records" },
+  { href: "/records", label: "Records" },
   { href: "/notifications", label: "Notifications" },
-  { href: "#", label: "Appointment" },
-  { href: "#", label: "Bills" },
+  { href: "/appointments", label: "Appointment" },
+  { href: "/billing", label: "Bills" },
 ];
 
 const doctorNavLinks = [
     { href: "/doctor-dashboard", label: "Dashboard" },
     { href: "#", label: "Patients" },
+    { href: "/records", label: "Records" },
     { href: "#", label: "Appointments" },
 ];
 
