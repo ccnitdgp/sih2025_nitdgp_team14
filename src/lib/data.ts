@@ -316,3 +316,21 @@ export const billingHistory: Bill[] = [
     status: 'Paid',
   },
 ];
+
+export const personalNotifications = [
+    {
+        id: 1,
+        message: "Your appointment with Sachin Nikam on Oct 2 is confirmed.",
+        time: "about 14 hours ago"
+    },
+    {
+        id: 2,
+        message: "Your appointment with Sachin Nikam on Oct 3 is confirmed.",
+        time: "about 16 hours ago"
+    },
+    {
+        id: 3,
+        message: "Your appointment with Sachin Nikam on Oct 2 is confirmed.",
+        time: "about 16 hours ago"
+    }
+]
