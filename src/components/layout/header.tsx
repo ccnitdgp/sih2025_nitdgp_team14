@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -58,6 +59,7 @@ export function Header() {
   
   const navLinks = userProfile?.role === 'doctor' ? doctorNavLinks : patientNavLinks;
   const publicNavLinks =  [
+    { href: "/", label: "Home" },
     { href: "/vaccination", label: "Vaccination Drive" },
     { href: "/camps", label: "Visiting Camps" },
     { href: "/notifications", label: "Medical Notification" },
@@ -67,12 +69,12 @@ export function Header() {
     <>
     <RoleRedirect />
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 max-w-7xl items-center justify-between">
-        <div className="mr-4 flex">
+      <div className="container flex h-16 max-w-7xl items-center">
+        <div className="flex-1 flex items-center justify-start">
           <Logo />
         </div>
         
-        <nav className="hidden md:flex md:items-center md:gap-6 text-sm font-medium">
+        <nav className="hidden md:flex flex-1 items-center justify-center md:gap-6 text-sm font-medium">
           {(user ? navLinks : publicNavLinks).map((link) => (
             <Link
               key={link.label}
