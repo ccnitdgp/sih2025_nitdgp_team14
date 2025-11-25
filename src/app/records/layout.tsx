@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import {
   ArrowLeft,
   BookUser,
-  FileScan,
+  ScanText,
   FlaskConical,
   History,
   ShieldCheck,
@@ -28,7 +28,7 @@ const sidebarNavItems = [
   {
     title: 'Analyze Prescription',
     href: '/analyze-prescription',
-    icon: FileScan,
+    icon: ScanText,
   },
   {
     title: 'Lab Reports',
@@ -51,7 +51,7 @@ export default function RecordsLayout({ children }: RecordsLayoutProps) {
 
   return (
     <div className="container mx-auto max-w-7xl px-6 py-12">
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
+      <div className="grid grid-cols-1 gap-x-8 gap-y-10 md:grid-cols-4">
         <aside className="md:col-span-1">
           <div className="flex flex-col gap-4">
             <Button
