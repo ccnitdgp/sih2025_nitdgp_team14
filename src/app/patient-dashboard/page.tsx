@@ -31,39 +31,45 @@ export default function PatientDashboardPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="hover:shadow-lg transition-shadow">
-                  <CardContent className="pt-6 flex items-center gap-4">
-                      <div className="p-3 bg-accent/20 rounded-lg">
-                          <CalendarPlus className="h-6 w-6 text-accent" />
-                      </div>
-                      <div>
-                          <h3 className="font-semibold">Book Appointment</h3>
-                          <p className="text-sm text-muted-foreground">Find a doctor and schedule a visit</p>
-                      </div>
-                  </CardContent>
-              </Card>
-               <Card className="hover:shadow-lg transition-shadow">
-                  <CardContent className="pt-6 flex items-center gap-4">
-                      <div className="p-3 bg-accent/20 rounded-lg">
-                          <Receipt className="h-6 w-6 text-accent" />
-                      </div>
-                      <div>
-                          <h3 className="font-semibold">Pay a Bill</h3>
-                          <p className="text-sm text-muted-foreground">View and manage your medical bills</p>
-                      </div>
-                  </CardContent>
-              </Card>
-               <Card className="hover:shadow-lg transition-shadow">
-                  <CardContent className="pt-6 flex items-center gap-4">
-                      <div className="p-3 bg-accent/20 rounded-lg">
-                          <ScanText className="h-6 w-6 text-accent" />
-                      </div>
-                      <div>
-                          <h3 className="font-semibold">Analyze Prescription</h3>
-                          <p className="text-sm text-muted-foreground">Upload and extract prescription details</p>
-                      </div>
-                  </CardContent>
-              </Card>
+              <Link href="/appointments">
+                <Card className="hover:shadow-lg transition-shadow">
+                    <CardContent className="pt-6 flex items-center gap-4">
+                        <div className="p-3 bg-accent/20 rounded-lg">
+                            <CalendarPlus className="h-6 w-6 text-accent" />
+                        </div>
+                        <div>
+                            <h3 className="font-semibold">Book Appointment</h3>
+                            <p className="text-sm text-muted-foreground">Find a doctor and schedule a visit</p>
+                        </div>
+                    </CardContent>
+                </Card>
+              </Link>
+               <Link href="/billing">
+                <Card className="hover:shadow-lg transition-shadow">
+                    <CardContent className="pt-6 flex items-center gap-4">
+                        <div className="p-3 bg-accent/20 rounded-lg">
+                            <Receipt className="h-6 w-6 text-accent" />
+                        </div>
+                        <div>
+                            <h3 className="font-semibold">Pay a Bill</h3>
+                            <p className="text-sm text-muted-foreground">View and manage your medical bills</p>
+                        </div>
+                    </CardContent>
+                </Card>
+              </Link>
+              <Link href="/analyze-prescription">
+                 <Card className="hover:shadow-lg transition-shadow">
+                    <CardContent className="pt-6 flex items-center gap-4">
+                        <div className="p-3 bg-accent/20 rounded-lg">
+                            <ScanText className="h-6 w-6 text-accent" />
+                        </div>
+                        <div>
+                            <h3 className="font-semibold">Analyze Prescription</h3>
+                            <p className="text-sm text-muted-foreground">Upload and extract prescription details</p>
+                        </div>
+                    </CardContent>
+                </Card>
+              </Link>
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
