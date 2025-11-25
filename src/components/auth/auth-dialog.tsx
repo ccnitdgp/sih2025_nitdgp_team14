@@ -293,18 +293,18 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
                             >
                               <FormItem className="flex items-center space-x-3 space-y-0">
                                 <FormControl>
-                                  <RadioGroupItem value="patient" id="patient" className="sr-only" />
+                                  <RadioGroupItem value="patient" id="patient" className="peer sr-only" />
                                 </FormControl>
-                                <FormLabel htmlFor="patient" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer w-full">
+                                <FormLabel htmlFor="patient" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer w-full peer-data-[state=checked]:border-primary [&:has(.peer[data-state=checked])]:border-primary">
                                   <User className="mb-3 h-6 w-6" />
                                   Patient
                                 </FormLabel>
                               </FormItem>
                               <FormItem className="flex items-center space-x-3 space-y-0">
                                 <FormControl>
-                                  <RadioGroupItem value="doctor" id="doctor" className="sr-only" />
+                                  <RadioGroupItem value="doctor" id="doctor" className="peer sr-only" />
                                 </FormControl>
-                                <FormLabel htmlFor="doctor" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer w-full">
+                                <FormLabel htmlFor="doctor" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer w-full peer-data-[state=checked]:border-primary [&:has(.peer[data-state=checked])]:border-primary">
                                   <Stethoscope className="mb-3 h-6 w-6" />
                                   Doctor
                                 </FormLabel>
@@ -372,6 +372,9 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
                             <PopoverContent className="w-auto p-0" align="start">
                               <Calendar
                                 mode="single"
+                                captionLayout="dropdown-buttons"
+                                fromYear={1900}
+                                toYear={new Date().getFullYear()}
                                 selected={field.value}
                                 onSelect={field.onChange}
                                 disabled={(date) =>
