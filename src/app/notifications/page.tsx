@@ -2,44 +2,18 @@
 'use client';
 
 import * as React from 'react';
-import * as AccordionPrimitive from '@radix-ui/react-accordion';
 import { ChevronDown } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
+  AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Card } from '@/components/ui/card';
 import { medicalNotifications } from '@/lib/data';
 import { Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-
-const CustomAccordionTrigger = React.forwardRef<
-  React.ElementRef<typeof AccordionPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger> & {
-    hideChevron?: boolean;
-  }
->(({ className, children, hideChevron, ...props }, ref) => (
-  <AccordionPrimitive.Header className="flex">
-    <AccordionPrimitive.Trigger
-      ref={ref}
-      className={cn(
-        'flex flex-1 items-center justify-between py-4 font-medium transition-all hover:no-underline [&[data-state=open]>[data-chevron]]:rotate-180',
-        className
-      )}
-      {...props}
-    >
-      {children}
-      {!hideChevron && (
-        <ChevronDown data-chevron className="h-4 w-4 shrink-0 transition-transform duration-200" />
-      )}
-    </AccordionPrimitive.Trigger>
-  </AccordionPrimitive.Header>
-));
-CustomAccordionTrigger.displayName = AccordionPrimitive.Trigger.displayName;
-
 
 export default function NotificationsPage() {
   return (
@@ -58,11 +32,11 @@ export default function NotificationsPage() {
             <Card key={notification.id} className={cn("w-full border-l-4", notification.borderColor)}>
               <Accordion type="single" collapsible className="w-full">
                 <AccordionItem value={`item-${notification.id}`} className="border-b-0">
-                  <CustomAccordionTrigger className="p-6 hover:no-underline text-left" hideChevron>
+                  <AccordionTrigger className="p-6 hover:no-underline text-left w-full">
                     <div className="flex items-start w-full gap-4">
                       <notification.Icon className={cn("h-6 w-6 mt-1", notification.color)} />
                       <div className="flex-1 space-y-2">
-                        <h3 className="font-semibold text-lg">{notification.title}</h3>
+                        <h3 className="font-semibold text-lg text-left">{notification.title}</h3>
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
                           <Badge variant="outline" className={cn("border-none text-xs font-bold", notification.color, notification.bgColor)}>
                             {notification.category}
@@ -73,11 +47,9 @@ export default function NotificationsPage() {
                           </div>
                         </div>
                       </div>
-                       <CustomAccordionTrigger className="p-2 w-auto hover:no-underline text-sm font-medium text-primary self-center" hideChevron={false}>
-                          <span className="sr-only">View Details</span>
-                      </CustomAccordionTrigger>
+                       <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
                     </div>
-                  </CustomAccordionTrigger>
+                  </AccordionTrigger>
                   <AccordionContent className="px-6 pb-6">
                     <div className="pl-10">
                       <p className="text-muted-foreground">{notification.details}</p>
