@@ -56,6 +56,12 @@ const signupSchema = z.object({
     required_error: "A date of birth is required.",
   }),
   gender: z.string().optional(),
+  bloodGroup: z.string().optional(),
+  maritalStatus: z.string().optional(),
+  address: z.string().min(1, { message: "Address is required." }),
+  emergencyContactName: z.string().min(1, { message: "Emergency contact name is required." }),
+  emergencyContactPhone: z.string().min(1, { message: "Emergency contact phone is required." }),
+  emergencyContactRelation: z.string().min(1, { message: "Emergency contact relation is required." }),
   phoneNumber: z.string().min(10, { message: "Phone number must be at least 10 digits." }),
   email: z.string().email({ message: "Invalid email address." }),
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
@@ -91,6 +97,12 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
       phoneNumber: "",
       email: "",
       password: "",
+      address: "",
+      bloodGroup: undefined,
+      maritalStatus: undefined,
+      emergencyContactName: "",
+      emergencyContactPhone: "",
+      emergencyContactRelation: "",
     },
   });
 
@@ -113,6 +125,14 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
           dateOfBirth: values.dateOfBirth,
           gender: values.gender,
           phoneNumber: values.phoneNumber,
+          bloodGroup: values.bloodGroup,
+          maritalStatus: values.maritalStatus,
+          address: values.address,
+          emergencyContact: {
+            name: values.emergencyContactName,
+            phone: values.emergencyContactPhone,
+            relation: values.emergencyContactRelation,
+          },
         };
         const userDocRef = doc(firestore, 'users', user.uid);
         setDocumentNonBlocking(userDocRef, userProfile, { merge: true });
@@ -389,23 +409,76 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
                       )}
                     />
 
-                    <FormField
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                        control={signupForm.control}
+                        name="gender"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Gender</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select..." />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                <SelectItem value="Male">Male</SelectItem>
+                                <SelectItem value="Female">Female</SelectItem>
+                                <SelectItem value="Other">Other</SelectItem>
+                                <SelectItem value="Prefer not to say">Prefer not to say</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <FormField
+                        control={signupForm.control}
+                        name="bloodGroup"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Blood Group</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select..." />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="A+">A+</SelectItem>
+                                    <SelectItem value="A-">A-</SelectItem>
+                                    <SelectItem value="B+">B+</SelectItem>
+                                    <SelectItem value="B-">B-</SelectItem>
+                                    <SelectItem value="AB+">AB+</SelectItem>
+                                    <SelectItem value="AB-">AB-</SelectItem>
+                                    <SelectItem value="O+">O+</SelectItem>
+                                    <SelectItem value="O-">O-</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                    </div>
+                     <FormField
                       control={signupForm.control}
-                      name="gender"
+                      name="maritalStatus"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Gender</FormLabel>
+                          <FormLabel>Marital Status</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select your gender" />
+                                <SelectValue placeholder="Select your marital status" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="male">Male</SelectItem>
-                              <SelectItem value="female">Female</SelectItem>
-                              <SelectItem value="other">Other</SelectItem>
-                              <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+                              <SelectItem value="Single">Single</SelectItem>
+                              <SelectItem value="Married">Married</SelectItem>
+                              <SelectItem value="Divorced">Divorced</SelectItem>
+                              <SelectItem value="Widowed">Widowed</SelectItem>
+                              <SelectItem value="Prefer not to say">Prefer not to say</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -426,6 +499,63 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
                         </FormItem>
                       )}
                     />
+
+                    <FormField
+                      control={signupForm.control}
+                      name="address"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Full Address</FormLabel>
+                          <FormControl>
+                            <Input placeholder="City, State, ZIP" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div>
+                        <FormLabel>Emergency Contact</FormLabel>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
+                             <FormField
+                                control={signupForm.control}
+                                name="emergencyContactName"
+                                render={({ field }) => (
+                                <FormItem>
+                                    <FormControl>
+                                    <Input placeholder="Name" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={signupForm.control}
+                                name="emergencyContactPhone"
+                                render={({ field }) => (
+                                <FormItem>
+                                    <FormControl>
+                                    <Input type="tel" placeholder="Phone" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={signupForm.control}
+                                name="emergencyContactRelation"
+                                render={({ field }) => (
+                                <FormItem>
+                                    <FormControl>
+                                    <Input placeholder="Relation" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                        </div>
+                    </div>
+
 
                     <FormField
                       control={signupForm.control}

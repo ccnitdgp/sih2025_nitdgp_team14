@@ -14,7 +14,7 @@ const ProfileDetail = ({ icon: Icon, label, value }) => {
   if (!value) return null;
   return (
     <div className="flex items-start gap-4">
-      <Icon className="h-5 w-5 text-primary mt-1" />
+      <Icon className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
       <div>
         <p className="text-sm font-medium text-muted-foreground">{label}</p>
         <p className="font-semibold">{value}</p>
@@ -38,7 +38,11 @@ export default function PatientProfilePage() {
     if (!dob) return null;
     // Firestore Timestamps need to be converted to JS Dates
     const date = dob.toDate ? dob.toDate() : new Date(dob);
-    return differenceInYears(new Date(), date);
+    try {
+      return differenceInYears(new Date(), date);
+    } catch (e) {
+      return null;
+    }
   };
 
   const ProfileSkeleton = () => (
@@ -141,7 +145,7 @@ export default function PatientProfilePage() {
                         <ProfileDetail icon={Home} label="Full Address" value={userProfile.address} />
                          {userProfile.emergencyContact?.name && (
                             <div className="flex items-start gap-4">
-                                <Users className="h-5 w-5 text-destructive mt-1" />
+                                <Users className="h-5 w-5 text-destructive mt-1 flex-shrink-0" />
                                 <div>
                                     <p className="text-sm font-medium text-muted-foreground">Emergency Contact</p>
                                     <p className="font-semibold">{userProfile.emergencyContact.name} ({userProfile.emergencyContact.relation})</p>
@@ -156,12 +160,10 @@ export default function PatientProfilePage() {
             ) : (
                  <Card className="text-center p-8">
                     <CardTitle>Profile Not Found</CardTitle>
-                    <CardDescription>We couldn't load your profile data. Please try again later or complete your profile if you haven't.</CardDescription>
+                    <CardDescription>We couldn't load your profile data. Please create a profile or try again later.</CardDescription>
                 </Card>
             )
         )}
     </div>
   );
 }
-
-    
