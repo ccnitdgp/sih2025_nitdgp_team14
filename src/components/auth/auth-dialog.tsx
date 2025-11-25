@@ -4,12 +4,13 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Stethoscope, User } from "lucide-react";
+import { CalendarIcon, Stethoscope, User } from "lucide-react";
 import { useAuth } from "@/firebase";
 import { initiateEmailSignIn, initiateEmailSignUp } from "@/firebase/non-blocking-login";
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { doc } from 'firebase/firestore';
 import { useFirestore } from "@/firebase";
+import { format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +24,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -33,6 +35,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -40,9 +45,13 @@ const loginSchema = z.object({
 });
 
 const signupSchema = z.object({
-  role: z.enum(["patient", "doctor"]),
   firstName: z.string().min(2, { message: "First name must be at least 2 characters." }),
   lastName: z.string().min(2, { message: "Last name must be at least 2 characters." }),
+  dateOfBirth: z.date({
+    required_error: "A date of birth is required.",
+  }),
+  gender: z.string().optional(),
+  phoneNumber: z.string().min(10, { message: "Phone number must be at least 10 digits." }),
   email: z.string().email({ message: "Invalid email address." }),
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
 });
@@ -69,9 +78,10 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
   const signupForm = useForm<z.infer<typeof signupSchema>>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
-      role: "patient",
       firstName: "",
       lastName: "",
+      gender: undefined,
+      phoneNumber: "",
       email: "",
       password: "",
     },
@@ -92,6 +102,9 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
           firstName: values.firstName,
           lastName: values.lastName,
           email: user.email,
+          dateOfBirth: values.dateOfBirth,
+          gender: values.gender,
+          phoneNumber: values.phoneNumber,
         };
         const userDocRef = doc(firestore, 'users', user.uid);
         setDocumentNonBlocking(userDocRef, userProfile, { merge: true });
@@ -180,73 +193,115 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
             </DialogDescription>
             <Form {...signupForm}>
               <form onSubmit={signupForm.handleSubmit(handleSignUp)} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={signupForm.control}
+                    name="firstName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>First Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Anjali" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={signupForm.control}
+                    name="lastName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Last Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Sharma" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
                 <FormField
                   control={signupForm.control}
-                  name="role"
+                  name="dateOfBirth"
                   render={({ field }) => (
-                    <FormItem className="space-y-2">
-                      <FormLabel>I am a...</FormLabel>
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Date of birth</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP")
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) =>
+                              date > new Date() || date < new Date("1900-01-01")
+                            }
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={signupForm.control}
+                  name="gender"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Gender</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select your gender" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="male">Male</SelectItem>
+                          <SelectItem value="female">Female</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                          <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={signupForm.control}
+                  name="phoneNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Mobile Number</FormLabel>
                       <FormControl>
-                        <div className="grid grid-cols-2 gap-4">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                className={cn(
-                                    "flex flex-col h-auto p-4 items-center justify-center space-y-2 border-2",
-                                    field.value === 'patient' && "border-primary bg-primary/10"
-                                )}
-                                onClick={() => field.onChange('patient')}
-                            >
-                                <User className="h-8 w-8" />
-                                <span>Patient</span>
-                            </Button>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                className={cn(
-                                    "flex flex-col h-auto p-4 items-center justify-center space-y-2 border-2",
-                                    field.value === 'doctor' && "border-primary bg-primary/10"
-                                )}
-                                onClick={() => field.onChange('doctor')}
-                            >
-                                <Stethoscope className="h-8 w-8" />
-                                <span>Doctor</span>
-                            </Button>
-                        </div>
+                        <Input type="tel" placeholder="9876543210" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={signupForm.control}
-                  name="firstName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>First Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Anjali" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={signupForm.control}
-                  name="lastName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Last Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Sharma" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                </div>
                 <FormField
                   control={signupForm.control}
                   name="email"

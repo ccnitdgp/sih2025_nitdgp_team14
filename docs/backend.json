@@ -23,6 +23,15 @@
           "description": "Email address of the user.",
           "format": "email"
         },
+        "dateOfBirth": {
+          "type": "string",
+          "description": "Date of birth of the user.",
+          "format": "date"
+        },
+        "gender": {
+          "type": "string",
+          "description": "Gender of the user."
+        },
         "phoneNumber": {
           "type": "string",
           "description": "Phone number of the user."
@@ -43,7 +52,9 @@
         "id",
         "firstName",
         "lastName",
-        "email"
+        "email",
+        "dateOfBirth",
+        "phoneNumber"
       ]
     },
     "VaccinationDrive": {
