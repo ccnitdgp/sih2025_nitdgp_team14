@@ -27,7 +27,7 @@ const sidebarNavItems = [
   },
   {
     title: 'Analyze Prescription',
-    href: '/analyze-prescription',
+    href: '/records/analyze-prescription',
     icon: ScanText,
   },
   {
