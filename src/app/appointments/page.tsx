@@ -8,6 +8,7 @@ import { Lightbulb, Sparkles, User, MapPin, Calendar, Star } from 'lucide-react'
 import { getSpecialistSuggestion, type SymptomCheckerOutput } from '@/ai/flows/symptom-checker-flow';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 
 const doctors = [
   {
@@ -44,6 +45,7 @@ export default function AppointmentsPage() {
   const [symptoms, setSymptoms] = useState('');
   const [suggestion, setSuggestion] = useState<SymptomCheckerOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   const handleGetSuggestion = async () => {
     if (!symptoms) return;
@@ -54,6 +56,11 @@ export default function AppointmentsPage() {
       setSuggestion(result);
     } catch (error) {
       console.error('Error getting suggestion:', error);
+      toast({
+        variant: "destructive",
+        title: "AI Suggestion Failed",
+        description: "The AI service is currently busy. Please wait a moment and try again.",
+      });
     } finally {
       setIsLoading(false);
     }
