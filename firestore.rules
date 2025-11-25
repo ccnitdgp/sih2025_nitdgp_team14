@@ -79,6 +79,15 @@ service cloud.firestore {
     function userIdIsImmutable() {
       return request.resource.data.userId == resource.data.userId;
     }
+    
+    /**
+     * Ensures the 'id' field of a UserProfile cannot be changed on update.
+     */
+    function userProfileIdIsImmutable() {
+      // Allow update if 'id' field is not being modified.
+      return !('id' in request.resource.data) || request.resource.data.id == resource.data.id;
+    }
+
 
     // =====================================================================
     // User Data Collections
@@ -96,7 +105,7 @@ service cloud.firestore {
       allow get: if isOwner(userId);
       allow list: if false;
       allow create: if isOwner(userId) && userProfileIdMatchesDocIdOnCreate(userId);
-      allow update: if isOwner(userId) && (!('id' in request.resource.data) || request.resource.data.id == resource.id);
+      allow update: if isOwner(userId) && userProfileIdIsImmutable();
       allow delete: if isExistingOwner(userId);
 
       /**
