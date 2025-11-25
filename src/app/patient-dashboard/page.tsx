@@ -7,13 +7,22 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CalendarPlus, Receipt, ScanText, Mic, ArrowRight } from 'lucide-react';
+import { CalendarPlus, Receipt, ScanText, Mic, ArrowRight, Sparkles, Bot } from 'lucide-react';
 import { doc } from 'firebase/firestore';
 import Link from 'next/link';
+import { useState } from 'react';
+import { getHealthInformation, type HealthAssistantOutput } from '@/ai/flows/health-assistant-flow';
+import { useToast } from '@/hooks/use-toast';
 
 export default function PatientDashboardPage() {
   const { user } = useUser();
   const firestore = useFirestore();
+  const { toast } = useToast();
+
+  const [question, setQuestion] = useState('');
+  const [language, setLanguage] = useState('en');
+  const [isLoading, setIsLoading] = useState(false);
+  const [assistantResponse, setAssistantResponse] = useState<HealthAssistantOutput | null>(null);
 
   const userDocRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
@@ -21,6 +30,26 @@ export default function PatientDashboardPage() {
   }, [user, firestore]);
 
   const { data: userProfile } = useDoc(userDocRef);
+
+  const handleGetInformation = async () => {
+    if (!question) return;
+    setIsLoading(true);
+    setAssistantResponse(null);
+    try {
+      const result = await getHealthInformation({ question, language });
+      setAssistantResponse(result);
+    } catch (error) {
+      console.error('Error getting health information:', error);
+      toast({
+        variant: 'destructive',
+        title: 'AI Assistant Failed',
+        description: 'The AI service is currently busy. Please wait a moment and try again.',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   return (
     <div className="bg-muted/40 min-h-screen">
@@ -74,12 +103,15 @@ export default function PatientDashboardPage() {
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-              <div className="lg:col-span-2">
-                  <Card className="shadow-sm">
+              <div className="lg:col-span-2 space-y-6">
+                  <Card className="shadow-sm border-t-4 border-primary">
                       <CardHeader>
-                          <CardTitle>Health Information Assistant</CardTitle>
+                          <div className="flex items-center gap-3">
+                            <Sparkles className="h-6 w-6 text-primary" />
+                            <CardTitle>Health Information Assistant</CardTitle>
+                          </div>
                            <CardDescription>
-                              Ask about your health conditions, prescriptions, or any other health-related questions in your preferred language.
+                              Ask about health conditions, prescriptions, or any wellness questions in your preferred language.
                           </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-4">
@@ -88,6 +120,8 @@ export default function PatientDashboardPage() {
                               <div className="relative">
                                  <Textarea 
                                   id="question"
+                                  value={question}
+                                  onChange={(e) => setQuestion(e.target.value)}
                                   placeholder="e.g., What are the side effects of Paracetamol? or Tell me about diabetes management."
                                   className="pr-12 min-h-[120px]"
                                   rows={4}
@@ -99,7 +133,7 @@ export default function PatientDashboardPage() {
                           </div>
                           <div className="space-y-2">
                               <label htmlFor="language" className="text-sm font-medium">Language</label>
-                              <Select>
+                              <Select value={language} onValueChange={setLanguage}>
                                   <SelectTrigger id="language">
                                       <SelectValue placeholder="English" />
                                   </SelectTrigger>
@@ -110,9 +144,26 @@ export default function PatientDashboardPage() {
                                   </SelectContent>
                               </Select>
                           </div>
-                          <Button>Get Information</Button>
+                          <Button onClick={handleGetInformation} disabled={isLoading || !question}>
+                            {isLoading ? 'Getting Information...' : 'Get Information'}
+                          </Button>
                       </CardContent>
                   </Card>
+                   {assistantResponse && (
+                    <Card className="shadow-sm">
+                      <CardHeader>
+                        <div className="flex items-center gap-3">
+                          <Bot className="h-6 w-6 text-accent" />
+                          <CardTitle>Assistant's Response</CardTitle>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="prose prose-sm max-w-full text-foreground whitespace-pre-wrap">
+                          {assistantResponse.answer}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
               </div>
               <div>
                    <Card className="shadow-sm">
