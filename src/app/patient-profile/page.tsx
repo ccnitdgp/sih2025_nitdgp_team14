@@ -13,8 +13,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 const ProfileDetail = ({ icon: Icon, label, value }) => {
   if (!value) return null;
   return (
-    <div className="flex items-center gap-4">
-      <Icon className="h-5 w-5 text-primary" />
+    <div className="flex items-start gap-4">
+      <Icon className="h-5 w-5 text-primary mt-1" />
       <div>
         <p className="text-sm font-medium text-muted-foreground">{label}</p>
         <p className="font-semibold">{value}</p>
@@ -36,13 +36,14 @@ export default function PatientProfilePage() {
 
   const getAge = (dob) => {
     if (!dob) return null;
+    // Firestore Timestamps need to be converted to JS Dates
     const date = dob.toDate ? dob.toDate() : new Date(dob);
     return differenceInYears(new Date(), date);
   };
 
   const ProfileSkeleton = () => (
     <div className="space-y-8">
-      <div className="flex flex-col md:flex-row items-center gap-6">
+      <div className="flex flex-col md:flex-row items-center gap-6 p-6 bg-card rounded-lg border">
         <Skeleton className="h-32 w-32 rounded-full" />
         <div className="space-y-2 text-center md:text-left">
           <Skeleton className="h-8 w-48" />
@@ -112,7 +113,7 @@ export default function PatientProfilePage() {
                     <h2 className="text-3xl font-bold">{userProfile.firstName} {userProfile.lastName}</h2>
                     <p className="text-muted-foreground">{user?.email}</p>
                     {userProfile.dateOfBirth && <p className="text-muted-foreground">{getAge(userProfile.dateOfBirth)} years old</p>}
-                    <Badge variant="outline" className="mt-2 text-base">{userProfile.role}</Badge>
+                    {userProfile.role && <Badge variant="outline" className="mt-2 text-base font-semibold">{userProfile.role}</Badge>}
                     </div>
                 </div>
 
@@ -136,15 +137,15 @@ export default function PatientProfilePage() {
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <ProfileDetail icon={Phone} label="Phone Number" value={userProfile.phoneNumber} />
-                        <ProfileDetail icon={AtSign} label="Email Address" value={user.email} />
+                        <ProfileDetail icon={AtSign} label="Email Address" value={user?.email} />
                         <ProfileDetail icon={Home} label="Full Address" value={userProfile.address} />
                          {userProfile.emergencyContact?.name && (
-                            <div className="flex items-center gap-4">
-                                <Users className="h-5 w-5 text-destructive" />
+                            <div className="flex items-start gap-4">
+                                <Users className="h-5 w-5 text-destructive mt-1" />
                                 <div>
                                     <p className="text-sm font-medium text-muted-foreground">Emergency Contact</p>
                                     <p className="font-semibold">{userProfile.emergencyContact.name} ({userProfile.emergencyContact.relation})</p>
-                                    <p className="text-sm text-muted-foreground">{userProfile.emergencyContact.phone}</p>
+                                    <p className="text-sm font-semibold">{userProfile.emergencyContact.phone}</p>
                                 </div>
                             </div>
                         )}
@@ -155,10 +156,12 @@ export default function PatientProfilePage() {
             ) : (
                  <Card className="text-center p-8">
                     <CardTitle>Profile Not Found</CardTitle>
-                    <CardDescription>We couldn't load your profile data. Please try again later.</CardDescription>
+                    <CardDescription>We couldn't load your profile data. Please try again later or complete your profile if you haven't.</CardDescription>
                 </Card>
             )
         )}
     </div>
   );
 }
+
+    
