@@ -66,6 +66,13 @@ export default function AppointmentsPage() {
     }
   };
 
+  const handleBookAppointment = (doctorName: string) => {
+    toast({
+      title: 'Appointment Booked!',
+      description: `Your appointment with ${doctorName} has been successfully scheduled.`,
+    });
+  };
+
   const filteredDoctors = suggestion
     ? doctors.filter(doc => doc.specialty === suggestion.specialistSuggestion)
     : doctors;
@@ -120,7 +127,7 @@ export default function AppointmentsPage() {
 
         <div>
           <h2 className="text-3xl font-bold tracking-tight mb-6">
-            {suggestion ? `Suggested ${suggestion.specialistSuggestion}s` : 'Doctors Near You'}
+            {suggestion && filteredDoctors.length > 0 ? `Suggested ${suggestion.specialistSuggestion}s` : 'Doctors Near You'}
           </h2>
           {suggestion && filteredDoctors.length === 0 && (
               <p className="text-center text-muted-foreground mb-6">
@@ -156,7 +163,7 @@ export default function AppointmentsPage() {
                      </div>
                   </div>
                   <div className="flex md:justify-end">
-                    <Button>Book Appointment</Button>
+                    <Button onClick={() => handleBookAppointment(doctor.name)}>Book Appointment</Button>
                   </div>
                 </CardContent>
               </Card>
