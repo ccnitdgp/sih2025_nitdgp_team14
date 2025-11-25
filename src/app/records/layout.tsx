@@ -51,7 +51,7 @@ export default function RecordsLayout({ children }: RecordsLayoutProps) {
 
   return (
     <div className="container mx-auto max-w-7xl px-6 py-12">
-      <div className="grid grid-cols-1 gap-12 md:grid-cols-4">
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
         <aside className="md:col-span-1">
           <div className="flex flex-col gap-4">
             <Button
