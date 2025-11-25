@@ -7,6 +7,8 @@ import {
   ShieldCheck,
   Info,
   CheckCircle,
+  Activity,
+  Pill,
 } from 'lucide-react';
 
 type Stat = {
@@ -267,5 +269,50 @@ export const medicalNotifications: MedicalNotification[] = [
     color: 'text-green-600',
     bgColor: 'bg-green-50',
     borderColor: 'border-green-500',
+  },
+];
+
+
+export type Bill = {
+  id: number;
+  title: string;
+  category: 'Radiology' | 'Pharmacy' | 'Consultation';
+  date: string;
+  amount: number;
+  status: 'Due' | 'Paid';
+};
+
+export const billingHistory: Bill[] = [
+  {
+    id: 1,
+    title: 'Bone Fracture X-Ray',
+    category: 'Radiology',
+    date: 'September 25, 2025',
+    amount: 1500,
+    status: 'Due',
+  },
+  {
+    id: 2,
+    title: 'Painkillers & Bandages',
+    category: 'Pharmacy',
+    date: 'September 25, 2025',
+    amount: 3000,
+    status: 'Due',
+  },
+  {
+    id: 3,
+    title: 'Orthopedic Consultation',
+    category: 'Consultation',
+    date: 'September 25, 2025',
+    amount: 500,
+    status: 'Due',
+  },
+   {
+    id: 4,
+    title: 'Annual Check-up',
+    category: 'Consultation',
+    date: 'August 15, 2025',
+    amount: 1000,
+    status: 'Paid',
   },
 ];
