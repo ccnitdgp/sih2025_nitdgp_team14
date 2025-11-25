@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useAuth, useFirestore, useUser } from "@/firebase";
-import { initiateEmailSignUp } from "@/firebase/non-blocking-login";
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { doc, collection } from 'firebase/firestore';
 import { useRouter } from "next/navigation";
@@ -16,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -65,7 +65,7 @@ export default function AddPatientPage() {
   });
 
   async function onSubmit(values: z.infer<typeof addPatientSchema>) {
-    if (!doctorUser) {
+    if (!doctorUser || !firestore) {
         toast({ variant: "destructive", title: "Authentication Error", description: "You must be logged in to add a patient."});
         return;
     }
@@ -73,15 +73,8 @@ export default function AddPatientPage() {
     setIsLoading(true);
 
     try {
-      // We can't create a user with email/password from the client-side for another user.
-      // In a real app, this would be a server-side operation (e.g., via a Cloud Function).
-      // For this demo, we will create a user with a temporary method and then link them.
-      // The ideal flow is to invite a user via email, have them complete sign-up.
-      
-      // As a workaround, we'll show a toast and simulate the creation locally.
-      // This is a limitation of client-side-only SDKs for user management.
-      
-      const newPatientId = doc(collection(firestore, 'users')).id; // Generate a new ID for the user
+      // Generate a new ID for the patient user document.
+      const newPatientId = doc(collection(firestore, 'users')).id;
 
       const userProfile = {
         id: newPatientId,
@@ -94,14 +87,13 @@ export default function AddPatientPage() {
         phoneNumber: values.phoneNumber,
         address: values.address,
         doctorId: doctorUser.uid,
-        // Emergency contact and other details can be added by the patient later
       };
 
-      // 1. Create the patient's user document
+      // 1. Create the patient's user document in Firestore.
       const userDocRef = doc(firestore, 'users', newPatientId);
       setDocumentNonBlocking(userDocRef, userProfile, { merge: true });
 
-      // 2. Add the patient to the doctor's patient list
+      // 2. Add a link to this patient in the doctor's own patient list.
       const doctorPatientsColRef = collection(firestore, 'users', doctorUser.uid, 'patients');
       const patientLinkDoc = {
         patientId: newPatientId,
@@ -114,7 +106,7 @@ export default function AddPatientPage() {
       
       toast({
         title: "Patient Added Successfully",
-        description: `${values.firstName} ${values.lastName} has been added to your patient list. They will need to set their password via a password reset email.`,
+        description: `${values.firstName} ${values.lastName} has been added. They will need to sign up with this email to access their dashboard.`,
       });
 
       router.push('/doctor-dashboard');
@@ -123,7 +115,7 @@ export default function AddPatientPage() {
       toast({
         variant: "destructive",
         title: "Failed to Add Patient",
-        description: "Could not create the new patient. In a real application, a backend function would handle user creation.",
+        description: "An unexpected error occurred while creating the patient profile.",
       });
       console.error("Add patient error:", error);
     } finally {
@@ -306,3 +298,5 @@ export default function AddPatientPage() {
     </div>
   )
 }
+
+    
