@@ -70,6 +70,7 @@ service cloud.firestore {
      * or if it is present, it must match the existing document's id.
      */
     function userProfileIdIsImmutable() {
+      // Allow update if 'id' is not in the request, OR if it is, it must match the existing one.
       return !('id' in request.resource.data) || request.resource.data.id == resource.data.id;
     }
     
