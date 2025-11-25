@@ -18,9 +18,12 @@ export function initiateEmailSignUp(authInstance: Auth, email: string, password:
   return createUserWithEmailAndPassword(authInstance, email, password);
 }
 
-/** Initiate email/password sign-in (non-blocking). */
+/** 
+ * Overridden for development: Initiates an anonymous sign-in regardless of email/password.
+ * This allows for easy testing of authenticated routes.
+ */
 export function initiateEmailSignIn(authInstance: Auth, email: string, password: string): void {
-  signInWithEmailAndPassword(authInstance, email, password);
+  signInAnonymously(authInstance);
 }
 
 /** Send a password reset email. */
