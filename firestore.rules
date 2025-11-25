@@ -114,7 +114,8 @@ service cloud.firestore {
        * @description A doctor's list of their patients. Only the doctor can manage this list.
        */
       match /patients/{patientId} {
-        allow get, list, create, update, delete: if isOwner(userId); // Only the doctor can manage their patient list
+        allow read, list: if isOwner(userId); // Only the doctor can see their own patient list
+        allow write: if isOwner(userId); // Only the doctor can add/remove patients from their list
       }
 
       /**
@@ -124,7 +125,7 @@ service cloud.firestore {
       match /healthRecords/{healthRecordId} {
         allow read, list: if isOwner(userId) || isAssignedDoctor(userId);
         allow create: if (isOwner(userId) || isAssignedDoctor(userId)) && hasCorrectUserIdOnCreate(userId);
-        allow update, delete: if isAssignedDoctor(userId) && userIdIsImmutable();
+        allow update, delete: if (isOwner(userId) || isAssignedDoctor(userId)) && userIdIsImmutable();
       }
 
       /**
