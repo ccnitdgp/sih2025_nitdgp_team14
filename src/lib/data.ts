@@ -333,4 +333,46 @@ export const personalNotifications = [
         message: "Your appointment with Sachin Nikam on Oct 2 is confirmed.",
         time: "about 16 hours ago"
     }
-]
+];
+
+export const upcomingAppointments = [
+    {
+        id: 1,
+        doctorName: 'Dr. Anjali Sharma',
+        specialty: 'Cardiologist',
+        date: 'October 15, 2024',
+        time: '11:00 AM',
+        location: 'Apollo Hospital, Delhi',
+        avatar: 'https://picsum.photos/seed/doc1/200'
+    },
+    {
+        id: 2,
+        doctorName: 'Dr. Vikram Singh',
+        specialty: 'Dermatologist',
+        date: 'October 18, 2024',
+        time: '02:30 PM',
+        location: 'Max Healthcare, Gurgaon',
+        avatar: 'https://picsum.photos/seed/doc2/200'
+    }
+];
+
+export const pastAppointments = [
+    {
+        id: 1,
+        doctorName: 'Dr. Priya Gupta',
+        specialty: 'General Physician',
+        date: 'July 20, 2024',
+        time: '09:00 AM',
+        location: 'Fortis Hospital, Noida',
+        avatar: 'https://picsum.photos/seed/doc3/200'
+    },
+     {
+        id: 2,
+        doctorName: 'Dr. Anjali Sharma',
+        specialty: 'Cardiologist',
+        date: 'May 10, 2024',
+        time: '01:00 PM',
+        location: 'Apollo Hospital, Delhi',
+        avatar: 'https://picsum.photos/seed/doc1/200'
+    }
+];

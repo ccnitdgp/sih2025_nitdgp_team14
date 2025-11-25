@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Lightbulb, Sparkles, MapPin, Calendar as CalendarIcon, Star, Clock } from 'lucide-react';
+import { Lightbulb, Sparkles, MapPin, Calendar as CalendarIcon, Star, Clock, Search, ClipboardList, History, Info } from 'lucide-react';
 import { getSpecialistSuggestion, type SymptomCheckerOutput } from '@/ai/flows/symptom-checker-flow';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
@@ -20,6 +20,8 @@ import { Calendar } from '@/components/ui/calendar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { upcomingAppointments, pastAppointments } from '@/lib/data';
 
 const doctors = [
   {
@@ -66,7 +68,7 @@ const doctors = [
 
 type Doctor = (typeof doctors)[0];
 
-export default function AppointmentsPage() {
+const FindDoctors = () => {
   const [symptoms, setSymptoms] = useState('');
   const [suggestion, setSuggestion] = useState<SymptomCheckerOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -126,167 +128,264 @@ export default function AppointmentsPage() {
     ? selectedDoctor.availableSlots[format(selectedDate, 'yyyy-MM-dd')] || []
     : [];
 
-  return (
-    <>
-    <div className="container mx-auto max-w-4xl px-6 py-12">
-      <div className="space-y-12">
-        <div className="text-center mb-12">
-          <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl">
-            Book an Appointment
-          </h1>
-          <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
-            Get an AI-powered suggestion for a specialist or browse doctors near you.
-          </p>
-        </div>
-
-        <Card className="shadow-lg border-t-4 border-primary">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <Sparkles className="h-6 w-6 text-primary" />
-              <CardTitle className="text-2xl">AI-Powered Symptom Checker</CardTitle>
-            </div>
-             <p className="text-muted-foreground pt-2">Describe your symptoms, and we&apos;ll suggest the right specialist for you.</p>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label htmlFor="symptoms" className="font-medium">Describe your health problem</label>
-              <Textarea
-                id="symptoms"
-                value={symptoms}
-                onChange={(e) => setSymptoms(e.target.value)}
-                placeholder="e.g., I have a skin rash on my arm, or I've been having chest pain..."
-                className="mt-2 min-h-[100px]"
-              />
-            </div>
-            <Button onClick={handleGetSuggestion} disabled={isLoading || !symptoms}>
-              {isLoading ? 'Getting Suggestion...' : 'Get Suggestion'}
-            </Button>
-            {suggestion && (
-              <div className="!mt-6 p-4 bg-accent/20 border border-accent/50 rounded-lg flex items-center gap-3">
-                <Lightbulb className="h-5 w-5 text-accent" />
-                <p>
-                  Based on your symptoms, we suggest you see a{' '}
-                  <span className="font-bold">{suggestion.specialistSuggestion}</span>.
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight mb-6">
-            {suggestion && filteredDoctors.length > 0 ? `Suggested ${suggestion.specialistSuggestion}s` : 'Doctors Near You'}
-          </h2>
-          {suggestion && filteredDoctors.length === 0 && (
-              <p className="text-center text-muted-foreground mb-6">
-                No doctors found for the suggested specialty. Showing all doctors.
-              </p>
-          )}
-          <div className="space-y-6">
-            {doctorsToShow.map((doctor, index) => (
-              <Card key={index} className="transition-shadow hover:shadow-lg">
-                <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-16 w-16">
-                      <AvatarImage src={doctor.avatar} />
-                      <AvatarFallback>{doctor.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h3 className="font-bold text-lg">{doctor.name}</h3>
-                      <p className="text-sm text-muted-foreground">{doctor.specialty}</p>
+    return (
+        <>
+        <div className="space-y-8">
+             <Card className="shadow-lg border-t-4 border-primary">
+                <CardHeader>
+                    <div className="flex items-center gap-3">
+                    <Sparkles className="h-6 w-6 text-primary" />
+                    <CardTitle className="text-2xl">AI-Powered Symptom Checker</CardTitle>
                     </div>
-                  </div>
-                  <div className="space-y-2 text-sm text-muted-foreground">
-                     <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-primary"/>
-                        <span>{doctor.location}</span>
-                     </div>
-                     <div className="flex items-center gap-2">
-                        <CalendarIcon className="h-4 w-4 text-primary"/>
-                        <span>Next available: {doctor.nextAvailable}</span>
-                     </div>
-                     <div className="flex items-center gap-2">
-                        <Star className="h-4 w-4 text-yellow-500 fill-yellow-500"/>
-                        <span>{doctor.rating} ({doctor.reviews} reviews)</span>
-                     </div>
-                  </div>
-                  <div className="flex md:justify-end">
-                    <Button onClick={() => handleOpenSlots(doctor)}>Book Appointment</Button>
-                  </div>
+                    <p className="text-muted-foreground pt-2">Describe your symptoms, and we&apos;ll suggest the right specialist for you.</p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div>
+                    <label htmlFor="symptoms" className="font-medium">Describe your health problem</label>
+                    <Textarea
+                        id="symptoms"
+                        value={symptoms}
+                        onChange={(e) => setSymptoms(e.target.value)}
+                        placeholder="e.g., I have a skin rash on my arm, or I've been having chest pain..."
+                        className="mt-2 min-h-[100px]"
+                    />
+                    </div>
+                    <Button onClick={handleGetSuggestion} disabled={isLoading || !symptoms}>
+                    {isLoading ? 'Getting Suggestion...' : 'Get Suggestion'}
+                    </Button>
+                    {suggestion && (
+                    <div className="!mt-6 p-4 bg-accent/20 border border-accent/50 rounded-lg flex items-center gap-3">
+                        <Lightbulb className="h-5 w-5 text-accent" />
+                        <p>
+                        Based on your symptoms, we suggest you see a{' '}
+                        <span className="font-bold">{suggestion.specialistSuggestion}</span>.
+                        </p>
+                    </div>
+                    )}
                 </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <Dialog open={!!selectedDoctor} onOpenChange={(isOpen) => !isOpen && handleCloseDialog()}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Book Appointment with {selectedDoctor?.name}</DialogTitle>
-            <DialogDescription>
-              Select an available date and time slot below.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
-            <div className="flex justify-center items-center">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={(date) => {
-                  setSelectedDate(date);
-                  setSelectedTime(undefined);
-                }}
-                disabled={(date) => {
-                  const today = new Date();
-                  today.setHours(0, 0, 0, 0);
-                  if (date < today) {
-                    return true;
-                  }
-                  const dateString = format(date, 'yyyy-MM-dd');
-                  // This part is crucial: we check if there are ANY slots for a given date.
-                  // If not, the date should be disabled.
-                  const availableSlots = selectedDoctor?.availableSlots[dateString];
-                  return !availableSlots || availableSlots.length === 0;
-                }}
-                initialFocus
-              />
-            </div>
-            <div className="space-y-4">
-              <h4 className="font-semibold text-center md:text-left">Available Time Slots</h4>
-              {selectedDate ? (
-                  availableTimesForSelectedDate.length > 0 ? (
-                  <RadioGroup 
-                    value={selectedTime}
-                    onValueChange={setSelectedTime}
-                    className="grid grid-cols-2 gap-2"
-                  >
-                    {availableTimesForSelectedDate.map(time => (
-                      <div key={time} className="flex items-center">
-                        <RadioGroupItem value={time} id={time} className="peer sr-only" />
-                        <Label htmlFor={time} className="flex items-center justify-center gap-2 rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground cursor-pointer w-full peer-data-[state=checked]:border-primary [&:has(.peer[data-state=checked])]:border-primary">
-                          <Clock className="h-4 w-4"/> {time}
-                        </Label>
-                      </div>
+            </Card>
+
+            <div>
+                <h2 className="text-3xl font-bold tracking-tight mb-6">
+                    {suggestion && filteredDoctors.length > 0 ? `Suggested ${suggestion.specialistSuggestion}s` : 'Doctors Near You'}
+                </h2>
+                {suggestion && filteredDoctors.length === 0 && (
+                    <p className="text-center text-muted-foreground mb-6">
+                        No doctors found for the suggested specialty. Showing all doctors.
+                    </p>
+                )}
+                <div className="space-y-6">
+                    {doctorsToShow.map((doctor, index) => (
+                    <Card key={index} className="transition-shadow hover:shadow-lg">
+                        <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                        <div className="flex items-center gap-4">
+                            <Avatar className="h-16 w-16">
+                            <AvatarImage src={doctor.avatar} />
+                            <AvatarFallback>{doctor.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                            <h3 className="font-bold text-lg">{doctor.name}</h3>
+                            <p className="text-sm text-muted-foreground">{doctor.specialty}</p>
+                            </div>
+                        </div>
+                        <div className="space-y-2 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-2">
+                                <MapPin className="h-4 w-4 text-primary"/>
+                                <span>{doctor.location}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <CalendarIcon className="h-4 w-4 text-primary"/>
+                                <span>Next available: {doctor.nextAvailable}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Star className="h-4 w-4 text-yellow-500 fill-yellow-500"/>
+                                <span>{doctor.rating} ({doctor.reviews} reviews)</span>
+                            </div>
+                        </div>
+                        <div className="flex md:justify-end">
+                            <Button onClick={() => handleOpenSlots(doctor)}>Book Appointment</Button>
+                        </div>
+                        </CardContent>
+                    </Card>
                     ))}
-                  </RadioGroup>
-                ) : (
-                  <p className="text-sm text-muted-foreground text-center md:text-left">No slots available on this date.</p>
-                )
-              ) : (
-                <p className="text-sm text-muted-foreground text-center md:text-left">Please select a date to see available times.</p>
-              )}
+                </div>
             </div>
-          </div>
-          <DialogFooter className="sm:justify-between">
-             <Button variant="outline" onClick={handleCloseDialog}>Cancel</Button>
-             <Button onClick={handleBookAppointment} disabled={!selectedDate || !selectedTime}>Confirm Booking</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
+        </div>
+        <Dialog open={!!selectedDoctor} onOpenChange={(isOpen) => !isOpen && handleCloseDialog()}>
+            <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+                <DialogTitle>Book Appointment with {selectedDoctor?.name}</DialogTitle>
+                <DialogDescription>
+                Select an available date and time slot below.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
+                <div className="flex justify-center items-center">
+                <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => {
+                    setSelectedDate(date);
+                    setSelectedTime(undefined);
+                    }}
+                    disabled={(date) => {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    if (date < today) {
+                        return true;
+                    }
+                    const dateString = format(date, 'yyyy-MM-dd');
+                    const availableSlots = selectedDoctor?.availableSlots[dateString];
+                    return !availableSlots || availableSlots.length === 0;
+                    }}
+                    initialFocus
+                />
+                </div>
+                <div className="space-y-4">
+                <h4 className="font-semibold text-center md:text-left">Available Time Slots</h4>
+                {selectedDate ? (
+                    availableTimesForSelectedDate.length > 0 ? (
+                    <RadioGroup 
+                        value={selectedTime}
+                        onValueChange={setSelectedTime}
+                        className="grid grid-cols-2 gap-2"
+                    >
+                        {availableTimesForSelectedDate.map(time => (
+                        <div key={time} className="flex items-center">
+                            <RadioGroupItem value={time} id={time} className="peer sr-only" />
+                            <Label htmlFor={time} className="flex items-center justify-center gap-2 rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground cursor-pointer w-full peer-data-[state=checked]:border-primary [&:has(.peer[data-state=checked])]:border-primary">
+                            <Clock className="h-4 w-4"/> {time}
+                            </Label>
+                        </div>
+                        ))}
+                    </RadioGroup>
+                    ) : (
+                    <p className="text-sm text-muted-foreground text-center md:text-left">No slots available on this date.</p>
+                    )
+                ) : (
+                    <p className="text-sm text-muted-foreground text-center md:text-left">Please select a date to see available times.</p>
+                )}
+                </div>
+            </div>
+            <DialogFooter className="sm:justify-between">
+                <Button variant="outline" onClick={handleCloseDialog}>Cancel</Button>
+                <Button onClick={handleBookAppointment} disabled={!selectedDate || !selectedTime}>Confirm Booking</Button>
+            </DialogFooter>
+            </DialogContent>
+        </Dialog>
+     </>
+    )
 }
 
-    
+const MyAppointments = () => {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Upcoming Appointments</CardTitle>
+                <CardDescription>Here are your scheduled appointments.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                {upcomingAppointments.map(appt => (
+                    <Card key={appt.id} className="p-4 flex flex-col sm:flex-row items-start gap-4">
+                         <Avatar className="h-16 w-16">
+                            <AvatarImage src={appt.avatar} />
+                            <AvatarFallback>{appt.doctorName.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-grow">
+                             <h3 className="font-bold text-lg">{appt.doctorName}</h3>
+                            <p className="text-sm text-muted-foreground">{appt.specialty}</p>
+                            <div className="flex items-center gap-2 mt-2 text-sm">
+                                <CalendarIcon className="h-4 w-4" />
+                                <span>{appt.date} at {appt.time}</span>
+                            </div>
+                             <div className="flex items-center gap-2 text-sm">
+                                <MapPin className="h-4 w-4" />
+                                <span>{appt.location}</span>
+                            </div>
+                        </div>
+                        <div className="flex flex-col sm:flex-row gap-2 self-start sm:self-center">
+                            <Button variant="outline">Reschedule</Button>
+                            <Button variant="destructive">Cancel</Button>
+                        </div>
+                    </Card>
+                ))}
+            </CardContent>
+        </Card>
+    )
+}
+
+const HistoryTab = () => {
+    return (
+         <Card>
+            <CardHeader>
+                <CardTitle>Appointment History</CardTitle>
+                <CardDescription>Here are your past appointments.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                {pastAppointments.map(appt => (
+                    <Card key={appt.id} className="p-4 flex flex-col sm:flex-row items-start gap-4">
+                         <Avatar className="h-16 w-16">
+                            <AvatarImage src={appt.avatar} />
+                            <AvatarFallback>{appt.doctorName.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-grow">
+                             <h3 className="font-bold text-lg">{appt.doctorName}</h3>
+                            <p className="text-sm text-muted-foreground">{appt.specialty}</p>
+                             <div className="flex items-center gap-2 mt-2 text-sm">
+                                <CalendarIcon className="h-4 w-4" />
+                                <span>{appt.date} at {appt.time}</span>
+                            </div>
+                             <div className="flex items-center gap-2 text-sm">
+                                <MapPin className="h-4 w-4" />
+                                <span>{appt.location}</span>
+                            </div>
+                        </div>
+                        <div className="flex gap-2 self-start sm:self-center">
+                            <Button>Book Again</Button>
+                            <Button variant="outline">View Details</Button>
+                        </div>
+                    </Card>
+                ))}
+            </CardContent>
+        </Card>
+    )
+}
+
+
+export default function AppointmentsPage() {
+  return (
+    <div className="container mx-auto max-w-5xl px-6 py-12">
+        <div className="text-center mb-12">
+            <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl">
+                Book an Appointment
+            </h1>
+            <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
+                Find doctors, manage your upcoming appointments, and view your consultation history.
+            </p>
+        </div>
+
+        <Tabs defaultValue="find-doctors" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 max-w-2xl mx-auto">
+                <TabsTrigger value="find-doctors">
+                    <Search className="mr-2 h-4 w-4"/> Find Doctors
+                </TabsTrigger>
+                <TabsTrigger value="my-appointments">
+                    <ClipboardList className="mr-2 h-4 w-4" /> My Appointments
+                </TabsTrigger>
+                <TabsTrigger value="history">
+                    <History className="mr-2 h-4 w-4" /> History
+                </TabsTrigger>
+            </TabsList>
+            <TabsContent value="find-doctors" className="mt-8">
+                <FindDoctors />
+            </TabsContent>
+            <TabsContent value="my-appointments" className="mt-8">
+                <MyAppointments />
+            </TabsContent>
+            <TabsContent value="history" className="mt-8">
+                <HistoryTab />
+            </TabsContent>
+        </Tabs>
+    </div>
+  );
+}
