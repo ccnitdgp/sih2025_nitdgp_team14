@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -9,6 +10,14 @@ import { getSpecialistSuggestion, type SymptomCheckerOutput } from '@/ai/flows/s
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 const doctors = [
   {
@@ -19,6 +28,7 @@ const doctors = [
     rating: 4.9,
     reviews: 120,
     avatar: 'https://picsum.photos/seed/doc1/200',
+    availableSlots: ['10:00 AM', '10:30 AM', '11:00 AM', '02:00 PM', '02:30 PM', '04:00 PM'],
   },
   {
     name: 'Dr. Vikram Singh',
@@ -28,6 +38,7 @@ const doctors = [
     rating: 4.8,
     reviews: 85,
     avatar: 'https://picsum.photos/seed/doc2/200',
+    availableSlots: ['04:30 PM', '05:00 PM', '05:30 PM'],
   },
   {
     name: 'Dr. Priya Gupta',
@@ -37,14 +48,17 @@ const doctors = [
     rating: 4.9,
     reviews: 210,
     avatar: 'https://picsum.photos/seed/doc3/200',
+    availableSlots: ['02:00 PM', '02:15 PM', '02:30 PM', '03:00 PM'],
   },
 ];
 
+type Doctor = (typeof doctors)[0];
 
 export default function AppointmentsPage() {
   const [symptoms, setSymptoms] = useState('');
   const [suggestion, setSuggestion] = useState<SymptomCheckerOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const { toast } = useToast();
 
   const handleGetSuggestion = async () => {
@@ -66,10 +80,15 @@ export default function AppointmentsPage() {
     }
   };
 
-  const handleBookAppointment = (doctorName: string) => {
+  const handleOpenSlots = (doctor: Doctor) => {
+    setSelectedDoctor(doctor);
+  };
+
+  const handleBookAppointment = (doctorName: string, slot: string) => {
+    setSelectedDoctor(null); // Close the dialog
     toast({
       title: 'Appointment Booked!',
-      description: `Your appointment with ${doctorName} has been successfully scheduled.`,
+      description: `Your appointment with ${doctorName} at ${slot} has been successfully scheduled.`,
     });
   };
 
@@ -80,6 +99,7 @@ export default function AppointmentsPage() {
   const doctorsToShow = filteredDoctors.length > 0 ? filteredDoctors : doctors;
 
   return (
+    <>
     <div className="container mx-auto max-w-4xl px-6 py-12">
       <div className="space-y-12">
         <div className="text-center mb-12">
@@ -163,7 +183,7 @@ export default function AppointmentsPage() {
                      </div>
                   </div>
                   <div className="flex md:justify-end">
-                    <Button onClick={() => handleBookAppointment(doctor.name)}>Book Appointment</Button>
+                    <Button onClick={() => handleOpenSlots(doctor)}>Book Appointment</Button>
                   </div>
                 </CardContent>
               </Card>
@@ -172,5 +192,33 @@ export default function AppointmentsPage() {
         </div>
       </div>
     </div>
+    
+    <Dialog open={!!selectedDoctor} onOpenChange={(isOpen) => !isOpen && setSelectedDoctor(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Book Appointment with {selectedDoctor?.name}</DialogTitle>
+            <DialogDescription>
+              Select an available time slot below.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="grid grid-cols-3 gap-3">
+              {selectedDoctor?.availableSlots.map((slot) => (
+                <Button 
+                  key={slot} 
+                  variant="outline"
+                  onClick={() => handleBookAppointment(selectedDoctor.name, slot)}
+                >
+                  {slot}
+                </Button>
+              ))}
+            </div>
+          </div>
+          <DialogFooter>
+             <Button variant="outline" onClick={() => setSelectedDoctor(null)}>Cancel</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
