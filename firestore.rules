@@ -114,9 +114,13 @@ service cloud.firestore {
        * @description A doctor's list of their patients. Only the doctor can manage this list.
        */
       match /patients/{patientId} {
-        // A doctor can read, list, and write to their own patient list.
-        allow read, list, write: if isOwner(userId); 
+        allow read, write: if isOwner(userId);
       }
+      
+      // THIS IS THE CRITICAL FIX: This rule applies to the COLLECTION, not just the documents.
+      // It allows a doctor to list the patients associated with them.
+      allow list: if isOwner(userId) && isDoctor();
+
 
       /**
        * @description Manages a user's private health records.
