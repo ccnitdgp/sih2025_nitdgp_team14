@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { LogOut } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -108,6 +108,10 @@ export function Header() {
                   </div>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
+                 <DropdownMenuItem onClick={() => router.push('/settings')}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>
