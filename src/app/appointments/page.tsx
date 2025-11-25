@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -231,7 +230,7 @@ export default function AppointmentsPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
-            <div className="flex justify-center">
+            <div className="flex justify-center items-center">
               <Calendar
                 mode="single"
                 selected={selectedDate}
@@ -246,6 +245,8 @@ export default function AppointmentsPage() {
                     return true;
                   }
                   const dateString = format(date, 'yyyy-MM-dd');
+                  // This part is crucial: we check if there are ANY slots for a given date.
+                  // If not, the date should be disabled.
                   const availableSlots = selectedDoctor?.availableSlots[dateString];
                   return !availableSlots || availableSlots.length === 0;
                 }}
