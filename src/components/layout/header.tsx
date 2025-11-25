@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -39,6 +40,7 @@ export function Header() {
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
   const firestore = useFirestore();
+  const router = useRouter();
 
   const userDocRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
@@ -48,7 +50,9 @@ export function Header() {
   const { data: userProfile } = useDoc(userDocRef);
 
   const handleLogout = () => {
-    signOut(auth);
+    signOut(auth).then(() => {
+      router.push('/');
+    });
   };
   
   const navLinks = userProfile?.role === 'doctor' ? doctorNavLinks : patientNavLinks;

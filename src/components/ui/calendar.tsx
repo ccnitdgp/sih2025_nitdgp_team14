@@ -7,6 +7,7 @@ import { DayPicker, DropdownProps } from "react-day-picker"
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 import { ScrollArea } from "./scroll-area"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select"
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
@@ -24,8 +25,8 @@ function Calendar({
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
         caption: "flex justify-center pt-1 relative items-center",
-        caption_label: "text-sm font-medium",
-        caption_dropdowns: "flex justify-center gap-1",
+        caption_label: "text-sm font-medium hidden",
+        caption_dropdowns: "flex justify-center gap-2",
         nav: "space-x-1 flex items-center",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
@@ -74,16 +75,25 @@ function Calendar({
             onChange?.(changeEvent)
           }
           return (
-            <select
-              className={cn(
-                buttonVariants({ variant: "ghost" }),
-                "h-auto pl-2 pr-1 py-1 appearance-none text-sm font-medium focus:bg-accent focus:text-accent-foreground focus:ring-2 focus:ring-ring focus:ring-offset-2"
-              )}
-              value={value}
-              onChange={(e) => handleChange(e.target.value)}
+             <Select
+              value={value?.toString()}
+              onValueChange={(value) => {
+                handleChange(value)
+              }}
             >
-              {options}
-            </select>
+              <SelectTrigger className="w-auto h-auto py-1 px-2 text-sm font-medium border-none focus:ring-0 focus:ring-offset-0 bg-transparent">
+                <SelectValue>{selected?.props?.children}</SelectValue>
+              </SelectTrigger>
+              <SelectContent className="max-h-60">
+                <ScrollArea>
+                {options.map((option) => (
+                  <SelectItem key={option.props.value} value={option.props.value!.toString()}>
+                    {option.props.children}
+                  </SelectItem>
+                ))}
+                </ScrollArea>
+              </SelectContent>
+            </Select>
           )
         },
       }}
