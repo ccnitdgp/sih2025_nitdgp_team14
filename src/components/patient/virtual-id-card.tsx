@@ -10,12 +10,13 @@ import { cn } from '@/lib/utils';
 import { Logo } from '../logo';
 import { Skeleton } from '../ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { format } from 'date-fns';
 
 
 const IdField = ({ label, value }) => (
   <div>
     <p className="text-xs text-gray-500">{label}</p>
-    <p className="text-sm font-semibold text-gray-800">{value}</p>
+    <p className="text-sm font-semibold text-gray-800">{value || 'N/A'}</p>
   </div>
 );
 
@@ -64,8 +65,8 @@ const VirtualIdCardFront = ({ user, userProfile, t }) => {
 
             <div className="grid grid-cols-3 gap-2 mt-3 items-center">
                  <div className="col-span-2 space-y-2">
-                    <IdField label={t('id_card_health_plan', 'Health Plan')} value={userProfile.id?.substring(0, 12) || '911-76342-01'} />
-                    <IdField label={t('id_card_medicaid_id', 'Medicaid ID')} value={userProfile.id?.substring(12) || '00001427598'} />
+                    <IdField label={t('id_card_dob', 'Date of Birth')} value={userProfile.dateOfBirth?.toDate ? format(userProfile.dateOfBirth.toDate(), 'dd/MM/yyyy') : 'N/A'} />
+                    <IdField label={t('id_card_gender', 'Gender')} value={userProfile.gender} />
                 </div>
                 <div className="col-span-1 flex justify-center items-center h-full">
                     <div className="bg-white p-1 rounded-sm border">
@@ -76,7 +77,7 @@ const VirtualIdCardFront = ({ user, userProfile, t }) => {
 
             <div className="flex justify-between items-end mt-2 text-xs text-gray-500 pt-2 border-t">
                 <div>
-                    <p>{t('id_card_effective_date', 'Effective Date')}</p>
+                    <p>{t('id_card_issue_date', 'Date of Issue')}</p>
                     <p className="font-semibold text-gray-700">01/01/2024</p>
                 </div>
                 <p className="text-[10px]">{t('id_card_underwritten_by', 'Underwritten by Health Plan of Swasthya, Inc.')}</p>

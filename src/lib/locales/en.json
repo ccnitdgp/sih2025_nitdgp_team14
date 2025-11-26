@@ -343,9 +343,9 @@
     "medicaid": "Medicaid",
     "id_card_member": "Member",
     "id_card_member_id": "Member ID",
-    "id_card_health_plan": "Health Plan",
-    "id_card_medicaid_id": "Medicaid ID",
-    "id_card_effective_date": "Effective Date",
+    "id_card_dob": "Date of Birth",
+    "id_card_gender": "Gender",
+    "id_card_issue_date": "Date of Issue",
     "id_card_underwritten_by": "Underwritten by Health Plan of Swasthya, Inc.",
     "id_card_back_emergency_text": "In a life-threatening emergency, call 911 or go to an emergency room.",
     "id_card_back_disclaimer_text": "Card does not guarantee coverage. Obtain prior authorization or verify benefits at",
@@ -396,5 +396,3 @@
     "announcement_4_title": "Flu Vaccination Campaign",
     "announcement_4_details": "A free flu vaccination drive is being organized next week. Getting vaccinated is the best way to protect yourself and others from the flu. Details about locations and times will be announced shortly."
 }
-
-    
