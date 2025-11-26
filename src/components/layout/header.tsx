@@ -35,8 +35,7 @@ const doctorNavLinks = [
     { href: "/doctor-dashboard/patients", label: "Patients" },
     { href: "/doctor-dashboard/appointments", label: "Appointments" },
     { href: "/doctor-dashboard/prescriptions", label: "Prescriptions" },
-    { href: "/doctor-dashboard/medical-info", label: "Medical Info", disabled: true },
-    { href: "/doctor-dashboard/upload-documents", label: "Upload Documents", disabled: true },
+    { href: "/doctor-dashboard/upload-documents", label: "Upload Document" },
 ];
 
 export function Header() {

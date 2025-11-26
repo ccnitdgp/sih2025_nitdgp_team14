@@ -434,3 +434,27 @@ export const weeklyActivity = [
   { day: "Friday", appointments: 3 },
   { day: "Saturday", appointments: 0 },
 ]
+
+export const recentUploads = [
+  {
+    id: 1,
+    fileName: 'sef.pdf',
+    patientName: 'Aditi Jaiswal',
+    type: 'Scan',
+    date: 'Sep 25, 2025'
+  },
+    {
+    id: 2,
+    fileName: 'blood_report.pdf',
+    patientName: 'Rohan Verma',
+    type: 'Lab Report',
+    date: 'Sep 23, 2025'
+  },
+   {
+    id: 3,
+    fileName: 'vaccine_cert.pdf',
+    patientName: 'Sunita Devi',
+    type: 'Vaccination',
+    date: 'Sep 22, 2025'
+  },
+]
