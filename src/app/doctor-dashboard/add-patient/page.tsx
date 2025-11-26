@@ -39,7 +39,9 @@ const addPatientSchema = z.object({
   gender: z.string().min(1, { message: "Gender is required."}),
   phoneNumber: z.string().min(10, { message: "Phone number must be at least 10 digits." }),
   email: z.string().email({ message: "Invalid email address." }),
-  address: z.string().min(1, { message: "Address is required." }),
+  fullAddress: z.string().min(1, { message: "Address is required." }),
+  cityStateCountry: z.string().min(1, { message: "City/State/Country is required." }),
+  pinCode: z.string().min(1, { message: "Pin Code is required." }),
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
 });
 
@@ -59,7 +61,9 @@ export default function AddPatientPage() {
       gender: undefined,
       phoneNumber: "",
       email: "",
-      address: "",
+      fullAddress: "",
+      cityStateCountry: "",
+      pinCode: "",
       password: "",
     },
   });
@@ -85,7 +89,11 @@ export default function AddPatientPage() {
         dateOfBirth: values.dateOfBirth,
         gender: values.gender,
         phoneNumber: values.phoneNumber,
-        address: values.address,
+        address: {
+            fullAddress: values.fullAddress,
+            cityStateCountry: values.cityStateCountry,
+            pinCode: values.pinCode,
+        },
         doctorId: doctorUser.uid,
       };
 
@@ -272,19 +280,14 @@ export default function AddPatientPage() {
                                 </FormItem>
                             )}
                         />
-                         <FormField
-                            control={form.control}
-                            name="address"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Full Address</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="City, State, ZIP" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                        <div className="space-y-2">
+                             <FormLabel>Address</FormLabel>
+                             <FormField control={form.control} name="fullAddress" render={({ field }) => (<FormItem><FormControl><Input placeholder="Full Address" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                             <div className="grid grid-cols-2 gap-4">
+                                <FormField control={form.control} name="cityStateCountry" render={({ field }) => (<FormItem><FormControl><Input placeholder="City / State / Country" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                <FormField control={form.control} name="pinCode" render={({ field }) => (<FormItem><FormControl><Input placeholder="Pin Code" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                             </div>
+                        </div>
                         <div className="flex justify-end gap-2">
                              <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
                              <Button type="submit" disabled={isLoading}>
@@ -298,5 +301,3 @@ export default function AddPatientPage() {
     </div>
   )
 }
-
-    

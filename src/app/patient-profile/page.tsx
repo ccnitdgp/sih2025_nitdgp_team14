@@ -216,13 +216,6 @@ export default function PatientProfilePage() {
                                         accept="image/*"
                                         onChange={handlePhotoChange}
                                     />
-                                    <Button
-                                        size="sm"
-                                        className="absolute bottom-1 right-1"
-                                        onClick={() => fileInputRef.current?.click()}
-                                    >
-                                        <Camera className="mr-2 h-4 w-4" /> Change Photo
-                                    </Button>
                                 </>
                             )}
                         </div>
@@ -327,5 +320,3 @@ export default function PatientProfilePage() {
     </div>
   );
 }
-
-    

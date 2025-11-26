@@ -59,7 +59,9 @@ const signupSchema = z.object({
   }),
   gender: z.string().optional(),
   bloodGroup: z.string().optional(),
-  address: z.string().min(1, { message: "Address is required." }),
+  fullAddress: z.string().min(1, { message: "Full address is required." }),
+  cityStateCountry: z.string().min(1, { message: "City/State/Country is required." }),
+  pinCode: z.string().min(1, { message: "Pin Code is required." }),
   emergencyContactName: z.string().optional(),
   emergencyContactPhone: z.string().optional(),
   emergencyContactRelation: z.string().optional(),
@@ -145,7 +147,9 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
       email: "",
       password: "",
       confirmPassword: "",
-      address: "",
+      fullAddress: "",
+      cityStateCountry: "",
+      pinCode: "",
       bloodGroup: undefined,
       emergencyContactName: "",
       emergencyContactPhone: "",
@@ -185,7 +189,11 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
           dateOfBirth: values.dateOfBirth,
           gender: values.gender,
           phoneNumber: values.phoneNumber,
-          address: values.address,
+          address: {
+            fullAddress: values.fullAddress,
+            cityStateCountry: values.cityStateCountry,
+            pinCode: values.pinCode,
+          },
         };
         
         if (values.role === 'patient') {
@@ -559,19 +567,15 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
                       )}
                     />
 
-                    <FormField
-                      control={signupForm.control}
-                      name="address"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Full Address</FormLabel>
-                          <FormControl>
-                            <Input placeholder="City, State, ZIP" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                     <div className="space-y-2">
+                        <FormLabel>Address</FormLabel>
+                        <FormField control={signupForm.control} name="fullAddress" render={({ field }) => (<FormItem><FormControl><Input placeholder="Full Address" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField control={signupForm.control} name="cityStateCountry" render={({ field }) => (<FormItem><FormControl><Input placeholder="City / State / Country" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={signupForm.control} name="pinCode" render={({ field }) => (<FormItem><FormControl><Input placeholder="Pin Code" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                        </div>
+                    </div>
+
 
                     {selectedRole === 'patient' && (
                         <div>
