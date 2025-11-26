@@ -36,10 +36,19 @@ interface ComboboxProps {
 export function Combobox({ options, value, onChange, placeholder = "Select option...", emptyMessage = "No option found." }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
   const [inputValue, setInputValue] = React.useState(value ? options.find(o => o.value === value)?.label || "" : "");
-  
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   React.useEffect(() => {
     setInputValue(value ? options.find(o => o.value === value)?.label || "" : "");
   }, [value, options]);
+  
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -118,4 +127,3 @@ const FormControl = React.forwardRef<
   return <div {...props} />;
 });
 FormControl.displayName = "FormControl";
-
