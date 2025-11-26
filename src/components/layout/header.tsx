@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { LogOut, Settings, LayoutDashboard, Menu } from "lucide-react";
+import { LogOut, Settings, LayoutDashboard, Menu, FileText, UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -75,7 +75,7 @@ export function Header() {
         <Link
           key={link.label}
           href={link.href}
-          className={cn("text-muted-foreground transition-colors hover:text-foreground whitespace-nowrap", link.disabled && "pointer-events-none opacity-50")}
+          className="text-muted-foreground transition-colors hover:text-foreground whitespace-nowrap"
           onClick={() => isMobile && setIsMobileMenuOpen(false)}
         >
           {link.label}
@@ -97,7 +97,7 @@ export function Header() {
           {isUserLoading || !isClient ? (
             <div className="flex items-center gap-2">
                 <Skeleton className="h-8 w-20" />
-                <Skeleton className="h-8 w-20" />
+                <Skeleton className="h-8 w-8 rounded-full" />
             </div>
           ) : user ? (
             <DropdownMenu>
@@ -112,7 +112,7 @@ export function Header() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
-                 <DropdownMenuItem onClick={() => router.push('/login-redirect')}>
+                 <DropdownMenuItem onClick={() => router.push(userProfile?.role === 'doctor' ? '/doctor-dashboard' : '/patient-dashboard')}>
                   <LayoutDashboard className="mr-2 h-4 w-4" />
                   <span>Dashboard</span>
                 </DropdownMenuItem>
@@ -137,9 +137,9 @@ export function Header() {
             </DropdownMenu>
           ) : (
             <>
-              <div className="hidden sm:flex">
+              <div className="hidden sm:flex items-center gap-2">
                 <AuthDialog trigger={<Button variant="outline">Login</Button>} />
-                <AuthDialog trigger={<Button className="ml-2">Sign Up</Button>} defaultTab="signup" />
+                <AuthDialog trigger={<Button>Sign Up</Button>} defaultTab="signup" />
               </div>
             </>
           )}
@@ -154,12 +154,12 @@ export function Header() {
                 </SheetTrigger>
                 <SheetContent side="left">
                    <SheetHeader>
-                     <SheetTitle>
-                         <Logo />
-                     </SheetTitle>
-                     <SheetDescription>
-                         Main navigation menu
-                     </SheetDescription>
+                      <SheetTitle>
+                        <Logo />
+                      </SheetTitle>
+                      <SheetDescription className="sr-only">
+                        Main navigation menu
+                      </SheetDescription>
                    </SheetHeader>
                   <div className="py-4">
                       <div className="mt-8">
