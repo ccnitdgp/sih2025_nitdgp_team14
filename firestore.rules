@@ -97,7 +97,7 @@ service cloud.firestore {
      * It must not exist in the request or, if it does, it must not differ.
      */
     function userProfileIdIsImmutableOnUpdate() {
-      return !('id' in request.resource.data) || request.resource.data.id == resource.data.id;
+        return !('id' in request.resource.data) || request.resource.data.id == resource.data.id;
     }
 
 
