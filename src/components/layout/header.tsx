@@ -74,11 +74,6 @@ export function Header() {
           {link.label}
         </Link>
       ))}
-       {isClient && user && !isUserLoading && (
-        <Link href={dashboardLink} className="text-primary transition-colors hover:text-primary/80 font-semibold whitespace-nowrap" onClick={() => isMobile && setIsMobileMenuOpen(false)}>
-            Dashboard
-        </Link>
-       )}
     </nav>
   );
 
@@ -87,15 +82,13 @@ export function Header() {
     <RoleRedirect />
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 max-w-7xl items-center">
-        <div className="mr-auto flex items-center">
+        <div className="flex items-center">
           <Logo />
         </div>
         
-        <div className="hidden md:flex items-center">
-          <NavContent />
-        </div>
-
         <div className="flex items-center justify-end gap-2 sm:gap-4 ml-auto">
+           <NavContent />
+           
           {isUserLoading || !isClient ? (
             <div className="flex items-center gap-2">
                 <Skeleton className="h-8 w-20" />
