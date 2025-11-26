@@ -21,6 +21,7 @@ import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
 import te from '@/lib/locales/te.json';
 import mr from '@/lib/locales/mr.json';
+import { cn } from '@/lib/utils';
 
 const languageFiles = { hi, bn, ta, te, mr };
 
@@ -78,11 +79,8 @@ export default function PatientDashboardPage() {
     recognition.lang = language;
 
     recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => {
-      if (isListening) {
-        setIsListening(false);
-      }
-    };
+    recognition.onend = () => setIsListening(false);
+    
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
       setQuestion(transcript);
@@ -90,10 +88,9 @@ export default function PatientDashboardPage() {
     recognition.onerror = (event) => {
         if (event.error !== 'no-speech') {
             console.error("Speech recognition error", event.error);
+             toast({ variant: 'destructive', title: 'Speech Recognition Error', description: `Could not start listening. Error: ${event.error}` });
         }
-        if (isListening) {
-          setIsListening(false);
-        }
+        setIsListening(false);
     }
     
     recognitionRef.current = recognition;
@@ -113,23 +110,23 @@ export default function PatientDashboardPage() {
         audioRef.current.pause();
       }
     }
-  }, [language, isListening]);
+  }, [language, toast]);
 
 
   const handleListen = () => {
-    if (recognitionRef.current) {
-        if(isListening) {
-            recognitionRef.current.stop();
-        } else {
-            try {
-              recognitionRef.current.start();
-            } catch(e) {
-              console.error("Could not start speech recognition", e);
-              setIsListening(false);
-            }
-        }
+    if (!recognitionRef.current) {
+      toast({ variant: 'destructive', title: 'Feature Not Supported', description: 'Speech recognition is not supported in your browser.' });
+      return;
+    }
+    if (isListening) {
+      recognitionRef.current.stop();
     } else {
-        toast({ variant: 'destructive', title: 'Feature Not Supported', description: 'Speech recognition is not supported in your browser.' });
+      try {
+        recognitionRef.current.start();
+      } catch(e) {
+        console.error("Could not start speech recognition", e);
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not start the speech recognition service.' });
+      }
     }
   };
 
@@ -253,7 +250,7 @@ export default function PatientDashboardPage() {
                                   rows={4}
                                  />
                                  <Button variant="ghost" size="icon" className="absolute bottom-2.5 right-2.5 text-muted-foreground" onClick={handleListen}>
-                                  <Mic className={`h-5 w-5 ${isListening ? 'text-primary' : ''}`}/>
+                                  <Mic className={cn("h-5 w-5", isListening && "text-primary")}/>
                                  </Button>
                               </div>
                           </div>
@@ -430,3 +427,5 @@ export default function PatientDashboardPage() {
     </div>
   );
 }
+
+    
