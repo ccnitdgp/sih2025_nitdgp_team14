@@ -21,13 +21,22 @@ export function HeroSection() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const query = searchQuery.toLowerCase().trim();
+    if (!query) return;
+
     const encodedQuery = encodeURIComponent(query);
     
-    if (query.includes('camp')) {
+    const campKeywords = ['camp', 'camps', 'check-up', 'checkup', 'health camp'];
+    const vaccinationKeywords = ['vaccine', 'vaccination', 'drive', 'polio', 'mmr', 'covid', 'booster', 'immunization', 'td', 'tetanus', 'hepatitis'];
+
+    const isCampSearch = campKeywords.some(keyword => query.includes(keyword));
+    const isVaccinationSearch = vaccinationKeywords.some(keyword => query.includes(keyword));
+
+    if (isCampSearch) {
       router.push(`/camps?search=${encodedQuery}`);
-    } else if (query.includes('vaccine') || query.includes('vaccination')) {
+    } else if (isVaccinationSearch) {
       router.push(`/vaccination?search=${encodedQuery}`);
-    }
+    } 
+    // No redirect if no keywords match
   };
 
   return (
@@ -42,7 +51,7 @@ export function HeroSection() {
               Access vaccination drives, health camps, and your medical records with ease.
             </p>
             {isClient && (
-              <form onSubmit={handleSearch} className="flex w-full max-w-md items-center space-x-2" key="search-form">
+              <form onSubmit={handleSearch} className="flex w-full max-w-md items-center space-x-2">
                 <Input 
                   type="text" 
                   placeholder="Search for camps, vaccines..." 
