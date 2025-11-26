@@ -86,6 +86,13 @@ export function useCollection<T = any>(
         setIsLoading(false);
       },
       (error: FirestoreError) => {
+        // Guard against creating an error for a null/undefined query
+        if (!memoizedTargetRefOrQuery) {
+          setError(error);
+          setIsLoading(false);
+          return;
+        }
+
         // This logic extracts the path from either a ref or a query
         let path: string;
         if (memoizedTargetRefOrQuery.type === 'collection') {
