@@ -82,7 +82,7 @@ export default function DoctorPrescriptionsPage() {
     setIsSubmitting(true);
     
     const patientHealthRecordsRef = collection(firestore, 'users', values.patientId, 'healthRecords');
-    const selectedPatient = patients?.find(p => p.id === values.patientId);
+    const selectedPatient = patients?.find(p => p.patientId === values.patientId);
 
     const prescriptionData = {
         recordType: 'prescription',
@@ -95,7 +95,7 @@ export default function DoctorPrescriptionsPage() {
             status: 'Active',
         },
         patientInfo: {
-            id: selectedPatient?.id,
+            id: selectedPatient?.patientId,
             name: `${selectedPatient?.firstName} ${selectedPatient?.lastName}`
         },
         dateCreated: serverTimestamp(),
