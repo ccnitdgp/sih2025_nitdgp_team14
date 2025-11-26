@@ -67,27 +67,28 @@ export default function PatientDashboardPage() {
 
   useEffect(() => {
     const SpeechRecognition = (window as IWindow).webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      const recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.lang = language;
-
-      recognition.onstart = () => {
-        setIsListening(true);
-      };
-
-      recognition.onend = () => {
-        setIsListening(false);
-      };
-
-      recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        setQuestion(transcript);
-      };
-      
-      recognitionRef.current = recognition;
+    if (!SpeechRecognition) {
+      console.warn("Speech recognition not supported in this browser.");
+      return;
     }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = language;
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setQuestion(transcript);
+    };
+    recognition.onerror = (event) => {
+        console.error("Speech recognition error", event.error);
+        setIsListening(false);
+    }
+    
+    recognitionRef.current = recognition;
 
     const audio = new Audio();
     audioRef.current = audio;
@@ -96,6 +97,7 @@ export default function PatientDashboardPage() {
     };
 
     return () => {
+      recognition.stop();
       audio.pause();
     }
   }, [language]);
@@ -106,7 +108,12 @@ export default function PatientDashboardPage() {
         if(isListening) {
             recognitionRef.current.stop();
         } else {
-            recognitionRef.current.start();
+            try {
+              recognitionRef.current.start();
+            } catch(e) {
+              console.error("Could not start speech recognition", e);
+              setIsListening(false);
+            }
         }
     } else {
         toast({ variant: 'destructive', title: 'Feature Not Supported', description: 'Speech recognition is not supported in your browser.' });
@@ -410,3 +417,5 @@ export default function PatientDashboardPage() {
     </div>
   );
 }
+
+    
