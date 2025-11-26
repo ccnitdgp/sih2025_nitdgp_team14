@@ -5,6 +5,10 @@ import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocki
 import { doc } from 'firebase/firestore';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { getAuth, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
 
 import {
   Bell,
@@ -17,6 +21,8 @@ import {
   Smartphone,
   User,
   HelpCircle,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -37,6 +43,20 @@ import {
 } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+
+const passwordSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required.'),
+  newPassword: z.string().min(6, 'New password must be at least 6 characters.'),
+  confirmPassword: z.string(),
+}).refine(data => data.newPassword === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ['confirmPassword'],
+});
+
 
 const SettingItem = ({ icon: Icon, title, description, control }) => (
   <>
@@ -71,6 +91,7 @@ const ComingSoonTooltip = ({ children }) => (
 export default function SettingsPage() {
     const { user } = useUser();
     const firestore = useFirestore();
+    const { toast } = useToast();
 
     const userDocRef = useMemoFirebase(() => {
         if (!user || !firestore) return null;
@@ -82,6 +103,17 @@ export default function SettingsPage() {
     const [preferredLanguage, setPreferredLanguage] = useState(userProfile?.preferredLanguage || 'en');
     const [dateFormat, setDateFormat] = useState(userProfile?.dateFormat || 'dd-mm-yyyy');
     const [notificationSettings, setNotificationSettings] = useState(userProfile?.notificationSettings || {});
+    const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+    const [showPasswords, setShowPasswords] = useState({ current: false, new: false, confirm: false});
+
+    const passwordForm = useForm<z.infer<typeof passwordSchema>>({
+        resolver: zodResolver(passwordSchema),
+        defaultValues: {
+            currentPassword: '',
+            newPassword: '',
+            confirmPassword: '',
+        }
+    });
 
     useEffect(() => {
         if (userProfile) {
@@ -110,6 +142,33 @@ export default function SettingsPage() {
         setNotificationSettings(newSettings);
         
         updateDocumentNonBlocking(userDocRef, { [`notificationSettings.${key}`]: value });
+    };
+
+    const handleChangePassword = async (values: z.infer<typeof passwordSchema>) => {
+        if (!user || !user.email) {
+            toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to change your password.' });
+            return;
+        }
+
+        const auth = getAuth();
+        const credential = EmailAuthProvider.credential(user.email, values.currentPassword);
+
+        try {
+            await reauthenticateWithCredential(auth.currentUser!, credential);
+            await updatePassword(auth.currentUser!, values.newPassword);
+            toast({ title: 'Success', description: 'Your password has been changed successfully.' });
+            setIsPasswordDialogOpen(false);
+            passwordForm.reset();
+        } catch (error: any) {
+            let description = 'An unexpected error occurred.';
+            if (error.code === 'auth/wrong-password') {
+                description = 'The current password you entered is incorrect. Please try again.';
+                passwordForm.setError('currentPassword', { type: 'manual', message: 'Incorrect password' });
+            } else if (error.code === 'auth/too-many-requests') {
+                description = 'Too many failed attempts. Please try again later.';
+            }
+             toast({ variant: 'destructive', title: 'Password Change Failed', description });
+        }
     };
     
     if (isLoading) {
@@ -153,7 +212,7 @@ export default function SettingsPage() {
               icon={Lock}
               title="Change Password"
               description="Set a new password for your account."
-              control={<ComingSoonTooltip><Button variant="outline" disabled>Change</Button></ComingSoonTooltip>}
+              control={<Button variant="outline" onClick={() => setIsPasswordDialogOpen(true)}>Change</Button>}
             />
             <SettingItem
               icon={User}
@@ -326,6 +385,83 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
       </div>
+
+       <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Change Your Password</DialogTitle>
+                    <DialogDescription>
+                        Enter your current password and a new password below.
+                    </DialogDescription>
+                </DialogHeader>
+                <Form {...passwordForm}>
+                    <form onSubmit={passwordForm.handleSubmit(handleChangePassword)} className="space-y-4">
+                        <FormField
+                            control={passwordForm.control}
+                            name="currentPassword"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Current Password</FormLabel>
+                                    <FormControl>
+                                      <div className="relative">
+                                        <Input type={showPasswords.current ? 'text' : 'password'} {...field} />
+                                        <Button type="button" variant="ghost" size="icon" className="absolute top-1/2 right-2 -translate-y-1/2 h-7 w-7 text-muted-foreground" onClick={() => setShowPasswords(p => ({...p, current: !p.current}))}>
+                                          {showPasswords.current ? <EyeOff /> : <Eye />}
+                                        </Button>
+                                      </div>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={passwordForm.control}
+                            name="newPassword"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>New Password</FormLabel>
+                                    <FormControl>
+                                      <div className="relative">
+                                        <Input type={showPasswords.new ? 'text' : 'password'} {...field} />
+                                        <Button type="button" variant="ghost" size="icon" className="absolute top-1/2 right-2 -translate-y-1/2 h-7 w-7 text-muted-foreground" onClick={() => setShowPasswords(p => ({...p, new: !p.new}))}>
+                                          {showPasswords.new ? <EyeOff /> : <Eye />}
+                                        </Button>
+                                      </div>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={passwordForm.control}
+                            name="confirmPassword"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Confirm New Password</FormLabel>
+                                    <FormControl>
+                                      <div className="relative">
+                                        <Input type={showPasswords.confirm ? 'text' : 'password'} {...field} />
+                                        <Button type="button" variant="ghost" size="icon" className="absolute top-1/2 right-2 -translate-y-1/2 h-7 w-7 text-muted-foreground" onClick={() => setShowPasswords(p => ({...p, confirm: !p.confirm}))}>
+                                          {showPasswords.confirm ? <EyeOff /> : <Eye />}
+                                        </Button>
+                                      </div>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <DialogFooter>
+                            <DialogClose asChild>
+                                <Button type="button" variant="outline">Cancel</Button>
+                            </DialogClose>
+                            <Button type="submit" disabled={passwordForm.formState.isSubmitting}>
+                                {passwordForm.formState.isSubmitting ? 'Changing...' : 'Change Password'}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </Form>
+            </DialogContent>
+        </Dialog>
     </div>
   );
 }
@@ -366,5 +502,3 @@ const SettingsSkeleton = () => (
         </div>
     </div>
 )
-
-    
