@@ -100,9 +100,9 @@ export default function SettingsPage() {
 
     const { data: userProfile, isLoading } = useDoc(userDocRef);
     
-    const [preferredLanguage, setPreferredLanguage] = useState(userProfile?.preferredLanguage || 'en');
-    const [dateFormat, setDateFormat] = useState(userProfile?.dateFormat || 'dd-mm-yyyy');
-    const [notificationSettings, setNotificationSettings] = useState(userProfile?.notificationSettings || {});
+    const [preferredLanguage, setPreferredLanguage] = useState('en');
+    const [dateFormat, setDateFormat] = useState('dd-mm-yyyy');
+    const [notificationSettings, setNotificationSettings] = useState({});
     const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
     const [showPasswords, setShowPasswords] = useState({ current: false, new: false, confirm: false});
 
@@ -172,7 +172,7 @@ export default function SettingsPage() {
         }
     };
     
-    if (isLoading) {
+    if (isLoading && !userProfile) {
         return <SettingsSkeleton />
     }
 
