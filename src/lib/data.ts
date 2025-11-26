@@ -1,4 +1,3 @@
-
 import {
   Syringe,
   Stethoscope,
@@ -379,50 +378,72 @@ export const pastAppointments = [
     }
 ];
 
-export const doctorUpcomingAppointments = [
+export type DoctorAppointment = {
+    id: number;
+    patientName: string;
+    patientAvatar: string;
+    patientId: string;
+    patientAge: number;
+    date: string;
+    time: string;
+    reason: string;
+    type: 'In-Person' | 'Virtual';
+    status: 'Scheduled' | 'Completed' | 'Canceled';
+};
+
+
+export const doctorUpcomingAppointments: DoctorAppointment[] = [
     {
         id: 1,
-        patientName: 'Rohan Verma',
+        patientName: 'Aditi Jaiswal',
         patientAvatar: 'https://picsum.photos/seed/patient1/200',
-        date: 'October 15, 2024',
-        time: '11:00 AM',
-        reason: 'Follow-up Consultation'
+        patientId: 'PT62220551',
+        patientAge: 21,
+        date: 'September 30, 2025',
+        time: '4:00 PM',
+        reason: 'fever cold',
+        type: 'In-Person',
+        status: 'Scheduled',
     },
     {
         id: 2,
-        patientName: 'Sunita Devi',
+        patientName: 'Rohan Verma',
         patientAvatar: 'https://picsum.photos/seed/patient2/200',
-        date: 'October 15, 2024',
-        time: '12:30 PM',
-        reason: 'New Patient Check-up'
+        patientId: 'PT87345902',
+        patientAge: 35,
+        date: 'September 30, 2025',
+        time: '4:00 PM',
+        reason: 'Follow-up Consultation',
+        type: 'In-Person',
+        status: 'Scheduled',
     },
      {
         id: 3,
-        patientName: 'Amit Kumar',
+        patientName: 'Sunita Devi',
         patientAvatar: 'https://picsum.photos/seed/patient3/200',
-        date: 'October 16, 2024',
-        time: '10:00 AM',
-        reason: 'Routine Check-up'
+        patientId: 'PT12348765',
+        patientAge: 48,
+        date: 'October 2, 2025',
+        time: '3:30 PM',
+        reason: 'New Patient Check-up',
+        type: 'In-Person',
+        status: 'Scheduled',
     }
 ];
 
-export const doctorPastAppointments = [
+export const doctorPastAppointments: DoctorAppointment[] = [
     {
-        id: 1,
+        id: 4,
         patientName: 'Geeta Sharma',
         patientAvatar: 'https://picsum.photos/seed/patient4/200',
-        date: 'October 10, 2024',
-        time: '09:00 AM',
-        reason: 'Fever and Cold'
+        patientId: 'PT98765432',
+        patientAge: 29,
+        date: 'September 10, 2025',
+        time: '9:00 AM',
+        reason: 'Fever and Cold',
+        type: 'Virtual',
+        status: 'Completed',
     },
-     {
-        id: 2,
-        patientName: 'Vikas Singh',
-        patientAvatar: 'https://picsum.photos/seed/patient5/200',
-        date: 'October 9, 2024',
-        time: '01:00 PM',
-        reason: 'Post-operative check-up'
-    }
 ];
 
 export const weeklyActivity = [

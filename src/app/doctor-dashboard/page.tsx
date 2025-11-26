@@ -62,17 +62,17 @@ export default function DoctorDashboardPage() {
               </div>
             </div>
              <div className="flex items-center gap-2">
-                <Button asChild>
+                <Button variant="outline" asChild>
                     <Link href="/doctor-dashboard/patients">View Patients</Link>
                 </Button>
-                <Button variant="outline" asChild>
+                <Button asChild>
                     <Link href="/doctor-dashboard/appointments">View Appointments</Link>
                 </Button>
             </div>
           </div>
           
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-             <StatCard title="Today's Appointments" value="0" icon={Calendar} />
+             <StatCard title="Today's Appointments" value={doctorUpcomingAppointments.length} icon={Calendar} />
              <StatCard title="Total Patients" value={totalPatients} icon={Users} />
              <StatCard title="Prescriptions Written" value="4" icon={FileText} />
           </div>
