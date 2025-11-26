@@ -1,5 +1,9 @@
 
 {
+    "home_link": "होम",
+    "vaccination_drive_link": "लसीकरण मोहीम",
+    "visiting_camps_link": "आरोग्य शिबिरे",
+    "announcements_link": "घोषणा",
     "hero_title": "तुमचे आरोग्य, आमची प्राथमिकता.",
     "hero_subtitle": "लसीकरण मोहिम, आरोग्य शिबिरे आणि तुमच्या वैद्यकीय नोंदी सहज मिळवा.",
     "search_placeholder": "शिबिरे, लसी शोधा...",

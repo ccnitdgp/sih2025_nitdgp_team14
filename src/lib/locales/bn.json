@@ -1,5 +1,9 @@
 
 {
+    "home_link": "হোম",
+    "vaccination_drive_link": "টিকাদান অভিযান",
+    "visiting_camps_link": "স্বাস্থ্য শিবির",
+    "announcements_link": "ঘোষণা",
     "hero_title": "আপনার স্বাস্থ্য, আমাদের অগ্রাধিকার।",
     "hero_subtitle": "টিকা অভিযান, স্বাস্থ্য শিবির, এবং আপনার মেডিকেল রেকর্ড সহজে অ্যাক্সেস করুন।",
     "search_placeholder": "শিবির, টিকা খুঁজুন...",

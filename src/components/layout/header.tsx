@@ -23,22 +23,28 @@ import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import hi from '@/lib/locales/hi.json';
+import bn from '@/lib/locales/bn.json';
+import ta from '@/lib/locales/ta.json';
+import te from '@/lib/locales/te.json';
+import mr from '@/lib/locales/mr.json';
+
+const languageFiles = { hi, bn, ta, te, mr };
 
 const generalNavLinks = [
-    { href: "/", label: "Home", hi_label: "होम" },
-    { href: "/vaccination", label: "Vaccination Drive", hi_label: "टीकाकरण अभियान" },
-    { href: "/camps", label: "Visiting Camps", hi_label: "स्वास्थ्य शिविर" },
-    { href: "/announcements", label: "Announcements", hi_label: "घोषणाएँ" },
+    { href: "/", label: "Home", i18n_key: "home_link" },
+    { href: "/vaccination", label: "Vaccination Drive", i18n_key: "vaccination_drive_link" },
+    { href: "/camps", label: "Visiting Camps", i18n_key: "visiting_camps_link" },
+    { href: "/announcements", label: "Announcements", i18n_key: "announcements_link" },
 ];
 
 const doctorNavLinks = [
-    { href: "/doctor-dashboard", label: "Dashboard", hi_label: "tableau de bord" },
-    { href: "/doctor-dashboard/profile", label: "Profile", hi_label: "profil" },
-    { href: "/doctor-dashboard/appointments", label: "Appointments", hi_label: "rendez-vous" },
-    { href: "/doctor-dashboard/patients", label: "Patients", hi_label: "les patients" },
-    { href: "/doctor-dashboard/prescriptions", label: "Prescriptions", hi_label: "prescriptions" },
-    { href: "/doctor-dashboard/medical-info", label: "Medical Info", hi_label: "informations médicales"},
-    { href: "/doctor-dashboard/upload-documents", label: "Upload Documents", hi_label: "télécharger des documents" },
+    { href: "/doctor-dashboard", label: "Dashboard", i18n_key: "dashboard_link" },
+    { href: "/doctor-dashboard/profile", label: "Profile", i18n_key: "profile_link" },
+    { href: "/doctor-dashboard/appointments", label: "Appointments", i18n_key: "appointments_link" },
+    { href: "/doctor-dashboard/patients", label: "Patients", i18n_key: "patients_link" },
+    { href: "/doctor-dashboard/prescriptions", label: "Prescriptions", i18n_key: "prescriptions_link" },
+    { href: "/doctor-dashboard/medical-info", label: "Medical Info", i18n_key: "medical_info_link"},
+    { href: "/doctor-dashboard/upload-documents", label: "Upload Documents", i18n_key: "upload_documents_link" },
 ];
 
 
@@ -49,11 +55,7 @@ export function Header() {
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [translations, setTranslations] = useState(null);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  const [translations, setTranslations] = useState({});
 
   const userDocRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
@@ -62,11 +64,14 @@ export function Header() {
 
   const { data: userProfile } = useDoc(userDocRef);
 
+  const t = (key: string, fallback: string) => translations[key] || fallback;
+
   useEffect(() => {
-    if (userProfile?.preferredLanguage === 'hi') {
-      setTranslations(hi);
+    setIsClient(true);
+    if (userProfile?.preferredLanguage && languageFiles[userProfile.preferredLanguage]) {
+      setTranslations(languageFiles[userProfile.preferredLanguage]);
     } else {
-      setTranslations(null); // Default to English
+      setTranslations({}); // Default to English
     }
   }, [userProfile]);
   
@@ -86,12 +91,12 @@ export function Header() {
     )}>
       {navLinks.map((link) => (
         <Link
-          key={link.label}
+          key={link.href}
           href={link.href}
           className="text-muted-foreground transition-colors hover:text-foreground whitespace-nowrap"
           onClick={() => isMobile && setIsMobileMenuOpen(false)}
         >
-          {translations ? (link.hi_label || link.label) : link.label}
+          {t(link.i18n_key, link.label)}
         </Link>
       ))}
     </nav>
@@ -128,7 +133,7 @@ export function Header() {
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                   <DropdownMenuItem onClick={() => router.push(userProfile?.role === 'doctor' ? '/doctor-dashboard' : '/patient-dashboard')}>
                     <LayoutDashboard className="mr-2 h-4 w-4" />
-                    <span>{translations ? 'tableau de bord' : 'Dashboard'}</span>
+                    <span>{t('dashboard_link', 'Dashboard')}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem disabled>
                     <div className="flex flex-col space-y-1">
@@ -141,18 +146,18 @@ export function Header() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => router.push('/settings')}>
                     <Settings className="mr-2 h-4 w-4" />
-                    <span>{translations ? 'paramètres' : 'Settings'}</span>
+                    <span>{t('settings_link', 'Settings')}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>{translations ? 'se déconnecter' : 'Log out'}</span>
+                    <span>{t('logout_link', 'Log out')}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
                 <div className="hidden sm:flex items-center gap-2">
-                  <AuthDialog trigger={<Button variant="outline">{translations ? 'connexion' : 'Login'}</Button>} />
-                  <AuthDialog trigger={<Button>{translations ? "s'inscrire" : 'Sign Up'}</Button>} defaultTab="signup" />
+                  <AuthDialog trigger={<Button variant="outline">{t('login_button', 'Login')}</Button>} />
+                  <AuthDialog trigger={<Button>{t('signup_button', 'Sign Up')}</Button>} defaultTab="signup" />
                 </div>
             )
           ) : (
@@ -183,8 +188,8 @@ export function Header() {
                           <NavContent isMobile />
                           {!user && !isUserLoading && (
                             <div className="mt-6 flex flex-col gap-3">
-                                <AuthDialog trigger={<Button variant="outline" className="w-full">Login</Button>} onOpenChange={(isOpen) => !isOpen && setIsMobileMenuOpen(false)} />
-                                <AuthDialog trigger={<Button className="w-full">Sign Up</Button>} defaultTab="signup" onOpenChange={(isOpen) => !isOpen && setIsMobileMenuOpen(false)} />
+                                <AuthDialog trigger={<Button variant="outline" className="w-full">{t('login_button', 'Login')}</Button>} onOpenChange={(isOpen) => !isOpen && setIsMobileMenuOpen(false)} />
+                                <AuthDialog trigger={<Button className="w-full">{t('signup_button', 'Sign Up')}</Button>} defaultTab="signup" onOpenChange={(isOpen) => !isOpen && setIsMobileMenuOpen(false)} />
                             </div>
                           )}
                         </div>

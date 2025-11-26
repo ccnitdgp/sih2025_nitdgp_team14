@@ -11,7 +11,12 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import hi from '@/lib/locales/hi.json';
+import bn from '@/lib/locales/bn.json';
+import ta from '@/lib/locales/ta.json';
+import te from '@/lib/locales/te.json';
+import mr from '@/lib/locales/mr.json';
 
+const languageFiles = { hi, bn, ta, te, mr };
 
 export function HeroSection() {
   const router = useRouter();
@@ -19,7 +24,7 @@ export function HeroSection() {
   const firestore = useFirestore();
   const [searchQuery, setSearchQuery] = useState('');
   const [isClient, setIsClient] = useState(false);
-  const [translations, setTranslations] = useState(null);
+  const [translations, setTranslations] = useState({});
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-image');
 
   const userDocRef = useMemoFirebase(() => {
@@ -31,12 +36,14 @@ export function HeroSection() {
 
   useEffect(() => {
     setIsClient(true);
-    if (userProfile?.preferredLanguage === 'hi') {
-      setTranslations(hi);
+    if (userProfile?.preferredLanguage && languageFiles[userProfile.preferredLanguage]) {
+      setTranslations(languageFiles[userProfile.preferredLanguage]);
     } else {
-      setTranslations(null);
+      setTranslations({});
     }
   }, [userProfile]);
+
+  const t = (key: string, fallback: string) => translations[key] || fallback;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,23 +72,23 @@ export function HeroSection() {
         <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
           <div className="flex flex-col items-start gap-6">
             <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl text-foreground">
-              {translations?.hero_title || 'Your Health, Our Priority.'}
+              {t('hero_title', 'Your Health, Our Priority.')}
             </h1>
             <p className="max-w-[600px] text-lg text-muted-foreground">
-              {translations?.hero_subtitle || 'Access vaccination drives, health camps, and your medical records with ease.'}
+              {t('hero_subtitle', 'Access vaccination drives, health camps, and your medical records with ease.')}
             </p>
             {isClient && (
               <form onSubmit={handleSearch} className="flex w-full max-w-md items-center space-x-2">
                 <Input 
                   type="text" 
-                  placeholder={translations?.search_placeholder || 'Search for camps, vaccines...'}
+                  placeholder={t('search_placeholder', 'Search for camps, vaccines...')}
                   className="flex-1"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
                 <Button type="submit" variant="default">
                   <Search className="mr-2 h-4 w-4" /> 
-                  {translations?.search_button || 'Search'}
+                  {t('search_button', 'Search')}
                 </Button>
               </form>
             )}

@@ -1,5 +1,9 @@
 
 {
+    "home_link": "హోమ్",
+    "vaccination_drive_link": "టీకా డ్రైవ్",
+    "visiting_camps_link": "ఆరోగ్య శిబిరాలు",
+    "announcements_link": "ప్రకటనలు",
     "hero_title": "మీ ఆరోగ్యం, మా ప్రాధాన్యత.",
     "hero_subtitle": "టీకా డ్రైవ్‌లు, ఆరోగ్య శిబిరాలు మరియు మీ వైద్య రికార్డులను సులభంగా యాక్సెస్ చేయండి.",
     "search_placeholder": "శిబిరాలు, టీకాలను శోధించండి...",
