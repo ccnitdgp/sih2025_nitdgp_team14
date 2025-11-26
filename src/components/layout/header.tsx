@@ -35,6 +35,7 @@ const doctorNavLinks = [
     { href: "/doctor-dashboard/patients", label: "Patients" },
     { href: "/doctor-dashboard/appointments", label: "Appointments" },
     { href: "/doctor-dashboard/prescriptions", label: "Prescriptions" },
+    { href: "/doctor-dashboard/medical-info", label: "Medical Info"},
     { href: "/doctor-dashboard/upload-documents", label: "Upload Document" },
 ];
 
@@ -94,7 +95,7 @@ export function Header() {
         <div className="flex items-center justify-end gap-2 sm:gap-4 ml-auto">
            <NavContent />
            
-          {!isClient || isUserLoading ? (
+          {isUserLoading ? (
             <div className="flex items-center gap-2">
                 <Skeleton className="h-8 w-20" />
                 <Skeleton className="h-8 w-8 rounded-full" />
@@ -137,10 +138,12 @@ export function Header() {
             </DropdownMenu>
           ) : (
             <>
-              <div className="hidden sm:flex items-center gap-2">
-                <AuthDialog trigger={<Button variant="outline">Login</Button>} />
-                <AuthDialog trigger={<Button>Sign Up</Button>} defaultTab="signup" />
-              </div>
+              {isClient && 
+                <div className="hidden sm:flex items-center gap-2">
+                  <AuthDialog trigger={<Button variant="outline">Login</Button>} />
+                  <AuthDialog trigger={<Button>Sign Up</Button>} defaultTab="signup" />
+                </div>
+              }
             </>
           )}
 
