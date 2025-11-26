@@ -85,10 +85,10 @@ export default function PatientDashboardPage() {
       const transcript = event.results[0][0].transcript;
       setQuestion(transcript);
     };
+
     recognition.onerror = (event) => {
         if (event.error !== 'no-speech') {
-            console.error("Speech recognition error", event.error);
-             toast({ variant: 'destructive', title: 'Speech Recognition Error', description: `Could not start listening. Error: ${event.error}` });
+            toast({ variant: 'destructive', title: 'Speech Recognition Error', description: `Could not start listening. Error: ${event.error}` });
         }
         setIsListening(false);
     }
@@ -427,5 +427,3 @@ export default function PatientDashboardPage() {
     </div>
   );
 }
-
-    
