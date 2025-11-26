@@ -108,8 +108,8 @@ service cloud.firestore {
 
       /**
        * @description A doctor's list of their patients.
-       * - A doctor can read and list their own patient list.
-       * - A new patient can add themselves to their assigned doctor's list upon creation.
+       * - A doctor can read (get/list) their own patient list.
+       * - A patient can add themselves to a doctor's list.
        */
       match /patients/{patientId} {
         allow read, list: if isOwner(userId);
