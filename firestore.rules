@@ -54,20 +54,14 @@ service cloud.firestore {
     }
 
     /**
-     * Checks if the requesting user is a doctor.
-     */
-    function isDoctor() {
-      // This check is potentially expensive if used broadly. Use with specific intent.
-      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor';
-    }
-
-    /**
      * Checks if the requesting user is the assigned doctor for the given patient (userId).
-     * This is the core of the doctor-patient access control.
+     * This rule is the core of doctor-patient access control. It confirms that a link
+     * to the patient exists in the doctor's own `/users/{doctorId}/patients` subcollection.
      */
     function isAssignedDoctor(patientId) {
-      return isDoctor() && exists(/databases/$(database)/documents/users/$(request.auth.uid)/patients/$(patientId));
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)/patients/$(patientId));
     }
+
 
     /**
      * Validates that the UserProfile 'id' field matches the document ID on create.
