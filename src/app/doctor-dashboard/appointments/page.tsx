@@ -1,6 +1,10 @@
+
 'use client';
 
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,16 +14,50 @@ import { Calendar, Clock, User, FileText, CheckCircle, Pencil, Receipt, Building
 import { doctorUpcomingAppointments, doctorPastAppointments, type DoctorAppointment } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+
+
+const billSchema = z.object({
+  description: z.string().min(1, 'Description is required.'),
+  category: z.enum(['Consultation', 'Lab Tests', 'Pharmacy', 'Radiology']),
+  amount: z.coerce.number().min(1, 'Amount must be greater than 0.'),
+});
+
 
 export default function DoctorAppointmentsPage() {
   const [selectedAppointment, setSelectedAppointment] = useState<DoctorAppointment | null>(doctorUpcomingAppointments[0] || null);
+  const [isBillDialogOpen, setIsBillDialogOpen] = useState(false);
   const router = useRouter();
+  const { toast } = useToast();
+
+  const form = useForm<z.infer<typeof billSchema>>({
+    resolver: zodResolver(billSchema),
+    defaultValues: {
+      description: '',
+      category: 'Consultation',
+      amount: 0,
+    },
+  });
 
   const handleWritePrescription = () => {
     if (selectedAppointment) {
       router.push(`/doctor-dashboard/prescriptions?patientId=${selectedAppointment.patientId}`);
     }
   };
+  
+  const handleGenerateBill = (values: z.infer<typeof billSchema>) => {
+    console.log('Bill Generated:', values);
+    toast({
+      title: 'Bill Generated',
+      description: `A bill for Rs. ${values.amount} has been generated for ${selectedAppointment?.patientName}.`,
+    });
+    setIsBillDialogOpen(false);
+    form.reset();
+  }
 
 
   const AppointmentDetails = ({ appointment }: { appointment: DoctorAppointment | null }) => {
@@ -88,7 +126,7 @@ export default function DoctorAppointmentsPage() {
           <div className="flex flex-wrap gap-2 pt-4 border-t">
             <Button><CheckCircle />Mark as Complete</Button>
             <Button variant="outline" onClick={handleWritePrescription}><Pencil />Write Prescription</Button>
-            <Button variant="outline" disabled><Receipt />Generate Bill</Button>
+            <Button variant="outline" onClick={() => setIsBillDialogOpen(true)}><Receipt />Generate Bill</Button>
           </div>
 
         </CardContent>
@@ -167,6 +205,74 @@ export default function DoctorAppointmentsPage() {
                 <AppointmentDetails appointment={selectedAppointment} />
             </div>
         </div>
+        
+        <Dialog open={isBillDialogOpen} onOpenChange={setIsBillDialogOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Generate New Bill</DialogTitle>
+                    <DialogDescription>
+                        Create a new bill for {selectedAppointment?.patientName}. This will be visible to the patient immediately.
+                    </DialogDescription>
+                </DialogHeader>
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(handleGenerateBill)} className="space-y-4">
+                         <FormField
+                            control={form.control}
+                            name="description"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Description</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="e.g., Consultation Fee" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="category"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Category</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select a category" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="Consultation">Consultation</SelectItem>
+                                        <SelectItem value="Lab Tests">Lab Tests</SelectItem>
+                                        <SelectItem value="Pharmacy">Pharmacy</SelectItem>
+                                        <SelectItem value="Radiology">Radiology</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="amount"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Amount (Rs.)</FormLabel>
+                                <FormControl>
+                                    <Input type="number" placeholder="Enter amount" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <DialogFooter>
+                            <Button type="button" variant="outline" onClick={() => setIsBillDialogOpen(false)}>Cancel</Button>
+                            <Button type="submit">Generate Bill</Button>
+                        </DialogFooter>
+                    </form>
+                </Form>
+            </DialogContent>
+        </Dialog>
     </div>
   );
 }
