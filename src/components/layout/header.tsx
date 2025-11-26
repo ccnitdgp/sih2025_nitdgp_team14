@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { LogOut, Settings, LayoutDashboard, Menu, FileText, UserPlus } from "lucide-react";
+import { LogOut, Settings, LayoutDashboard, Menu, FileText, UserPlus, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,11 +32,12 @@ const generalNavLinks = [
 
 const doctorNavLinks = [
     { href: "/doctor-dashboard", label: "Dashboard" },
-    { href: "/doctor-dashboard/patients", label: "Patients" },
+    { href: "/doctor-dashboard/profile", label: "Profile" },
     { href: "/doctor-dashboard/appointments", label: "Appointments" },
+    { href: "/doctor-dashboard/patients", label: "Patients" },
     { href: "/doctor-dashboard/prescriptions", label: "Prescriptions" },
     { href: "/doctor-dashboard/medical-info", label: "Medical Info"},
-    { href: "/doctor-dashboard/upload-documents", label: "Upload Document" },
+    { href: "/doctor-dashboard/upload-documents", label: "Upload Documents" },
 ];
 
 export function Header() {
@@ -95,56 +96,59 @@ export function Header() {
         <div className="flex items-center justify-end gap-2 sm:gap-4 ml-auto">
            <NavContent />
            
-          {isUserLoading ? (
-            <div className="flex items-center gap-2">
-                <Skeleton className="h-8 w-20" />
-                <Skeleton className="h-8 w-8 rounded-full" />
-            </div>
-          ) : user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.photoURL ?? ""} alt={user.displayName ?? "User"} />
-                    <AvatarFallback>
-                      {userProfile?.firstName?.charAt(0).toUpperCase() ?? user.email?.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                 <DropdownMenuItem onClick={() => router.push(userProfile?.role === 'doctor' ? '/doctor-dashboard' : '/patient-dashboard')}>
-                  <LayoutDashboard className="mr-2 h-4 w-4" />
-                  <span>Dashboard</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem disabled>
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{userProfile?.firstName ? `${userProfile.firstName} ${userProfile.lastName}` : 'Welcome'}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {user.email}
-                    </p>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                 <DropdownMenuItem onClick={() => router.push('/settings')}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <>
-              {isClient && 
+          {isClient ? (
+            isUserLoading ? (
+              <div className="flex items-center gap-2">
+                  <Skeleton className="h-8 w-20" />
+                  <Skeleton className="h-8 w-8 rounded-full" />
+              </div>
+            ) : user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user.photoURL ?? ""} alt={user.displayName ?? "User"} />
+                      <AvatarFallback>
+                        {userProfile?.firstName?.charAt(0).toUpperCase() ?? user.email?.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuItem onClick={() => router.push(userProfile?.role === 'doctor' ? '/doctor-dashboard' : '/patient-dashboard')}>
+                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                    <span>Dashboard</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem disabled>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{userProfile?.firstName ? `${userProfile.firstName} ${userProfile.lastName}` : 'Welcome'}</p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {user.email}
+                      </p>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => router.push('/settings')}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
                 <div className="hidden sm:flex items-center gap-2">
                   <AuthDialog trigger={<Button variant="outline">Login</Button>} />
                   <AuthDialog trigger={<Button>Sign Up</Button>} defaultTab="signup" />
                 </div>
-              }
-            </>
+            )
+          ) : (
+             <div className="flex items-center gap-2">
+                <Skeleton className="h-8 w-20" />
+                <Skeleton className="h-8 w-8 rounded-full" />
+            </div>
           )}
 
           {isClient && (
@@ -168,8 +172,8 @@ export function Header() {
                           <NavContent isMobile />
                           {!user && !isUserLoading && (
                             <div className="mt-6 flex flex-col gap-3">
-                                <AuthDialog trigger={<Button variant="outline" className="w-full">Login</Button>} onOpenChange={setIsMobileMenuOpen} />
-                              <AuthDialog trigger={<Button className="w-full">Sign Up</Button>} defaultTab="signup" onOpenChange={setIsMobileMenuOpen} />
+                                <AuthDialog trigger={<Button variant="outline" className="w-full">Login</Button>} onOpenChange={(isOpen) => !isOpen && setIsMobileMenuOpen(false)} />
+                                <AuthDialog trigger={<Button className="w-full">Sign Up</Button>} defaultTab="signup" onOpenChange={(isOpen) => !isOpen && setIsMobileMenuOpen(false)} />
                             </div>
                           )}
                         </div>
