@@ -608,7 +608,7 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
                         <FormItem>
                           <FormLabel>Email</FormLabel>
                           <FormControl>
-                            <Input placeholder="aditijaiswal@gmail.com" {...field} />
+                            <Input placeholder="name@example.com" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -665,5 +665,3 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
     </Dialog>
   );
 }
-
-    
