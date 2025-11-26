@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -7,16 +8,35 @@ import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import hi from '@/lib/locales/hi.json';
+
 
 export function HeroSection() {
   const router = useRouter();
+  const { user } = useUser();
+  const firestore = useFirestore();
   const [searchQuery, setSearchQuery] = useState('');
   const [isClient, setIsClient] = useState(false);
+  const [translations, setTranslations] = useState(null);
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-image');
+
+  const userDocRef = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [user, firestore]);
+
+  const { data: userProfile } = useDoc(userDocRef);
 
   useEffect(() => {
     setIsClient(true);
-  }, []);
+    if (userProfile?.preferredLanguage === 'hi') {
+      setTranslations(hi);
+    } else {
+      setTranslations(null);
+    }
+  }, [userProfile]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,22 +65,23 @@ export function HeroSection() {
         <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
           <div className="flex flex-col items-start gap-6">
             <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl text-foreground">
-              Your Health, Our Priority.
+              {translations?.hero_title || 'Your Health, Our Priority.'}
             </h1>
             <p className="max-w-[600px] text-lg text-muted-foreground">
-              Access vaccination drives, health camps, and your medical records with ease.
+              {translations?.hero_subtitle || 'Access vaccination drives, health camps, and your medical records with ease.'}
             </p>
             {isClient && (
               <form onSubmit={handleSearch} className="flex w-full max-w-md items-center space-x-2">
                 <Input 
                   type="text" 
-                  placeholder="Search for camps, vaccines..." 
+                  placeholder={translations?.search_placeholder || 'Search for camps, vaccines...'}
                   className="flex-1"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
                 <Button type="submit" variant="default">
-                  <Search className="mr-2 h-4 w-4" /> Search
+                  <Search className="mr-2 h-4 w-4" /> 
+                  {translations?.search_button || 'Search'}
                 </Button>
               </form>
             )}

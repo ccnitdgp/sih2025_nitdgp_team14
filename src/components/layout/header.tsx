@@ -22,23 +22,25 @@ import { doc } from 'firebase/firestore';
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import hi from '@/lib/locales/hi.json';
 
 const generalNavLinks = [
-    { href: "/", label: "Home" },
-    { href: "/vaccination", label: "Vaccination Drive" },
-    { href: "/camps", label: "Visiting Camps" },
-    { href: "/announcements", label: "Announcements" },
+    { href: "/", label: "Home", hi_label: "होम" },
+    { href: "/vaccination", label: "Vaccination Drive", hi_label: "टीकाकरण अभियान" },
+    { href: "/camps", label: "Visiting Camps", hi_label: "स्वास्थ्य शिविर" },
+    { href: "/announcements", label: "Announcements", hi_label: "घोषणाएँ" },
 ];
 
 const doctorNavLinks = [
-    { href: "/doctor-dashboard", label: "Dashboard" },
-    { href: "/doctor-dashboard/profile", label: "Profile" },
-    { href: "/doctor-dashboard/appointments", label: "Appointments" },
-    { href: "/doctor-dashboard/patients", label: "Patients" },
-    { href: "/doctor-dashboard/prescriptions", label: "Prescriptions" },
-    { href: "/doctor-dashboard/medical-info", label: "Medical Info"},
-    { href: "/doctor-dashboard/upload-documents", label: "Upload Documents" },
+    { href: "/doctor-dashboard", label: "Dashboard", hi_label: "tableau de bord" },
+    { href: "/doctor-dashboard/profile", label: "Profile", hi_label: "profil" },
+    { href: "/doctor-dashboard/appointments", label: "Appointments", hi_label: "rendez-vous" },
+    { href: "/doctor-dashboard/patients", label: "Patients", hi_label: "les patients" },
+    { href: "/doctor-dashboard/prescriptions", label: "Prescriptions", hi_label: "prescriptions" },
+    { href: "/doctor-dashboard/medical-info", label: "Medical Info", hi_label: "informations médicales"},
+    { href: "/doctor-dashboard/upload-documents", label: "Upload Documents", hi_label: "télécharger des documents" },
 ];
+
 
 export function Header() {
   const { user, isUserLoading } = useUser();
@@ -47,6 +49,7 @@ export function Header() {
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [translations, setTranslations] = useState(null);
 
   useEffect(() => {
     setIsClient(true);
@@ -58,6 +61,14 @@ export function Header() {
   }, [user, firestore]);
 
   const { data: userProfile } = useDoc(userDocRef);
+
+  useEffect(() => {
+    if (userProfile?.preferredLanguage === 'hi') {
+      setTranslations(hi);
+    } else {
+      setTranslations(null); // Default to English
+    }
+  }, [userProfile]);
   
   const isDoctor = userProfile?.role === 'doctor';
   const navLinks = isDoctor ? doctorNavLinks : generalNavLinks;
@@ -80,7 +91,7 @@ export function Header() {
           className="text-muted-foreground transition-colors hover:text-foreground whitespace-nowrap"
           onClick={() => isMobile && setIsMobileMenuOpen(false)}
         >
-          {link.label}
+          {translations ? (link.hi_label || link.label) : link.label}
         </Link>
       ))}
     </nav>
@@ -117,7 +128,7 @@ export function Header() {
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                   <DropdownMenuItem onClick={() => router.push(userProfile?.role === 'doctor' ? '/doctor-dashboard' : '/patient-dashboard')}>
                     <LayoutDashboard className="mr-2 h-4 w-4" />
-                    <span>Dashboard</span>
+                    <span>{translations ? 'tableau de bord' : 'Dashboard'}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem disabled>
                     <div className="flex flex-col space-y-1">
@@ -130,18 +141,18 @@ export function Header() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => router.push('/settings')}>
                     <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
+                    <span>{translations ? 'paramètres' : 'Settings'}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
+                    <span>{translations ? 'se déconnecter' : 'Log out'}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
                 <div className="hidden sm:flex items-center gap-2">
-                  <AuthDialog trigger={<Button variant="outline">Login</Button>} />
-                  <AuthDialog trigger={<Button>Sign Up</Button>} defaultTab="signup" />
+                  <AuthDialog trigger={<Button variant="outline">{translations ? 'connexion' : 'Login'}</Button>} />
+                  <AuthDialog trigger={<Button>{translations ? "s'inscrire" : 'Sign Up'}</Button>} defaultTab="signup" />
                 </div>
             )
           ) : (
