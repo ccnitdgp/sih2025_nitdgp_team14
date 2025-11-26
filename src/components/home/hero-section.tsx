@@ -18,17 +18,15 @@ export function HeroSection() {
     setIsClient(true);
   }, []);
 
-
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const query = searchQuery.toLowerCase().trim();
     const encodedQuery = encodeURIComponent(query);
+    
     if (query.includes('camp')) {
       router.push(`/camps?search=${encodedQuery}`);
     } else if (query.includes('vaccine') || query.includes('vaccination')) {
       router.push(`/vaccination?search=${encodedQuery}`);
-    } else if (query) {
-      router.push(`/appointments?search=${encodedQuery}`);
     }
   };
 
