@@ -1,30 +1,54 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { History, PlusCircle, Volume2 } from 'lucide-react';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { collection, addDoc, serverTimestamp, doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
+import hi from '@/lib/locales/hi.json';
+import bn from '@/lib/locales/bn.json';
+import ta from '@/lib/locales/ta.json';
+import te from '@/lib/locales/te.json';
+import mr from '@/lib/locales/mr.json';
+
+const languageFiles = { hi, bn, ta, te, mr };
 
 export default function MedicalHistoryPage() {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
+    const [translations, setTranslations] = useState({});
 
     const [newHistoryItem, setNewHistoryItem] = useState('');
     const [isAdding, setIsAdding] = useState(false);
+
+     const userDocRef = useMemoFirebase(() => {
+        if (!user || !firestore) return null;
+        return doc(firestore, 'users', user.uid);
+    }, [user, firestore]);
+
+    const { data: userProfile } = useDoc(userDocRef);
+
+    useEffect(() => {
+        if (userProfile?.preferredLanguage && languageFiles[userProfile.preferredLanguage]) {
+            setTranslations(languageFiles[userProfile.preferredLanguage]);
+        } else {
+            setTranslations({});
+        }
+    }, [userProfile]);
+
+    const t = (key: string, fallback: string) => translations[key] || fallback;
 
     const healthRecordsRef = useMemoFirebase(() => {
         if (!user || !firestore) return null;
         return collection(firestore, `users/${user.uid}/healthRecords`);
     }, [user, firestore]);
     
-    // This is a simplified query. In a real app, you would filter by recordType.
     const { data: medicalHistory, isLoading } = useCollection(healthRecordsRef);
 
     const handleTextToSpeech = (text: string) => {
@@ -34,8 +58,8 @@ export default function MedicalHistoryPage() {
         } else {
              toast({
                 variant: "destructive",
-                title: "Unsupported Feature",
-                description: "Text-to-speech is not supported in your browser.",
+                title: t('unsupported_feature_toast_title', "Unsupported Feature"),
+                description: t('unsupported_feature_toast_desc', "Text-to-speech is not supported in your browser."),
             });
         }
     };
@@ -53,15 +77,15 @@ export default function MedicalHistoryPage() {
             });
             setNewHistoryItem('');
             toast({
-                title: "Success",
-                description: "Medical history item added.",
+                title: t('success_toast_title', "Success"),
+                description: t('medical_history_added_toast_desc', "Medical history item added."),
             });
         } catch (error) {
             console.error("Error adding medical history:", error);
             toast({
                 variant: "destructive",
-                title: "Error",
-                description: "Could not add medical history item.",
+                title: t('error_toast_title', "Error"),
+                description: t('add_medical_history_error_toast_desc', "Could not add medical history item."),
             });
         } finally {
             setIsAdding(false);
@@ -84,11 +108,10 @@ export default function MedicalHistoryPage() {
       <CardHeader>
         <div className="flex items-center gap-3">
           <History className="h-6 w-6" />
-          <CardTitle className="text-2xl">Medical History</CardTitle>
+          <CardTitle className="text-2xl">{t('medical_history_page_title', 'Medical History')}</CardTitle>
         </div>
         <CardDescription>
-          A summary of your past and present medical conditions as recorded by
-          your doctor.
+          {t('medical_history_page_desc', 'A summary of your past and present medical conditions as recorded by your doctor.')}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -107,7 +130,7 @@ export default function MedicalHistoryPage() {
             </div>
             ))
         ) : (
-          !isLoading && <p className="text-muted-foreground text-center py-4">No medical history recorded yet.</p>
+          !isLoading && <p className="text-muted-foreground text-center py-4">{t('no_medical_history_text', 'No medical history recorded yet.')}</p>
         )}
       </CardContent>
     </Card>

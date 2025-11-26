@@ -13,34 +13,16 @@ import {
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { useState, useEffect } from 'react';
+import { doc } from 'firebase/firestore';
+import hi from '@/lib/locales/hi.json';
+import bn from '@/lib/locales/bn.json';
+import ta from '@/lib/locales/ta.json';
+import te from '@/lib/locales/te.json';
+import mr from '@/lib/locales/mr.json';
 
-const sidebarNavItems = [
-  {
-    title: 'Medical History',
-    href: '/records/medical-history',
-    icon: History,
-  },
-  {
-    title: 'Prescriptions',
-    href: '/records/prescriptions',
-    icon: BookUser,
-  },
-  {
-    title: 'Analyze Prescription',
-    href: '/records/analyze-prescription',
-    icon: ScanText,
-  },
-  {
-    title: 'Lab Reports',
-    href: '/records/lab-reports',
-    icon: FlaskConical,
-  },
-  {
-    title: 'Vaccination Records',
-    href: '/records/vaccination-records',
-    icon: ShieldCheck,
-  },
-];
+const languageFiles = { hi, bn, ta, te, mr };
 
 interface RecordsLayoutProps {
   children: React.ReactNode;
@@ -48,6 +30,54 @@ interface RecordsLayoutProps {
 
 export default function RecordsLayout({ children }: RecordsLayoutProps) {
   const pathname = usePathname();
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const [translations, setTranslations] = useState({});
+
+  const userDocRef = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [user, firestore]);
+
+  const { data: userProfile } = useDoc(userDocRef);
+
+  useEffect(() => {
+    if (userProfile?.preferredLanguage && languageFiles[userProfile.preferredLanguage]) {
+      setTranslations(languageFiles[userProfile.preferredLanguage]);
+    } else {
+      setTranslations({});
+    }
+  }, [userProfile]);
+
+  const t = (key: string, fallback: string) => translations[key] || fallback;
+
+  const sidebarNavItems = [
+    {
+      title: t('medical_history_link', 'Medical History'),
+      href: '/records/medical-history',
+      icon: History,
+    },
+    {
+      title: t('prescriptions_link', 'Prescriptions'),
+      href: '/records/prescriptions',
+      icon: BookUser,
+    },
+    {
+      title: t('analyze_prescription_link', 'Analyze Prescription'),
+      href: '/records/analyze-prescription',
+      icon: ScanText,
+    },
+    {
+      title: t('lab_reports_link', 'Lab Reports'),
+      href: '/records/lab-reports',
+      icon: FlaskConical,
+    },
+    {
+      title: t('vaccinations_link', 'Vaccination Records'),
+      href: '/records/vaccination-records',
+      icon: ShieldCheck,
+    },
+  ];
 
   return (
     <div className="container mx-auto max-w-7xl px-6 py-12">
@@ -61,7 +91,7 @@ export default function RecordsLayout({ children }: RecordsLayoutProps) {
             >
               <Link href="/patient-dashboard">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Dashboard
+                {t('back_to_dashboard_button', 'Back to Dashboard')}
               </Link>
             </Button>
             <nav className="flex flex-col gap-2">

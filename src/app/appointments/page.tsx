@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,15 @@ import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { upcomingAppointments, pastAppointments } from '@/lib/data';
+import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import hi from '@/lib/locales/hi.json';
+import bn from '@/lib/locales/bn.json';
+import ta from '@/lib/locales/ta.json';
+import te from '@/lib/locales/te.json';
+import mr from '@/lib/locales/mr.json';
+
+const languageFiles = { hi, bn, ta, te, mr };
 
 const doctors = [
   {
@@ -68,7 +77,7 @@ const doctors = [
 
 type Doctor = (typeof doctors)[0];
 
-const FindDoctors = () => {
+const FindDoctors = ({ t }) => {
   const [symptoms, setSymptoms] = useState('');
   const [suggestion, setSuggestion] = useState<SymptomCheckerOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -88,8 +97,8 @@ const FindDoctors = () => {
       console.error('Error getting suggestion:', error);
       toast({
         variant: "destructive",
-        title: "AI Suggestion Failed",
-        description: "The AI service is currently busy. Please wait a moment and try again.",
+        title: t('ai_suggestion_failed_title', "AI Suggestion Failed"),
+        description: t('ai_suggestion_failed_desc', "The AI service is currently busy. Please wait a moment and try again."),
       });
     } finally {
       setIsLoading(false);
@@ -112,8 +121,8 @@ const FindDoctors = () => {
     if (!selectedDoctor || !selectedDate || !selectedTime) return;
     
     toast({
-      title: 'Appointment Booked!',
-      description: `Your appointment with ${selectedDoctor.name} on ${format(selectedDate, 'PPP')} at ${selectedTime} has been successfully scheduled.`,
+      title: t('appointment_booked_title', 'Appointment Booked!'),
+      description: t('appointment_booked_desc', `Your appointment with ${selectedDoctor.name} on ${format(selectedDate, 'PPP')} at ${selectedTime} has been successfully scheduled.`),
     });
     handleCloseDialog();
   };
@@ -135,29 +144,29 @@ const FindDoctors = () => {
                 <CardHeader>
                     <div className="flex items-center gap-3">
                     <Sparkles className="h-6 w-6 text-primary" />
-                    <CardTitle className="text-2xl">AI-Powered Symptom Checker</CardTitle>
+                    <CardTitle className="text-2xl">{t('symptom_checker_title', 'AI-Powered Symptom Checker')}</CardTitle>
                     </div>
-                    <p className="text-muted-foreground pt-2">Describe your symptoms, and we&apos;ll suggest the right specialist for you.</p>
+                    <p className="text-muted-foreground pt-2">{t('symptom_checker_desc', 'Describe your symptoms, and we\'ll suggest the right specialist for you.')}</p>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div>
-                    <label htmlFor="symptoms" className="font-medium">Describe your health problem</label>
+                    <label htmlFor="symptoms" className="font-medium">{t('symptom_checker_label', 'Describe your health problem')}</label>
                     <Textarea
                         id="symptoms"
                         value={symptoms}
                         onChange={(e) => setSymptoms(e.target.value)}
-                        placeholder="e.g., I have a skin rash on my arm, or I've been having chest pain..."
+                        placeholder={t('symptom_checker_placeholder', "e.g., I have a skin rash on my arm, or I've been having chest pain...")}
                         className="mt-2 min-h-[100px]"
                     />
                     </div>
                     <Button onClick={handleGetSuggestion} disabled={isLoading || !symptoms}>
-                    {isLoading ? 'Getting Suggestion...' : 'Get Suggestion'}
+                    {isLoading ? t('getting_suggestion_button_loading', 'Getting Suggestion...') : t('get_suggestion_button', 'Get Suggestion')}
                     </Button>
                     {suggestion && (
                     <div className="!mt-6 p-4 bg-accent/20 border border-accent/50 rounded-lg flex items-center gap-3">
                         <Lightbulb className="h-5 w-5 text-accent" />
                         <p>
-                        Based on your symptoms, we suggest you see a{' '}
+                        {t('suggestion_text_prefix', 'Based on your symptoms, we suggest you see a ')}
                         <span className="font-bold">{suggestion.specialistSuggestion}</span>.
                         </p>
                     </div>
@@ -167,11 +176,11 @@ const FindDoctors = () => {
 
             <div>
                 <h2 className="text-3xl font-bold tracking-tight mb-6">
-                    {suggestion && filteredDoctors.length > 0 ? `Suggested ${suggestion.specialistSuggestion}s` : 'Doctors Near You'}
+                    {suggestion && filteredDoctors.length > 0 ? t('suggested_specialists_title', `Suggested ${suggestion.specialistSuggestion}s`) : t('doctors_near_you_title', 'Doctors Near You')}
                 </h2>
                 {suggestion && filteredDoctors.length === 0 && (
                     <p className="text-center text-muted-foreground mb-6">
-                        No doctors found for the suggested specialty. Showing all doctors.
+                        {t('no_doctors_found_text', 'No doctors found for the suggested specialty. Showing all doctors.')}
                     </p>
                 )}
                 <div className="space-y-6">
@@ -195,15 +204,15 @@ const FindDoctors = () => {
                             </div>
                             <div className="flex items-center gap-2">
                                 <CalendarIcon className="h-4 w-4 text-primary"/>
-                                <span>Next available: {doctor.nextAvailable}</span>
+                                <span>{t('next_available_text', 'Next available')}: {doctor.nextAvailable}</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <Star className="h-4 w-4 text-yellow-500 fill-yellow-500"/>
-                                <span>{doctor.rating} ({doctor.reviews} reviews)</span>
+                                <span>{doctor.rating} ({doctor.reviews} {t('reviews_text', 'reviews')})</span>
                             </div>
                         </div>
                         <div className="flex md:justify-end">
-                            <Button onClick={() => handleOpenSlots(doctor)}>Book Appointment</Button>
+                            <Button onClick={() => handleOpenSlots(doctor)}>{t('book_appointment_button', 'Book Appointment')}</Button>
                         </div>
                         </CardContent>
                     </Card>
@@ -214,9 +223,9 @@ const FindDoctors = () => {
         <Dialog open={!!selectedDoctor} onOpenChange={(isOpen) => !isOpen && handleCloseDialog()}>
             <DialogContent className="sm:max-w-md">
             <DialogHeader>
-                <DialogTitle>Book Appointment with {selectedDoctor?.name}</DialogTitle>
+                <DialogTitle>{t('book_appointment_with_title', 'Book Appointment with')} {selectedDoctor?.name}</DialogTitle>
                 <DialogDescription>
-                Select an available date and time slot below.
+                {t('select_slot_desc', 'Select an available date and time slot below.')}
                 </DialogDescription>
             </DialogHeader>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
@@ -242,7 +251,7 @@ const FindDoctors = () => {
                 />
                 </div>
                 <div className="space-y-4">
-                <h4 className="font-semibold text-center md:text-left">Available Time Slots</h4>
+                <h4 className="font-semibold text-center md:text-left">{t('available_time_slots_title', 'Available Time Slots')}</h4>
                 {selectedDate ? (
                     availableTimesForSelectedDate.length > 0 ? (
                     <RadioGroup 
@@ -260,16 +269,16 @@ const FindDoctors = () => {
                         ))}
                     </RadioGroup>
                     ) : (
-                    <p className="text-sm text-muted-foreground text-center md:text-left">No slots available on this date.</p>
+                    <p className="text-sm text-muted-foreground text-center md:text-left">{t('no_slots_available_text', 'No slots available on this date.')}</p>
                     )
                 ) : (
-                    <p className="text-sm text-muted-foreground text-center md:text-left">Please select a date to see available times.</p>
+                    <p className="text-sm text-muted-foreground text-center md:text-left">{t('select_date_prompt', 'Please select a date to see available times.')}</p>
                 )}
                 </div>
             </div>
             <DialogFooter className="sm:justify-between">
-                <Button variant="outline" onClick={handleCloseDialog}>Cancel</Button>
-                <Button onClick={handleBookAppointment} disabled={!selectedDate || !selectedTime}>Confirm Booking</Button>
+                <Button variant="outline" onClick={handleCloseDialog}>{t('cancel_button', 'Cancel')}</Button>
+                <Button onClick={handleBookAppointment} disabled={!selectedDate || !selectedTime}>{t('confirm_booking_button', 'Confirm Booking')}</Button>
             </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -277,12 +286,12 @@ const FindDoctors = () => {
     )
 }
 
-const MyAppointments = () => {
+const MyAppointments = ({ t }) => {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Upcoming Appointments</CardTitle>
-                <CardDescription>Here are your scheduled appointments.</CardDescription>
+                <CardTitle>{t('upcoming_appointments_title', 'Upcoming Appointments')}</CardTitle>
+                <CardDescription>{t('upcoming_appointments_desc', 'Here are your scheduled appointments.')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                 {upcomingAppointments.map(appt => (
@@ -304,8 +313,8 @@ const MyAppointments = () => {
                             </div>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-2 self-start sm:self-center">
-                            <Button variant="outline">Reschedule</Button>
-                            <Button variant="destructive">Cancel</Button>
+                            <Button variant="outline">{t('reschedule_button', 'Reschedule')}</Button>
+                            <Button variant="destructive">{t('cancel_button', 'Cancel')}</Button>
                         </div>
                     </Card>
                 ))}
@@ -314,12 +323,12 @@ const MyAppointments = () => {
     )
 }
 
-const HistoryTab = () => {
+const HistoryTab = ({ t }) => {
     return (
          <Card>
             <CardHeader>
-                <CardTitle>Appointment History</CardTitle>
-                <CardDescription>Here are your past appointments.</CardDescription>
+                <CardTitle>{t('appointment_history_title', 'Appointment History')}</CardTitle>
+                <CardDescription>{t('appointment_history_desc', 'Here are your past appointments.')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                 {pastAppointments.map(appt => (
@@ -341,8 +350,8 @@ const HistoryTab = () => {
                             </div>
                         </div>
                         <div className="flex gap-2 self-start sm:self-center">
-                            <Button>Book Again</Button>
-                            <Button variant="outline">View Details</Button>
+                            <Button>{t('book_again_button', 'Book Again')}</Button>
+                            <Button variant="outline">{t('view_details_button', 'View Details')}</Button>
                         </div>
                     </Card>
                 ))}
@@ -353,37 +362,58 @@ const HistoryTab = () => {
 
 
 export default function AppointmentsPage() {
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const [translations, setTranslations] = useState({});
+
+  const userDocRef = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [user, firestore]);
+
+  const { data: userProfile } = useDoc(userDocRef);
+
+  useEffect(() => {
+    if (userProfile?.preferredLanguage && languageFiles[userProfile.preferredLanguage]) {
+      setTranslations(languageFiles[userProfile.preferredLanguage]);
+    } else {
+      setTranslations({});
+    }
+  }, [userProfile]);
+
+  const t = (key: string, fallback: string) => translations[key] || fallback;
+
   return (
     <div className="container mx-auto max-w-5xl px-6 py-12">
         <div className="text-center mb-12">
             <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl">
-                Book an Appointment
+                {t('book_appointment_page_title', 'Book an Appointment')}
             </h1>
             <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
-                Find doctors, manage your upcoming appointments, and view your consultation history.
+                {t('book_appointment_page_desc', 'Find doctors, manage your upcoming appointments, and view your consultation history.')}
             </p>
         </div>
 
         <Tabs defaultValue="find-doctors" className="w-full">
             <TabsList className="grid w-full grid-cols-3 max-w-2xl mx-auto">
                 <TabsTrigger value="find-doctors">
-                    <Search className="mr-2 h-4 w-4"/> Find Doctors
+                    <Search className="mr-2 h-4 w-4"/> {t('find_doctors_tab', 'Find Doctors')}
                 </TabsTrigger>
                 <TabsTrigger value="my-appointments">
-                    <ClipboardList className="mr-2 h-4 w-4" /> My Appointments
+                    <ClipboardList className="mr-2 h-4 w-4" /> {t('my_appointments_tab', 'My Appointments')}
                 </TabsTrigger>
                 <TabsTrigger value="history">
-                    <History className="mr-2 h-4 w-4" /> History
+                    <History className="mr-2 h-4 w-4" /> {t('history_tab', 'History')}
                 </TabsTrigger>
             </TabsList>
             <TabsContent value="find-doctors" className="mt-8">
-                <FindDoctors />
+                <FindDoctors t={t}/>
             </TabsContent>
             <TabsContent value="my-appointments" className="mt-8">
-                <MyAppointments />
+                <MyAppointments t={t}/>
             </TabsContent>
             <TabsContent value="history" className="mt-8">
-                <HistoryTab />
+                <HistoryTab t={t}/>
             </TabsContent>
         </Tabs>
     </div>

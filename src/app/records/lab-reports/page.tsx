@@ -10,13 +10,39 @@ import {
 } from '@/components/ui/card';
 import { FlaskConical, PlusCircle, FileDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { collection, doc } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useState, useEffect } from 'react';
+import hi from '@/lib/locales/hi.json';
+import bn from '@/lib/locales/bn.json';
+import ta from '@/lib/locales/ta.json';
+import te from '@/lib/locales/te.json';
+import mr from '@/lib/locales/mr.json';
+
+const languageFiles = { hi, bn, ta, te, mr };
 
 export default function LabReportsPage() {
   const { user } = useUser();
   const firestore = useFirestore();
+  const [translations, setTranslations] = useState({});
+
+  const userDocRef = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [user, firestore]);
+
+  const { data: userProfile } = useDoc(userDocRef);
+
+  useEffect(() => {
+    if (userProfile?.preferredLanguage && languageFiles[userProfile.preferredLanguage]) {
+      setTranslations(languageFiles[userProfile.preferredLanguage]);
+    } else {
+      setTranslations({});
+    }
+  }, [userProfile]);
+
+  const t = (key: string, fallback: string) => translations[key] || fallback;
 
   const labReportsRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
@@ -45,15 +71,15 @@ export default function LabReportsPage() {
          <div>
             <div className="flex items-center gap-3">
             <FlaskConical className="h-6 w-6" />
-            <CardTitle className="text-2xl">Lab Reports</CardTitle>
+            <CardTitle className="text-2xl">{t('lab_reports_page_title', 'Lab Reports')}</CardTitle>
             </div>
             <CardDescription>
-                View and manage your diagnostic lab reports.
+                {t('lab_reports_page_desc', 'View and manage your diagnostic lab reports.')}
             </CardDescription>
         </div>
         <Button disabled>
             <PlusCircle className="mr-2 h-4 w-4"/>
-            Upload Report
+            {t('upload_report_button', 'Upload Report')}
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -65,17 +91,17 @@ export default function LabReportsPage() {
                   <div className="flex-1">
                       <h3 className="font-semibold text-lg">{report.details.name}</h3>
                       <p className="text-sm text-muted-foreground mt-1">
-                          Date: {report.details.date} - Issued by: {report.details.issuer}
+                          {t('date_label', 'Date')}: {report.details.date} - {t('issued_by_label', 'Issued by')}: {report.details.issuer}
                       </p>
                   </div>
                    <Button variant="outline" size="sm" disabled>
                       <FileDown className="mr-2 h-4 w-4"/>
-                      Download
+                      {t('download_button', 'Download')}
                   </Button>
               </Card>
             ))
         ) : (
-          !isLoading && <p className="text-muted-foreground text-center py-4">No lab reports uploaded yet.</p>
+          !isLoading && <p className="text-muted-foreground text-center py-4">{t('no_lab_reports_text', 'No lab reports uploaded yet.')}</p>
         )}
       </CardContent>
     </Card>

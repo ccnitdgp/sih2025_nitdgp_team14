@@ -11,22 +11,45 @@ import {
 import { BookUser, FileDown, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { collection, doc } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useState, useEffect } from 'react';
+import hi from '@/lib/locales/hi.json';
+import bn from '@/lib/locales/bn.json';
+import ta from '@/lib/locales/ta.json';
+import te from '@/lib/locales/te.json';
+import mr from '@/lib/locales/mr.json';
+
+const languageFiles = { hi, bn, ta, te, mr };
 
 export default function PrescriptionsPage() {
   const { user } = useUser();
   const firestore = useFirestore();
+  const [translations, setTranslations] = useState({});
+
+  const userDocRef = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [user, firestore]);
+
+  const { data: userProfile } = useDoc(userDocRef);
+
+  useEffect(() => {
+    if (userProfile?.preferredLanguage && languageFiles[userProfile.preferredLanguage]) {
+      setTranslations(languageFiles[userProfile.preferredLanguage]);
+    } else {
+      setTranslations({});
+    }
+  }, [userProfile]);
+
+  const t = (key: string, fallback: string) => translations[key] || fallback;
 
   const prescriptionsRef = useMemoFirebase(() => {
       if (!user || !firestore) return null;
-      // In a real app, prescriptions might be their own subcollection.
-      // Here, we'll filter the healthRecords collection.
       return collection(firestore, `users/${user.uid}/healthRecords`);
   }, [user, firestore]);
   
-  // This is a simplified query. In a real app, you would filter by recordType.
   const { data: prescriptions, isLoading } = useCollection(prescriptionsRef);
 
   const SkeletonLoader = () => (
@@ -52,15 +75,15 @@ export default function PrescriptionsPage() {
         <div>
             <div className="flex items-center gap-3">
             <BookUser className="h-6 w-6" />
-            <CardTitle className="text-2xl">Prescriptions</CardTitle>
+            <CardTitle className="text-2xl">{t('prescriptions_page_title', 'Prescriptions')}</CardTitle>
             </div>
             <CardDescription>
-            Your prescribed medications and their details.
+            {t('prescriptions_page_desc', 'Your prescribed medications and their details.')}
             </CardDescription>
         </div>
         <Button disabled>
             <PlusCircle className="mr-2 h-4 w-4"/>
-            Add Prescription
+            {t('add_prescription_button', 'Add Prescription')}
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -72,19 +95,19 @@ export default function PrescriptionsPage() {
                 <div className="flex-1">
                     <div className="flex items-center gap-4">
                         <h3 className="font-semibold text-lg">{item.details?.medication}</h3>
-                        <Badge variant={item.details?.status === 'Active' ? 'default' : 'secondary'}>{item.details?.status}</Badge>
+                        <Badge variant={item.details?.status === 'Active' ? 'default' : 'secondary'}>{t(item.details?.status.toLowerCase() + '_status', item.details?.status)}</Badge>
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">
-                        {item.details?.dosage} - Prescribed by {item.details?.doctor} on {item.details?.date}
+                        {item.details?.dosage} - {t('prescribed_by_text', 'Prescribed by')} {item.details?.doctor} {t('on_date_text', 'on')} {item.details?.date}
                     </p>
                 </div>
                 <Button variant="outline" size="sm" disabled>
                     <FileDown className="mr-2 h-4 w-4"/>
-                    Download
+                    {t('download_button', 'Download')}
                 </Button>
             </Card>
         ))) : (
-          !isLoading && <p className="text-muted-foreground text-center py-4">No prescriptions recorded yet.</p>
+          !isLoading && <p className="text-muted-foreground text-center py-4">{t('no_prescriptions_text', 'No prescriptions recorded yet.')}</p>
         )}
       </CardContent>
     </Card>

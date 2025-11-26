@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,6 +9,15 @@ import { Badge } from '@/components/ui/badge';
 import { Activity, Pill, Stethoscope, FileDown, CreditCard, DollarSign } from 'lucide-react';
 import { billingHistory, type Bill } from '@/lib/data';
 import { cn } from '@/lib/utils';
+import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import hi from '@/lib/locales/hi.json';
+import bn from '@/lib/locales/bn.json';
+import ta from '@/lib/locales/ta.json';
+import te from '@/lib/locales/te.json';
+import mr from '@/lib/locales/mr.json';
+
+const languageFiles = { hi, bn, ta, te, mr };
 
 const categoryIcons = {
   Radiology: <Activity className="h-6 w-6 text-primary" />,
@@ -18,6 +27,26 @@ const categoryIcons = {
 
 export default function BillingPage() {
   const [bills, setBills] = useState<Bill[]>(billingHistory);
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const [translations, setTranslations] = useState({});
+
+  const userDocRef = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [user, firestore]);
+
+  const { data: userProfile } = useDoc(userDocRef);
+
+  useEffect(() => {
+    if (userProfile?.preferredLanguage && languageFiles[userProfile.preferredLanguage]) {
+      setTranslations(languageFiles[userProfile.preferredLanguage]);
+    } else {
+      setTranslations({});
+    }
+  }, [userProfile]);
+
+  const t = (key: string, fallback: string) => translations[key] || fallback;
 
   const outstandingBills = bills.filter((bill) => bill.status === 'Due');
   const paidBills = bills.filter((bill) => bill.status === 'Paid');
@@ -29,27 +58,27 @@ export default function BillingPage() {
       <div className="space-y-8">
         <div className="text-center mb-12">
           <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl">
-            Patient's Billing History
+            {t('billing_history_page_title', "Patient's Billing History")}
           </h1>
           <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
-            View, manage, and pay your medical bills with ease.
+            {t('billing_history_page_desc', 'View, manage, and pay your medical bills with ease.')}
           </p>
         </div>
 
         <Card className="shadow-lg">
           <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <CardTitle className="text-2xl">Total Outstanding</CardTitle>
+              <CardTitle className="text-2xl">{t('total_outstanding_title', 'Total Outstanding')}</CardTitle>
               <CardDescription>
-                You have {outstandingBills.length} unpaid bill(s).
+                {t('unpaid_bills_desc', `You have ${outstandingBills.length} unpaid bill(s).`)}
               </CardDescription>
             </div>
             <div className="flex items-center gap-4">
                <span className="text-2xl font-bold text-destructive">
-                Rs. {totalOutstanding.toLocaleString('en-IN')}
+                {t('currency_symbol', 'Rs.')} {totalOutstanding.toLocaleString('en-IN')}
               </span>
               <Button size="lg" disabled={outstandingBills.length === 0}>
-                <CreditCard className="mr-2 h-5 w-5" /> Pay All Outstanding
+                <CreditCard className="mr-2 h-5 w-5" /> {t('pay_all_outstanding_button', 'Pay All Outstanding')}
               </Button>
             </div>
           </CardHeader>
@@ -58,10 +87,10 @@ export default function BillingPage() {
         <Tabs defaultValue="outstanding" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="outstanding">
-              Outstanding Bills ({outstandingBills.length})
+              {t('outstanding_bills_tab', 'Outstanding Bills')} ({outstandingBills.length})
             </TabsTrigger>
             <TabsTrigger value="paid">
-              Paid History ({paidBills.length})
+              {t('paid_history_tab', 'Paid History')} ({paidBills.length})
             </TabsTrigger>
           </TabsList>
           <TabsContent value="outstanding" className="mt-6 space-y-4">
@@ -73,19 +102,19 @@ export default function BillingPage() {
                     </div>
                     <div className="flex-grow">
                         <h3 className="font-bold text-lg">{bill.title}</h3>
-                        <p className="text-sm text-muted-foreground">{bill.category} - {bill.date}</p>
+                        <p className="text-sm text-muted-foreground">{t(bill.category.toLowerCase(), bill.category)} - {bill.date}</p>
                     </div>
                     <div className="flex flex-col items-end gap-2 ml-auto shrink-0">
                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-lg">Rs. {bill.amount.toLocaleString('en-IN')}</span>
-                            <Badge variant="destructive">{bill.status}</Badge>
+                            <span className="font-bold text-lg">{t('currency_symbol', 'Rs.')} {bill.amount.toLocaleString('en-IN')}</span>
+                            <Badge variant="destructive">{t('bill_status_due', bill.status)}</Badge>
                          </div>
                          <div className="flex items-center gap-2 mt-2">
                             <Button variant="ghost" size="sm">
-                                <FileDown className="mr-2 h-4 w-4"/> Download Invoice
+                                <FileDown className="mr-2 h-4 w-4"/> {t('download_invoice_button', 'Download Invoice')}
                             </Button>
                             <Button>
-                                <DollarSign className="mr-2 h-4 w-4"/> Pay Now
+                                <DollarSign className="mr-2 h-4 w-4"/> {t('pay_now_button', 'Pay Now')}
                             </Button>
                          </div>
                     </div>
@@ -93,8 +122,8 @@ export default function BillingPage() {
                 ))
             ) : (
               <Card className="text-center p-8">
-                <CardTitle>All Clear!</CardTitle>
-                <CardDescription>You have no outstanding bills.</CardDescription>
+                <CardTitle>{t('all_clear_title', 'All Clear!')}</CardTitle>
+                <CardDescription>{t('no_outstanding_bills_desc', 'You have no outstanding bills.')}</CardDescription>
               </Card>
             )}
           </TabsContent>
@@ -107,16 +136,16 @@ export default function BillingPage() {
                     </div>
                     <div className="flex-grow">
                         <h3 className="font-bold text-lg">{bill.title}</h3>
-                        <p className="text-sm text-muted-foreground">{bill.category} - {bill.date}</p>
+                        <p className="text-sm text-muted-foreground">{t(bill.category.toLowerCase(), bill.category)} - {bill.date}</p>
                     </div>
                     <div className="flex flex-col items-end gap-2 ml-auto shrink-0">
                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-lg">Rs. {bill.amount.toLocaleString('en-IN')}</span>
-                            <Badge variant="secondary">{bill.status}</Badge>
+                            <span className="font-bold text-lg">{t('currency_symbol', 'Rs.')} {bill.amount.toLocaleString('en-IN')}</span>
+                            <Badge variant="secondary">{t('bill_status_paid', bill.status)}</Badge>
                          </div>
                          <div className="flex items-center gap-2 mt-2">
                             <Button variant="ghost" size="sm">
-                                <FileDown className="mr-2 h-4 w-4"/> Download Invoice
+                                <FileDown className="mr-2 h-4 w-4"/> {t('download_invoice_button', 'Download Invoice')}
                             </Button>
                          </div>
                     </div>
@@ -124,8 +153,8 @@ export default function BillingPage() {
                 ))
             ) : (
                 <Card className="text-center p-8">
-                    <CardTitle>No Paid Bills</CardTitle>
-                    <CardDescription>Your payment history will appear here.</CardDescription>
+                    <CardTitle>{t('no_paid_bills_title', 'No Paid Bills')}</CardTitle>
+                    <CardDescription>{t('no_paid_bills_desc', 'Your payment history will appear here.')}</CardDescription>
                 </Card>
             )}
           </TabsContent>

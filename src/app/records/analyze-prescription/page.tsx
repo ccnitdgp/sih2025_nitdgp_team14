@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -11,6 +11,15 @@ import { analyzePrescription, type AnalyzePrescriptionOutput } from '@/ai/flows/
 import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import hi from '@/lib/locales/hi.json';
+import bn from '@/lib/locales/bn.json';
+import ta from '@/lib/locales/ta.json';
+import te from '@/lib/locales/te.json';
+import mr from '@/lib/locales/mr.json';
+
+const languageFiles = { hi, bn, ta, te, mr };
 
 export default function AnalyzePrescriptionPage() {
   const [prescriptionImage, setPrescriptionImage] = useState<string | null>(null);
@@ -18,6 +27,28 @@ export default function AnalyzePrescriptionPage() {
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const [translations, setTranslations] = useState({});
+
+  const userDocRef = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [user, firestore]);
+
+  const { data: userProfile } = useDoc(userDocRef);
+
+  useEffect(() => {
+    if (userProfile?.preferredLanguage && languageFiles[userProfile.preferredLanguage]) {
+      setTranslations(languageFiles[userProfile.preferredLanguage]);
+    } else {
+      setTranslations({});
+    }
+  }, [userProfile]);
+
+  const t = (key: string, fallback: string) => translations[key] || fallback;
+
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -35,8 +66,8 @@ export default function AnalyzePrescriptionPage() {
     if (!prescriptionImage) {
       toast({
         variant: "destructive",
-        title: "No Image Selected",
-        description: "Please upload an image of your prescription first.",
+        title: t('no_image_selected_toast_title', "No Image Selected"),
+        description: t('no_image_selected_toast_desc', "Please upload an image of your prescription first."),
       });
       return;
     }
@@ -48,15 +79,15 @@ export default function AnalyzePrescriptionPage() {
       const result = await analyzePrescription({ photoDataUri: prescriptionImage });
       setAnalysis(result);
       toast({
-          title: "Analysis Complete",
-          description: "Prescription details extracted successfully.",
+          title: t('analysis_complete_toast_title', "Analysis Complete"),
+          description: t('analysis_complete_toast_desc', "Prescription details extracted successfully."),
       });
     } catch (error) {
       console.error('Error analyzing prescription:', error);
       toast({
         variant: 'destructive',
-        title: 'Analysis Failed',
-        description: 'The AI service could not analyze the prescription. Please try again.',
+        title: t('analysis_failed_toast_title', 'Analysis Failed'),
+        description: t('analysis_failed_toast_desc', 'The AI service could not analyze the prescription. Please try again.'),
       });
     } finally {
       setIsLoading(false);
@@ -70,8 +101,8 @@ export default function AnalyzePrescriptionPage() {
     } else {
         toast({
             variant: "destructive",
-            title: "Unsupported Feature",
-            description: "Text-to-speech is not supported in your browser.",
+            title: t('unsupported_feature_toast_title', "Unsupported Feature"),
+            description: t('unsupported_feature_toast_desc', "Text-to-speech is not supported in your browser."),
         });
     }
   };
@@ -116,15 +147,15 @@ export default function AnalyzePrescriptionPage() {
           <CardHeader>
              <div className="flex items-center gap-3">
               <ScanText className="h-6 w-6" />
-              <CardTitle className="text-2xl">Analyze Prescription</CardTitle>
+              <CardTitle className="text-2xl">{t('analyze_prescription_page_title', 'Analyze Prescription')}</CardTitle>
             </div>
             <CardDescription>
-                Upload an image of a prescription to automatically extract key details using AI.
+                {t('analyze_prescription_page_desc', 'Upload an image of a prescription to automatically extract key details using AI.')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
              <div className="space-y-2">
-                <Label htmlFor="prescription-upload">Prescription Image</Label>
+                <Label htmlFor="prescription-upload">{t('prescription_image_label', 'Prescription Image')}</Label>
                  <div
                   className="group relative"
                 >
@@ -142,7 +173,7 @@ export default function AnalyzePrescriptionPage() {
                     onClick={() => fileInputRef.current?.click()}
                   >
                     <Upload className="mr-2 h-4 w-4" />
-                    {prescriptionImage ? 'Change Image' : 'Select an Image'}
+                    {prescriptionImage ? t('change_image_button', 'Change Image') : t('select_image_button', 'Select an Image')}
                   </Button>
                 </div>
             </div>
@@ -174,7 +205,7 @@ export default function AnalyzePrescriptionPage() {
             
             <Button onClick={handleAnalyze} disabled={!prescriptionImage || isLoading}>
                <Sparkles className="mr-2 h-4 w-4" />
-              {isLoading ? 'Analyzing...' : 'Analyze Prescription'}
+              {isLoading ? t('analyzing_button_loading', 'Analyzing...') : t('analyze_prescription_button', 'Analyze Prescription')}
             </Button>
           </CardContent>
         </Card>
@@ -184,13 +215,13 @@ export default function AnalyzePrescriptionPage() {
         {analysis && (
           <Card>
             <CardHeader>
-                <CardTitle>Analysis Result</CardTitle>
-                <CardDescription>The extracted information from the prescription is shown below.</CardDescription>
+                <CardTitle>{t('analysis_result_title', 'Analysis Result')}</CardTitle>
+                <CardDescription>{t('analysis_result_desc', 'The extracted information from the prescription is shown below.')}</CardDescription>
                  <Alert variant="destructive" className="mt-4">
                     <Info className="h-4 w-4" />
-                    <AlertTitle>Disclaimer</AlertTitle>
+                    <AlertTitle>{t('disclaimer_title', 'Disclaimer')}</AlertTitle>
                     <AlertDescription>
-                        This analysis is AI-generated for informational purposes only and is not a substitute for professional medical advice. Always consult your doctor or pharmacist regarding your treatment.
+                        {t('ai_disclaimer_desc', 'This analysis is AI-generated for informational purposes only and is not a substitute for professional medical advice. Always consult your doctor or pharmacist regarding your treatment.')}
                     </AlertDescription>
                 </Alert>
             </CardHeader>
@@ -198,14 +229,14 @@ export default function AnalyzePrescriptionPage() {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                     <div className="flex items-center gap-2">
                         <Stethoscope className="h-5 w-5 text-primary"/>
-                        <span className="font-semibold">Doctor: {analysis.doctor}</span>
+                        <span className="font-semibold">{t('doctor_label', 'Doctor')}: {analysis.doctor}</span>
                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleTextToSpeech(`Doctor: ${analysis.doctor}`)}>
                             <Volume2 className="h-4 w-4" />
                         </Button>
                     </div>
                     <div className="flex items-center gap-2">
                         <Calendar className="h-5 w-5 text-primary"/>
-                        <span className="font-semibold">Date Prescribed: {analysis.datePrescribed}</span>
+                        <span className="font-semibold">{t('date_prescribed_label', 'Date Prescribed')}: {analysis.datePrescribed}</span>
                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleTextToSpeech(`Date Prescribed: ${analysis.datePrescribed}`)}>
                             <Volume2 className="h-4 w-4" />
                         </Button>
@@ -228,12 +259,12 @@ export default function AnalyzePrescriptionPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                             <div className="space-y-3">
-                                <DetailItem icon={BarChart} label="Dosage" value={med.dosage} />
-                                <DetailItem icon={Info} label="Use" value={med.use} />
-                                <DetailItem icon={Power} label="Status" value={med.status} />
+                                <DetailItem icon={BarChart} label={t('dosage_label', 'Dosage')} value={med.dosage} />
+                                <DetailItem icon={Info} label={t('use_label', 'Use')} value={med.use} />
+                                <DetailItem icon={Power} label={t('status_label', 'Status')} value={med.status} />
                             </div>
                             <div className="space-y-3">
-                               <DetailItem icon={Clock} label="Frequency" value={med.frequency} />
+                               <DetailItem icon={Clock} label={t('frequency_label', 'Frequency')} value={med.frequency} />
                             </div>
                         </div>
                     </div>

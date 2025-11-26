@@ -7,6 +7,15 @@ import { Calendar, Volume2, Loader2, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { textToSpeech } from '@/ai/flows/text-to-speech-flow';
+import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import hi from '@/lib/locales/hi.json';
+import bn from '@/lib/locales/bn.json';
+import ta from '@/lib/locales/ta.json';
+import te from '@/lib/locales/te.json';
+import mr from '@/lib/locales/mr.json';
+
+const languageFiles = { hi, bn, ta, te, mr };
 
 type PlaybackState = {
   isPlaying: boolean;
@@ -22,6 +31,28 @@ export default function NotificationsPage() {
     notificationId: null,
   });
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
+
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const [translations, setTranslations] = React.useState({});
+
+  const userDocRef = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [user, firestore]);
+
+  const { data: userProfile } = useDoc(userDocRef);
+
+  React.useEffect(() => {
+    if (userProfile?.preferredLanguage && languageFiles[userProfile.preferredLanguage]) {
+      setTranslations(languageFiles[userProfile.preferredLanguage]);
+    } else {
+      setTranslations({});
+    }
+  }, [userProfile]);
+
+  const t = (key: string, fallback: string) => translations[key] || fallback;
+
 
   const handleTextToSpeech = async (notification: typeof personalNotifications[0]) => {
     // If another audio is playing or loading, stop it.
@@ -49,8 +80,8 @@ export default function NotificationsPage() {
       console.error(error);
       toast({
         variant: "destructive",
-        title: "AI Speech Failed",
-        description: "Could not generate audio for this notification.",
+        title: t('ai_speech_failed_title', "AI Speech Failed"),
+        description: t('ai_speech_failed_desc', "Could not generate audio for this notification."),
       });
       setPlayback({ isPlaying: false, isLoading: false, notificationId: null });
     }
@@ -77,8 +108,8 @@ export default function NotificationsPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Notification History</CardTitle>
-        <CardDescription>You have {personalNotifications.length} total notifications.</CardDescription>
+        <CardTitle>{t('notification_history_title', 'Notification History')}</CardTitle>
+        <CardDescription>{t('total_notifications_desc', `You have ${personalNotifications.length} total notifications.`)}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {personalNotifications.map((notification) => {
