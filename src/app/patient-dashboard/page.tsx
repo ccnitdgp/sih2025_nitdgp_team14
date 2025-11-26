@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -65,35 +64,34 @@ export default function PatientDashboardPage() {
   }, [userProfile]);
 
   const t = (key: string, fallback: string) => translations[key] || fallback;
-
+  
   useEffect(() => {
     const SpeechRecognition = (window as IWindow).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       console.warn("Speech recognition not supported in this browser.");
       return;
     }
-
-    const recognition = new SpeechRecognition();
+    
+    recognitionRef.current = new SpeechRecognition();
+    const recognition = recognitionRef.current;
     recognition.continuous = false;
     recognition.interimResults = false;
-    recognition.lang = language;
 
-    recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => setIsListening(false);
-    
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
       setQuestion(transcript);
     };
 
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
     recognition.onerror = (event) => {
-        if (event.error !== 'no-speech') {
-            toast({ variant: 'destructive', title: 'Speech Recognition Error', description: `Could not start listening. Error: ${event.error}` });
-        }
-        setIsListening(false);
-    }
-    
-    recognitionRef.current = recognition;
+      if (event.error !== 'no-speech') {
+        toast({ variant: 'destructive', title: 'Speech Recognition Error', description: `Could not start listening. Error: ${event.error}` });
+      }
+      setIsListening(false);
+    };
 
     const audio = new Audio();
     audioRef.current = audio;
@@ -101,16 +99,17 @@ export default function PatientDashboardPage() {
         setPlayback({ isPlaying: false, isLoading: false });
     };
 
-    // Cleanup function to stop recognition and audio when the component unmounts or language changes.
     return () => {
-      if(recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
-       if(audioRef.current) {
-        audioRef.current.pause();
-      }
+      recognition.stop();
+      audio.pause();
+    };
+  }, [toast]);
+  
+  useEffect(() => {
+    if(recognitionRef.current) {
+        recognitionRef.current.lang = language;
     }
-  }, [language, toast]);
+  }, [language]);
 
 
   const handleListen = () => {
@@ -120,12 +119,15 @@ export default function PatientDashboardPage() {
     }
     if (isListening) {
       recognitionRef.current.stop();
+      setIsListening(false);
     } else {
       try {
         recognitionRef.current.start();
+        setIsListening(true);
       } catch(e) {
         console.error("Could not start speech recognition", e);
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not start the speech recognition service.' });
+        setIsListening(false); // Ensure state is reset on error
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not start the speech recognition service. Please check microphone permissions.' });
       }
     }
   };
