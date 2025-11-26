@@ -2,3 +2,4 @@
 import './flows/health-assistant-flow';
 import './flows/symptom-checker-flow';
 import './flows/analyze-prescription-flow';
+import './flows/text-to-speech-flow';
