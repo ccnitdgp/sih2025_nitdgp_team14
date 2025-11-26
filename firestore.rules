@@ -112,8 +112,14 @@ service cloud.firestore {
        * - A new patient can add themselves to their assigned doctor's list upon creation.
        */
       match /patients/{patientId} {
-        allow read, list: if isOwner(userId);
+        allow read: if isOwner(userId);
         allow write: if isOwner(userId) || (request.auth.uid == patientId && request.resource.data.patientId == patientId);
+      }
+      
+      // THIS IS THE CORRECT WAY TO ALLOW A LIST (QUERY) ON A SUBCOLLECTION
+      // The rule is on the collection path, not the document path with a wildcard.
+      match /patients {
+        allow list: if isOwner(userId);
       }
       
       /**
