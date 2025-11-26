@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { getHealthInformation, type HealthAssistantOutput } from '@/ai/flows/health-assistant-flow';
 import { useToast } from '@/hooks/use-toast';
+import { VirtualIdCard } from '@/components/patient/virtual-id-card';
 
 export default function PatientDashboardPage() {
   const { user } = useUser();
@@ -60,50 +61,51 @@ export default function PatientDashboardPage() {
             <p className="text-lg text-muted-foreground mt-2">Here's a quick overview of your health dashboard.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Link href="/appointments" className="block">
-                <Card className="h-full hover:shadow-lg hover:border-primary transition-all">
-                    <CardContent className="pt-6 flex flex-col items-center text-center gap-4">
-                        <div className="p-4 bg-primary/10 rounded-full">
-                            <CalendarPlus className="h-8 w-8 text-primary" />
-                        </div>
-                        <div>
-                            <h3 className="font-semibold text-lg">Book Appointment</h3>
-                            <p className="text-sm text-muted-foreground mt-1">Find a doctor and schedule a visit</p>
-                        </div>
-                    </CardContent>
-                </Card>
-              </Link>
-               <Link href="/billing" className="block">
-                <Card className="h-full hover:shadow-lg hover:border-primary transition-all">
-                    <CardContent className="pt-6 flex flex-col items-center text-center gap-4">
-                        <div className="p-4 bg-primary/10 rounded-full">
-                            <Receipt className="h-8 w-8 text-primary" />
-                        </div>
-                        <div>
-                            <h3 className="font-semibold text-lg">Pay a Bill</h3>
-                            <p className="text-sm text-muted-foreground mt-1">View and manage your medical bills</p>
-                        </div>
-                    </CardContent>
-                </Card>
-              </Link>
-              <Link href="/records/analyze-prescription" className="block">
-                 <Card className="h-full hover:shadow-lg hover:border-primary transition-all">
-                    <CardContent className="pt-6 flex flex-col items-center text-center gap-4">
-                        <div className="p-4 bg-primary/10 rounded-full">
-                            <ScanText className="h-8 w-8 text-primary" />
-                        </div>
-                        <div>
-                            <h3 className="font-semibold text-lg">Analyze Prescription</h3>
-                            <p className="text-sm text-muted-foreground mt-1">Upload and extract prescription details</p>
-                        </div>
-                    </CardContent>
-                </Card>
-              </Link>
-          </div>
-          
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-              <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2 space-y-8">
+
+                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                      <Link href="/appointments" className="block">
+                        <Card className="h-full hover:shadow-lg hover:border-primary transition-all">
+                            <CardContent className="pt-6 flex flex-col items-center text-center gap-4">
+                                <div className="p-4 bg-primary/10 rounded-full">
+                                    <CalendarPlus className="h-8 w-8 text-primary" />
+                                </div>
+                                <div>
+                                    <h3 className="font-semibold text-lg">Book Appointment</h3>
+                                    <p className="text-sm text-muted-foreground mt-1">Find a doctor and schedule a visit</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                      </Link>
+                       <Link href="/billing" className="block">
+                        <Card className="h-full hover:shadow-lg hover:border-primary transition-all">
+                            <CardContent className="pt-6 flex flex-col items-center text-center gap-4">
+                                <div className="p-4 bg-primary/10 rounded-full">
+                                    <Receipt className="h-8 w-8 text-primary" />
+                                </div>
+                                <div>
+                                    <h3 className="font-semibold text-lg">Pay a Bill</h3>
+                                    <p className="text-sm text-muted-foreground mt-1">View and manage your medical bills</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                      </Link>
+                      <Link href="/records/analyze-prescription" className="block">
+                         <Card className="h-full hover:shadow-lg hover:border-primary transition-all">
+                            <CardContent className="pt-6 flex flex-col items-center text-center gap-4">
+                                <div className="p-4 bg-primary/10 rounded-full">
+                                    <ScanText className="h-8 w-8 text-primary" />
+                                </div>
+                                <div>
+                                    <h3 className="font-semibold text-lg">Analyze Prescription</h3>
+                                    <p className="text-sm text-muted-foreground mt-1">Upload and extract prescription details</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                      </Link>
+                  </div>
+            
                   <Card className="shadow-sm border-t-4 border-primary">
                       <CardHeader>
                           <div className="flex items-center gap-3">
@@ -165,7 +167,7 @@ export default function PatientDashboardPage() {
                     </Card>
                   )}
               </div>
-              <div>
+              <div className="space-y-8">
                    <Card className="shadow-sm">
                       <CardHeader>
                           <CardTitle>My Profile</CardTitle>
@@ -173,7 +175,7 @@ export default function PatientDashboardPage() {
                       </CardHeader>
                       <CardContent className="flex flex-col items-center text-center">
                           <Avatar className="h-28 w-28 mb-4 border-2 border-primary">
-                              <AvatarImage src={user?.photoURL ?? `https://picsum.photos/seed/${user?.uid}/200`} data-ai-hint="profile photo" />
+                              <AvatarImage src={user?.photoURL ?? `https://picsum.photos/seed/${'user?.uid'}/200`} data-ai-hint="profile photo" />
                               <AvatarFallback className="text-3xl">{userProfile?.firstName?.charAt(0).toUpperCase() ?? user?.email?.charAt(0).toUpperCase()}</AvatarFallback>
                           </Avatar>
                           <h3 className="font-semibold text-xl">{userProfile?.firstName} {userProfile?.lastName}</h3>
@@ -185,6 +187,7 @@ export default function PatientDashboardPage() {
                           </Button>
                       </CardContent>
                    </Card>
+                   <VirtualIdCard user={user} userProfile={userProfile} />
               </div>
           </div>
 

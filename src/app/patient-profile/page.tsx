@@ -108,7 +108,7 @@ export default function PatientProfilePage() {
                 <div className="space-y-8">
                 <div className="flex flex-col md:flex-row items-center gap-6 p-6 bg-card rounded-lg border">
                     <Avatar className="h-32 w-32 border-4 border-primary">
-                    <AvatarImage src={user?.photoURL ?? `https://picsum.photos/seed/${user?.uid}/200`} data-ai-hint="profile photo" />
+                    <AvatarImage src={user?.photoURL ?? `https://picsum.photos/seed/${'user?.uid'}/200`} data-ai-hint="profile photo" />
                     <AvatarFallback className="text-5xl">
                         {userProfile?.firstName?.charAt(0).toUpperCase() ?? user?.email?.charAt(0).toUpperCase()}
                     </AvatarFallback>
