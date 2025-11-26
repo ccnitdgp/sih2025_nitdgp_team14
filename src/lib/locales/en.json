@@ -28,8 +28,6 @@
     "manage_button": "Manage",
     "language_selection_title": "Language Selection",
     "language_selection_description": "Choose your preferred language for the app.",
-    "date_time_format_title": "Date and Time Format",
-    "date_time_format_description": "Select your preferred date and time display format.",
     "coming_soon": "Coming Soon!",
     "privacy_security_title": "Privacy & Security",
     "privacy_security_description": "Control your privacy, data sharing, and security settings.",
@@ -45,9 +43,6 @@
     "download_my_data_title": "Download My Data",
     "download_my_data_description": "Get a copy of your personal data.",
     "download_button": "Download",
-    "delete_account_title": "Delete/Deactivate Account",
-    "delete_account_description": "Permanently delete or temporarily deactivate your account.",
-    "manage_account_button": "Manage Account",
     "notifications_alerts_title": "Notifications & Alerts",
     "notifications_alerts_description": "Choose which alerts you want to receive and how.",
     "appointment_reminders_title": "Appointment Reminders",
@@ -401,3 +396,5 @@
     "announcement_4_title": "Flu Vaccination Campaign",
     "announcement_4_details": "A free flu vaccination drive is being organized next week. Getting vaccinated is the best way to protect yourself and others from the flu. Details about locations and times will be announced shortly."
 }
+
+    

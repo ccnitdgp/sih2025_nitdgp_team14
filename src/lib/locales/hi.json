@@ -28,8 +28,6 @@
     "manage_button": "प्रबंधित करें",
     "language_selection_title": "भाषा चयन",
     "language_selection_description": "ऐप के लिए अपनी पसंदीदा भाषा चुनें।",
-    "date_time_format_title": "दिनांक और समय प्रारूप",
-    "date_time_format_description": "अपना पसंदीदा दिनांक और समय प्रदर्शन प्रारूप चुनें।",
     "coming_soon": "जल्द आ रहा है!",
     "privacy_security_title": "गोपनीयता और सुरक्षा",
     "privacy_security_description": "अपनी गोपनीयता, डेटा साझाकरण और सुरक्षा सेटिंग्स को नियंत्रित करें।",
@@ -45,9 +43,6 @@
     "download_my_data_title": "मेरा डेटा डाउनलोड करें",
     "download_my_data_description": "अपने व्यक्तिगत डेटा की एक प्रति प्राप्त करें।",
     "download_button": "डाउनलोड करें",
-    "delete_account_title": "खाता हटाएं/निष्क्रिय करें",
-    "delete_account_description": "अपने खाते को स्थायी रूप से हटाएं या अस्थायी रूप से निष्क्रिय करें।",
-    "manage_account_button": "खाता प्रबंधित करें",
     "notifications_alerts_title": "सूचनाएं और अलर्ट",
     "notifications_alerts_description": "चुनें कि आप कौन से अलर्ट प्राप्त करना चाहते हैं और कैसे।",
     "appointment_reminders_title": "अपॉइंटमेंट रिमाइंडर",
@@ -401,3 +396,5 @@
     "announcement_4_title": "फ्लू टीकाकरण अभियान",
     "announcement_4_details": "अगले सप्ताह एक मुफ्त फ्लू टीकाकरण अभियान आयोजित किया जा रहा है। टीका लगवाना खुद को और दूसरों को फ्लू से बचाने का सबसे अच्छा तरीका है। स्थानों और समय के बारे में विवरण जल्द ही घोषित किया जाएगा।"
 }
+
+    

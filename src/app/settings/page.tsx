@@ -261,26 +261,6 @@ export default function SettingsPage() {
                 </Select>
               }
             />
-            <SettingItem
-              icon={Languages}
-              title={t('date_time_format_title')}
-              description={t('date_time_format_description')}
-              control={
-                <Select 
-                    value={dateFormat} 
-                    onValueChange={(value) => handlePreferenceChange('dateFormat', value)}
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Date Format" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="dd-mm-yyyy">DD-MM-YYYY</SelectItem>
-                    <SelectItem value="mm-dd-yyyy">MM-DD-YYYY</SelectItem>
-                    <SelectItem value="yyyy-mm-dd">YYYY-MM-DD</SelectItem>
-                  </SelectContent>
-                </Select>
-              }
-            />
           </CardContent>
         </Card>
 
@@ -322,18 +302,6 @@ export default function SettingsPage() {
               title={t('download_my_data_title')}
               description={t('download_my_data_description')}
               control={<ComingSoonTooltip t={t}><Button variant="outline" disabled>{t('download_button')}</Button></ComingSoonTooltip>}
-            />
-             <SettingItem
-              icon={User}
-              title={t('delete_account_title')}
-              description={t('delete_account_description')}
-              control={
-                <ComingSoonTooltip t={t}>
-                    <Button variant="destructive" disabled>
-                        {t('manage_account_button')}
-                    </Button>
-                </ComingSoonTooltip>
-              }
             />
           </CardContent>
         </Card>
@@ -523,3 +491,5 @@ const SettingsSkeleton = () => (
         </div>
     </div>
 )
+
+    
