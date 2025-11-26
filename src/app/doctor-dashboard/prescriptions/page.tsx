@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -45,6 +45,7 @@ export default function DoctorPrescriptionsPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof prescriptionSchema>>({
     resolver: zodResolver(prescriptionSchema),
@@ -54,7 +55,7 @@ export default function DoctorPrescriptionsPage() {
       dosage: '',
     },
   });
-  
+
   const patientsCollectionRef = useMemoFirebase(() => {
     if (!doctorUser || !firestore) return null;
     return collection(firestore, `users/${doctorUser.uid}/patients`);
@@ -62,17 +63,18 @@ export default function DoctorPrescriptionsPage() {
 
   const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsCollectionRef);
 
-  const prescriptionsCollectionGroupRef = useMemoFirebase(() => {
+  // This query will fetch all prescriptions added by the current doctor
+  const issuedPrescriptionsQuery = useMemoFirebase(() => {
     if (!doctorUser || !firestore) return null;
     return query(
-        collection(firestore, 'healthRecords'), 
-        where('addedBy', '==', doctorUser.uid),
-        where('recordType', '==', 'prescription'),
-        orderBy('dateCreated', 'desc')
+      collection(firestore, 'healthRecords'),
+      where('recordType', '==', 'prescription'),
+      where('addedBy', '==', doctorUser.uid),
+      orderBy('dateCreated', 'desc')
     );
   }, [doctorUser, firestore]);
 
-  const { data: issuedPrescriptions, isLoading: isLoadingPrescriptions } = useCollection(prescriptionsCollectionGroupRef);
+  const { data: issuedPrescriptions, isLoading: isLoadingPrescriptions } = useCollection(issuedPrescriptionsQuery);
   
   const onSubmit = async (values: z.infer<typeof prescriptionSchema>) => {
     if (!doctorUser || !firestore) return;
@@ -105,6 +107,8 @@ export default function DoctorPrescriptionsPage() {
         await addDocumentNonBlocking(patientHealthRecordsRef, prescriptionData);
         toast({ title: "Prescription Issued", description: `Prescription for ${values.medicationName} has been issued to the patient.` });
         form.reset();
+        form.setValue('patientId', '');
+        setSelectedPatientId(null);
     } catch (error) {
         toast({ variant: 'destructive', title: "Error", description: "Failed to issue prescription."});
         console.error(error);
@@ -112,6 +116,15 @@ export default function DoctorPrescriptionsPage() {
         setIsSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'patientId') {
+        setSelectedPatientId(value.patientId || null);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
 
 
   return (
@@ -131,7 +144,7 @@ export default function DoctorPrescriptionsPage() {
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Patient</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoadingPatients}>
+                                        <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingPatients}>
                                             <FormControl>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder={isLoadingPatients ? "Loading patients..." : "Select a patient"} />
@@ -278,3 +291,5 @@ export default function DoctorPrescriptionsPage() {
     </div>
   )
 }
+
+    
