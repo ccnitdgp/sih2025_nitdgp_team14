@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -11,7 +12,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Logo } from "@/components/logo";
 import { AuthDialog } from "@/components/auth/auth-dialog";
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
@@ -142,18 +143,25 @@ export function Header() {
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="left">
-                    <div className="py-6">
+                  <SheetHeader>
+                    <SheetTitle>
                         <Logo />
-                        <div className="mt-8">
-                          <NavContent isMobile />
-                          {!user && !isUserLoading && (
-                            <div className="mt-6 flex flex-col gap-3">
-                               <AuthDialog trigger={<Button variant="outline" className="w-full">Login</Button>} onOpenChange={setIsMobileMenuOpen} />
-                              <AuthDialog trigger={<Button className="w-full">Sign Up</Button>} defaultTab="signup" onOpenChange={setIsMobileMenuOpen} />
-                            </div>
-                          )}
-                        </div>
-                    </div>
+                    </SheetTitle>
+                    <SheetDescription>
+                        Main navigation menu
+                    </SheetDescription>
+                  </SheetHeader>
+                  <div className="py-4">
+                      <div className="mt-8">
+                        <NavContent isMobile />
+                        {!user && !isUserLoading && (
+                          <div className="mt-6 flex flex-col gap-3">
+                              <AuthDialog trigger={<Button variant="outline" className="w-full">Login</Button>} onOpenChange={setIsMobileMenuOpen} />
+                            <AuthDialog trigger={<Button className="w-full">Sign Up</Button>} defaultTab="signup" onOpenChange={setIsMobileMenuOpen} />
+                          </div>
+                        )}
+                      </div>
+                  </div>
                 </SheetContent>
               </Sheet>
           </div>
