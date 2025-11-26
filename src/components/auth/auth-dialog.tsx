@@ -41,6 +41,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useRouter } from "next/navigation";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -111,18 +112,20 @@ const signupSchema = z.object({
 type AuthDialogProps = {
   trigger: React.ReactNode;
   defaultTab?: "login" | "signup";
+  onOpenChange?: (open: boolean) => void;
 };
 
 // This is a placeholder. In a real app, you'd have a system to assign doctors.
 const HARDCODED_DOCTOR_ID = "Y43GFgpcD3QY6xGM3f83hTzYV5i2";
 
-export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
+export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: AuthDialogProps) {
   const [open, setOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const auth = useAuth();
   const firestore = useFirestore();
   const { toast } = useToast();
+  const router = useRouter();
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -157,6 +160,8 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
     try {
       await initiateEmailSignIn(auth, values.email, values.password);
       setOpen(false);
+      onOpenChange?.(false);
+      router.push('/login-redirect');
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -210,6 +215,8 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
         }
       }
       setOpen(false);
+      onOpenChange?.(false);
+      router.push('/login-redirect');
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -250,15 +257,17 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
   };
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    onOpenChange?.(isOpen);
+    if (!isOpen) {
+      setIsForgotPassword(false);
+      setShowPassword(false);
+    }
+  }
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => {
-      setOpen(isOpen);
-      if (!isOpen) {
-        setIsForgotPassword(false);
-        setShowPassword(false);
-      }
-    }}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-md p-0">
         <ScrollArea className="max-h-[90vh]">

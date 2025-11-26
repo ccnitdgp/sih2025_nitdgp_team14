@@ -17,7 +17,6 @@ import { AuthDialog } from "@/components/auth/auth-dialog";
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { RoleRedirect } from "@/components/auth/role-redirect";
 import { doc } from 'firebase/firestore';
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -55,8 +54,6 @@ export function Header() {
       router.push('/');
     });
   };
-  
-  const dashboardLink = userProfile?.role === 'doctor' ? '/doctor-dashboard' : '/patient-dashboard';
 
   const NavContent = ({isMobile = false}: {isMobile?: boolean}) => (
     <nav className={cn(
@@ -77,15 +74,13 @@ export function Header() {
   );
 
   return (
-    <>
-    <RoleRedirect />
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 max-w-7xl items-center">
         <div className="mr-auto flex items-center">
           <Logo />
         </div>
         
-        <div className="flex items-center justify-end gap-2 sm:gap-4">
+        <div className="flex items-center justify-end gap-2 sm:gap-4 ml-auto">
            <NavContent />
            
           {isUserLoading || !isClient ? (
@@ -106,7 +101,7 @@ export function Header() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
-                 <DropdownMenuItem onClick={() => router.push(dashboardLink)}>
+                 <DropdownMenuItem onClick={() => router.push('/login-redirect')}>
                   <LayoutDashboard className="mr-2 h-4 w-4" />
                   <span>Dashboard</span>
                 </DropdownMenuItem>
@@ -153,8 +148,8 @@ export function Header() {
                           <NavContent isMobile />
                           {!user && !isUserLoading && (
                             <div className="mt-6 flex flex-col gap-3">
-                               <AuthDialog trigger={<Button variant="outline" className="w-full">Login</Button>} />
-                              <AuthDialog trigger={<Button className="w-full">Sign Up</Button>} defaultTab="signup" />
+                               <AuthDialog trigger={<Button variant="outline" className="w-full">Login</Button>} onOpenChange={setIsMobileMenuOpen} />
+                              <AuthDialog trigger={<Button className="w-full">Sign Up</Button>} defaultTab="signup" onOpenChange={setIsMobileMenuOpen} />
                             </div>
                           )}
                         </div>
@@ -166,6 +161,5 @@ export function Header() {
         </div>
       </div>
     </header>
-    </>
   );
 }
