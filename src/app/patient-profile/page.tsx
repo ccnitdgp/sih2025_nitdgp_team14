@@ -5,11 +5,11 @@ import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocki
 import { doc } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AtSign, Cake, Droplet, Phone, User as UserIcon, Users, Home, Pencil, X } from 'lucide-react';
+import { AtSign, Cake, Droplet, Phone, User as UserIcon, Users, Home, Pencil, X, Camera } from 'lucide-react';
 import { differenceInYears, format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -53,6 +53,9 @@ export default function PatientProfilePage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
 
   const userDocRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
@@ -92,6 +95,24 @@ export default function PatientProfilePage() {
     }
   };
 
+  const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+        // In a real app, you would upload the file to Firebase Storage here
+        // and then update the user's photoURL.
+        toast({
+          title: "Photo Updated",
+          description: "Your new profile photo is ready to be saved.",
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+
   const onSubmit = (values: z.infer<typeof profileSchema>) => {
     if (!userDocRef) return;
     
@@ -107,6 +128,9 @@ export default function PatientProfilePage() {
     delete updatedData.emergencyContactName;
     delete updatedData.emergencyContactPhone;
     delete updatedData.emergencyContactRelation;
+
+    // Here you would also handle the uploaded photo URL if it exists
+    // if (photoPreview) { updatedData.photoURL = uploadedPhotoUrl; }
 
     updateDocumentNonBlocking(userDocRef, updatedData);
     toast({ title: 'Profile Updated', description: 'Your changes have been saved successfully.' });
@@ -158,12 +182,32 @@ export default function PatientProfilePage() {
                 {/* Profile Header */}
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
                     <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
-                        <Avatar className="h-32 w-32 border-4 border-primary">
-                            <AvatarImage src={user?.photoURL ?? `https://picsum.photos/seed/${user?.uid}/200`} data-ai-hint="profile photo" />
-                            <AvatarFallback className="text-5xl">
-                                {userProfile?.firstName?.charAt(0).toUpperCase() ?? user?.email?.charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                        </Avatar>
+                         <div className="relative">
+                            <Avatar className="h-32 w-32 border-4 border-primary">
+                                <AvatarImage src={photoPreview || user?.photoURL || `https://picsum.photos/seed/${user?.uid}/200`} data-ai-hint="profile photo" />
+                                <AvatarFallback className="text-5xl">
+                                    {userProfile?.firstName?.charAt(0).toUpperCase() ?? user?.email?.charAt(0).toUpperCase()}
+                                </AvatarFallback>
+                            </Avatar>
+                             {isEditing && (
+                                <>
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        className="hidden"
+                                        accept="image/*"
+                                        onChange={handlePhotoChange}
+                                    />
+                                    <Button
+                                        size="sm"
+                                        className="absolute bottom-1 right-1"
+                                        onClick={() => fileInputRef.current?.click()}
+                                    >
+                                        <Camera className="mr-2 h-4 w-4" /> Change Photo
+                                    </Button>
+                                </>
+                            )}
+                        </div>
                         <div className="space-y-1">
                             <h2 className="text-3xl font-bold">{userProfile.firstName} {userProfile.lastName}</h2>
                             <p className="text-muted-foreground">{user?.email}</p>
