@@ -1,3 +1,4 @@
+
 import {
   Syringe,
   Stethoscope,
@@ -22,19 +23,19 @@ type Stat = {
 export const stats: Stat[] = [
   {
     id: 1,
-    name: 'Vaccination Drives',
+    name: 'stat_vaccination_drives',
     value: '1,200+',
     icon: Syringe,
   },
   {
     id: 2,
-    name: 'Health Camps',
+    name: 'stat_health_camps',
     value: '500+',
     icon: Stethoscope,
   },
   {
     id: 3,
-    name: 'Records Secured',
+    name: 'stat_records_secured',
     value: '1M+',
     icon: HeartPulse,
   },
@@ -224,6 +225,7 @@ export type MedicalNotification = {
   color: string;
   bgColor: string;
   borderColor: string;
+  i18n_category_key: string;
 };
 
 export const medicalNotifications: MedicalNotification[] = [
@@ -231,6 +233,7 @@ export const medicalNotifications: MedicalNotification[] = [
     id: 1,
     title: 'Heatwave Alert & Precautionary Measures',
     category: 'WEATHER ADVISORY',
+    i18n_category_key: 'weather_advisory',
     date: 'August 10, 2024',
     details: 'High temperatures are expected over the next few days. Stay hydrated, avoid direct sun exposure between 11 AM and 4 PM, and wear light clothing. Ensure the elderly and children are well-protected. Seek medical help if you experience dizziness or nausea.',
     Icon: TriangleAlert,
@@ -242,6 +245,7 @@ export const medicalNotifications: MedicalNotification[] = [
     id: 2,
     title: 'Dengue & Malaria Prevention Advisory',
     category: 'DISEASE PREVENTION',
+    i18n_category_key: 'disease_prevention',
     date: 'August 5, 2024',
     details: 'With the monsoon season, it\'s crucial to prevent mosquito breeding. Do not let water stagnate in coolers, pots, or tires. Use mosquito repellents and nets. See a doctor immediately if you develop a high fever with body aches.',
     Icon: ShieldCheck,
@@ -253,6 +257,7 @@ export const medicalNotifications: MedicalNotification[] = [
     id: 3,
     title: 'Public Health Notice: Contaminated Water Supply',
     category: 'PUBLIC HEALTH',
+    i18n_category_key: 'public_health',
     date: 'August 1, 2024',
     details: 'A recent report indicates potential contamination of the water supply in Sector 15. Residents are advised to boil water before drinking or use a reliable water purifier. The local authorities are working to resolve the issue.',
     Icon: Info,
@@ -264,6 +269,7 @@ export const medicalNotifications: MedicalNotification[] = [
     id: 4,
     title: 'Flu Vaccination Campaign',
     category: 'VACCINATION',
+    i18n_category_key: 'vaccination',
     date: 'July 28, 2024',
     details: 'A free flu vaccination drive is being organized next week. Getting vaccinated is the best way to protect yourself and others from the flu. Details about locations and times will be announced shortly.',
     Icon: CheckCircle,
@@ -479,3 +485,5 @@ export const recentUploads = [
     date: 'Sep 22, 2025'
   },
 ]
+
+    

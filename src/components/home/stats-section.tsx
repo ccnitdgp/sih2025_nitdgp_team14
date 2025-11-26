@@ -1,7 +1,41 @@
+
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { stats } from "@/lib/data";
+import hi from '@/lib/locales/hi.json';
+import bn from '@/lib/locales/bn.json';
+import ta from '@/lib/locales/ta.json';
+import te from '@/lib/locales/te.json';
+import mr from '@/lib/locales/mr.json';
+
+const languageFiles = { hi, bn, ta, te, mr };
 
 export function StatsSection() {
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const [translations, setTranslations] = useState({});
+
+  const userDocRef = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [user, firestore]);
+
+  const { data: userProfile } = useDoc(userDocRef);
+
+  useEffect(() => {
+    if (userProfile?.preferredLanguage && languageFiles[userProfile.preferredLanguage]) {
+      setTranslations(languageFiles[userProfile.preferredLanguage]);
+    } else {
+      setTranslations({});
+    }
+  }, [userProfile]);
+
+  const t = (key: string, fallback: string) => translations[key] || fallback;
+
   return (
     <section className="py-12 sm:py-24">
       <div className="container mx-auto max-w-7xl px-6">
@@ -15,7 +49,7 @@ export function StatsSection() {
                 <CardTitle className="text-5xl font-bold">{stat.value}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground font-semibold">{stat.name}</p>
+                <p className="text-muted-foreground font-semibold">{t(stat.name, stat.name.replace(/_/g, ' '))}</p>
               </CardContent>
             </Card>
           ))}
@@ -24,3 +58,5 @@ export function StatsSection() {
     </section>
   );
 }
+
+    

@@ -5,11 +5,39 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription }
 import { vaccinationDrives } from "@/lib/data";
 import { MapPin, CalendarDays, ArrowRight, Syringe } from "lucide-react";
 import Link from "next/link";
-import { useUser } from "@/firebase";
+import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { AuthDialog } from "@/components/auth/auth-dialog";
+import { useState, useEffect } from 'react';
+import { doc } from 'firebase/firestore';
+import hi from '@/lib/locales/hi.json';
+import bn from '@/lib/locales/bn.json';
+import ta from '@/lib/locales/ta.json';
+import te from '@/lib/locales/te.json';
+import mr from '@/lib/locales/mr.json';
+
+const languageFiles = { hi, bn, ta, te, mr };
 
 export function VaccinationDriveSection() {
   const { user } = useUser();
+  const firestore = useFirestore();
+  const [translations, setTranslations] = useState({});
+
+  const userDocRef = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [user, firestore]);
+
+  const { data: userProfile } = useDoc(userDocRef);
+
+  useEffect(() => {
+    if (userProfile?.preferredLanguage && languageFiles[userProfile.preferredLanguage]) {
+      setTranslations(languageFiles[userProfile.preferredLanguage]);
+    } else {
+      setTranslations({});
+    }
+  }, [userProfile]);
+
+  const t = (key: string, fallback: string) => translations[key] || fallback;
 
   const RegisterButton = ({ driveId }) => {
     if (user) {
@@ -17,7 +45,7 @@ export function VaccinationDriveSection() {
       return (
          <Button asChild variant="secondary" className="w-full">
             <Link href="/vaccination">
-                View Details & Register
+                {t('view_details_and_register_button', 'View Details & Register')}
             </Link>
         </Button>
       );
@@ -27,7 +55,7 @@ export function VaccinationDriveSection() {
       <AuthDialog 
         trigger={
            <Button variant="secondary" className="w-full">
-                View Details & Register
+                {t('view_details_and_register_button', 'View Details & Register')}
             </Button>
         }
       />
@@ -40,15 +68,15 @@ export function VaccinationDriveSection() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-12 gap-4">
             <div className="text-left">
                 <h2 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl">
-                    Upcoming Vaccination Drives
+                    {t('upcoming_vaccination_drives_title', 'Upcoming Vaccination Drives')}
                 </h2>
                 <p className="mt-2 text-muted-foreground max-w-2xl">
-                    Find and register for vaccination drives in your area to stay protected.
+                    {t('upcoming_vaccination_drives_desc', 'Find and register for vaccination drives in your area to stay protected.')}
                 </p>
             </div>
             <Button asChild variant="outline" className="shrink-0">
                 <Link href="/vaccination">
-                    View All Drives <ArrowRight className="ml-2 h-4 w-4" />
+                    {t('view_all_drives_button', 'View All Drives')} <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
             </Button>
         </div>
@@ -83,3 +111,5 @@ export function VaccinationDriveSection() {
     </section>
   );
 }
+
+    

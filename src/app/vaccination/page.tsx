@@ -2,7 +2,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Accordion,
   AccordionContent,
@@ -16,33 +16,58 @@ import {
 import { vaccinationDrives } from '@/lib/data';
 import { Calendar, MapPin, Syringe } from 'lucide-react';
 import { Highlight } from '@/components/ui/highlight';
-import { useUser } from '@/firebase';
+import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { AuthDialog } from '@/components/auth/auth-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { doc } from 'firebase/firestore';
+import hi from '@/lib/locales/hi.json';
+import bn from '@/lib/locales/bn.json';
+import ta from '@/lib/locales/ta.json';
+import te from '@/lib/locales/te.json';
+import mr from '@/lib/locales/mr.json';
+
+const languageFiles = { hi, bn, ta, te, mr };
 
 export default function VaccinationPage() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get('search') || '';
   const { user } = useUser();
   const { toast } = useToast();
+  const firestore = useFirestore();
+  const [translations, setTranslations] = useState({});
+
+  const userDocRef = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [user, firestore]);
+
+  const { data: userProfile } = useDoc(userDocRef);
+
+  useEffect(() => {
+    if (userProfile?.preferredLanguage && languageFiles[userProfile.preferredLanguage]) {
+      setTranslations(languageFiles[userProfile.preferredLanguage]);
+    } else {
+      setTranslations({});
+    }
+  }, [userProfile]);
+
+  const t = (key: string, fallback: string) => translations[key] || fallback;
 
   const handleRegister = () => {
     toast({
-      title: 'Registration Successful!',
-      description: 'You have been successfully registered for the drive.',
+      title: t('registration_successful_toast_title', 'Registration Successful!'),
+      description: t('registration_successful_toast_desc', 'You have been successfully registered for the drive.'),
     });
   };
 
   const RegisterButton = ({ driveId }) => {
     if (user) {
-      // If user is logged in, show the actual register button
-      return <Button onClick={handleRegister}>Register Now</Button>;
+      return <Button onClick={handleRegister}>{t('register_now_button', 'Register Now')}</Button>;
     }
-    // If user is not logged in, trigger the Auth dialog
     return (
       <AuthDialog 
         trigger={
-           <Button>Register Now</Button>
+           <Button>{t('register_now_button', 'Register Now')}</Button>
         }
       />
     );
@@ -54,11 +79,10 @@ export default function VaccinationPage() {
       <div className="container mx-auto max-w-7xl px-6 py-12">
         <div className="text-center mb-12">
           <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl">
-            Vaccination Drives
+            {t('vaccination_page_title', 'Vaccination Drives')}
           </h1>
           <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
-            Stay protected. Find information about upcoming vaccination drives
-            near you.
+            {t('vaccination_page_desc', 'Stay protected. Find information about upcoming vaccination drives near you.')}
           </p>
         </div>
         <div className="space-y-8">
@@ -105,3 +129,5 @@ export default function VaccinationPage() {
     </div>
   );
 }
+
+    

@@ -1,6 +1,7 @@
+
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   Accordion,
@@ -14,21 +15,49 @@ import {
 import { visitingCamps } from '@/lib/data';
 import { Calendar, MapPin, Stethoscope } from 'lucide-react';
 import { Highlight } from '@/components/ui/highlight';
+import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import hi from '@/lib/locales/hi.json';
+import bn from '@/lib/locales/bn.json';
+import ta from '@/lib/locales/ta.json';
+import te from '@/lib/locales/te.json';
+import mr from '@/lib/locales/mr.json';
 
+const languageFiles = { hi, bn, ta, te, mr };
 
 export default function CampsPage() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get('search') || '';
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const [translations, setTranslations] = useState({});
+
+  const userDocRef = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [user, firestore]);
+
+  const { data: userProfile } = useDoc(userDocRef);
+
+  useEffect(() => {
+    if (userProfile?.preferredLanguage && languageFiles[userProfile.preferredLanguage]) {
+      setTranslations(languageFiles[userProfile.preferredLanguage]);
+    } else {
+      setTranslations({});
+    }
+  }, [userProfile]);
+
+  const t = (key: string, fallback: string) => translations[key] || fallback;
 
   return (
     <div className="bg-background">
       <div className="container mx-auto max-w-7xl px-6 py-12">
         <div className="text-center mb-12">
           <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl">
-            Visiting Medical Camps
+            {t('camps_page_title', 'Visiting Medical Camps')}
           </h1>
           <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
-            Find information about upcoming free health camps organized for your community.
+            {t('camps_page_desc', 'Find information about upcoming free health camps organized for your community.')}
           </p>
         </div>
         <div className="space-y-8">
@@ -74,3 +103,5 @@ export default function CampsPage() {
     </div>
   );
 }
+
+    
