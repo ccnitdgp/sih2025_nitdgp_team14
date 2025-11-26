@@ -25,8 +25,9 @@ import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
 import te from '@/lib/locales/te.json';
 import mr from '@/lib/locales/mr.json';
+import en from '@/lib/locales/en.json';
 
-const languageFiles = { hi, bn, ta, te, mr };
+const languageFiles = { hi, bn, ta, te, mr, en };
 
 export default function VaccinationPage() {
   const searchParams = useSearchParams();
@@ -34,7 +35,7 @@ export default function VaccinationPage() {
   const { user } = useUser();
   const { toast } = useToast();
   const firestore = useFirestore();
-  const [translations, setTranslations] = useState({});
+  const [translations, setTranslations] = useState(en);
 
   const userDocRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
@@ -44,11 +45,8 @@ export default function VaccinationPage() {
   const { data: userProfile } = useDoc(userDocRef);
 
   useEffect(() => {
-    if (userProfile?.preferredLanguage && languageFiles[userProfile.preferredLanguage]) {
-      setTranslations(languageFiles[userProfile.preferredLanguage]);
-    } else {
-      setTranslations({});
-    }
+    const lang = userProfile?.preferredLanguage || 'en';
+    setTranslations(languageFiles[lang] || en);
   }, [userProfile]);
 
   const t = (key: string, fallback: string) => translations[key] || fallback;
@@ -86,9 +84,13 @@ export default function VaccinationPage() {
           </p>
         </div>
         <div className="space-y-8">
-            {vaccinationDrives.map((drive) => (
+            {vaccinationDrives.map((drive) => {
+              const driveName = t(drive.name_key, drive.name_key);
+              const driveDetails = t(drive.details_key, drive.details_key);
+
+              return (
               <Card key={drive.id} className="w-full transition-shadow hover:shadow-lg">
-                <Accordion type="single" collapsible className="w-full" defaultValue={searchQuery && (drive.name.toLowerCase().includes(searchQuery) || drive.details.toLowerCase().includes(searchQuery)) ? `item-${drive.id}` : undefined}>
+                <Accordion type="single" collapsible className="w-full" defaultValue={searchQuery && (driveName.toLowerCase().includes(searchQuery) || driveDetails.toLowerCase().includes(searchQuery)) ? `item-${drive.id}` : undefined}>
                   <AccordionItem value={`item-${drive.id}`} className="border-b-0">
                     <AccordionTrigger className="p-6 hover:no-underline text-left">
                       <div className="flex items-start w-full gap-4">
@@ -97,12 +99,12 @@ export default function VaccinationPage() {
                         </div>
                         <div className="flex-1 space-y-1">
                           <h3 className="font-semibold text-lg">
-                            <Highlight text={drive.name} query={searchQuery} />
+                            <Highlight text={driveName} query={searchQuery} />
                           </h3>
                           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
                             <div className="flex items-center gap-2">
                               <MapPin className="h-4 w-4" />
-                              <span>{drive.location}</span>
+                              <span>{t(drive.location_key, drive.location_key)}</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <Calendar className="h-4 w-4" />
@@ -115,7 +117,7 @@ export default function VaccinationPage() {
                     <AccordionContent className="px-6 pb-6">
                       <div className="pl-16 space-y-4">
                         <p className="text-muted-foreground">
-                           <Highlight text={drive.details} query={searchQuery} />
+                           <Highlight text={driveDetails} query={searchQuery} />
                         </p>
                         <RegisterButton driveId={drive.id} />
                       </div>
@@ -123,11 +125,9 @@ export default function VaccinationPage() {
                   </AccordionItem>
                 </Accordion>
               </Card>
-            ))}
+            )})}
         </div>
       </div>
     </div>
   );
 }
-
-    

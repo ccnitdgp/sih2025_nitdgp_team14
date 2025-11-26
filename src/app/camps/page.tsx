@@ -22,15 +22,16 @@ import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
 import te from '@/lib/locales/te.json';
 import mr from '@/lib/locales/mr.json';
+import en from '@/lib/locales/en.json';
 
-const languageFiles = { hi, bn, ta, te, mr };
+const languageFiles = { hi, bn, ta, te, mr, en };
 
 export default function CampsPage() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get('search') || '';
   const { user } = useUser();
   const firestore = useFirestore();
-  const [translations, setTranslations] = useState({});
+  const [translations, setTranslations] = useState(en);
 
   const userDocRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
@@ -40,11 +41,8 @@ export default function CampsPage() {
   const { data: userProfile } = useDoc(userDocRef);
 
   useEffect(() => {
-    if (userProfile?.preferredLanguage && languageFiles[userProfile.preferredLanguage]) {
-      setTranslations(languageFiles[userProfile.preferredLanguage]);
-    } else {
-      setTranslations({});
-    }
+    const lang = userProfile?.preferredLanguage || 'en';
+    setTranslations(languageFiles[lang] || en);
   }, [userProfile]);
 
   const t = (key: string, fallback: string) => translations[key] || fallback;
@@ -61,9 +59,13 @@ export default function CampsPage() {
           </p>
         </div>
         <div className="space-y-8">
-          {visitingCamps.map((camp) => (
+          {visitingCamps.map((camp) => {
+            const campName = t(camp.name_key, camp.name_key);
+            const campDetails = t(camp.details_key, camp.details_key);
+
+            return (
             <Card key={camp.id} className="w-full transition-shadow hover:shadow-lg">
-              <Accordion type="single" collapsible className="w-full" defaultValue={searchQuery && (camp.name.toLowerCase().includes(searchQuery) || camp.details.toLowerCase().includes(searchQuery)) ? `item-${camp.id}` : undefined}>
+              <Accordion type="single" collapsible className="w-full" defaultValue={searchQuery && (campName.toLowerCase().includes(searchQuery) || campDetails.toLowerCase().includes(searchQuery)) ? `item-${camp.id}` : undefined}>
                 <AccordionItem value={`item-${camp.id}`} className="border-b-0">
                   <AccordionTrigger className="p-6 hover:no-underline text-left">
                     <div className="flex items-start w-full gap-4">
@@ -72,12 +74,12 @@ export default function CampsPage() {
                       </div>
                       <div className="flex-1 space-y-1">
                         <h3 className="font-semibold text-lg">
-                          <Highlight text={camp.name} query={searchQuery} />
+                          <Highlight text={campName} query={searchQuery} />
                         </h3>
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
                           <div className="flex items-center gap-2">
                             <MapPin className="h-4 w-4" />
-                            <span>{camp.location}</span>
+                            <span>{t(camp.location_key, camp.location_key)}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4" />
@@ -90,18 +92,16 @@ export default function CampsPage() {
                   <AccordionContent className="px-6 pb-6">
                     <div className="pl-16">
                       <p className="text-muted-foreground">
-                        <Highlight text={camp.details} query={searchQuery} />
+                        <Highlight text={campDetails} query={searchQuery} />
                       </p>
                     </div>
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
             </Card>
-          ))}
+          )})}
         </div>
       </div>
     </div>
   );
 }
-
-    

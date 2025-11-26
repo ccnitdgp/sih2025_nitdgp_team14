@@ -21,13 +21,14 @@ import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
 import te from '@/lib/locales/te.json';
 import mr from '@/lib/locales/mr.json';
+import en from '@/lib/locales/en.json';
 
-const languageFiles = { hi, bn, ta, te, mr };
+const languageFiles = { hi, bn, ta, te, mr, en };
 
 export default function AnnouncementsPage() {
   const { user } = useUser();
   const firestore = useFirestore();
-  const [translations, setTranslations] = React.useState({});
+  const [translations, setTranslations] = React.useState(en);
 
   const userDocRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
@@ -37,11 +38,8 @@ export default function AnnouncementsPage() {
   const { data: userProfile } = useDoc(userDocRef);
 
   React.useEffect(() => {
-    if (userProfile?.preferredLanguage && languageFiles[userProfile.preferredLanguage]) {
-      setTranslations(languageFiles[userProfile.preferredLanguage]);
-    } else {
-      setTranslations({});
-    }
+    const lang = userProfile?.preferredLanguage || 'en';
+    setTranslations(languageFiles[lang] || en);
   }, [userProfile]);
 
   const t = (key: string, fallback: string) => translations[key] || fallback;
@@ -65,7 +63,7 @@ export default function AnnouncementsPage() {
                     <div className="flex items-start w-full gap-4">
                       <notification.Icon className={cn("h-6 w-6 mt-1", notification.color)} />
                       <div className="flex-1 space-y-2">
-                        <h3 className="font-semibold text-lg text-left">{notification.title}</h3>
+                        <h3 className="font-semibold text-lg text-left">{t(notification.title_key, notification.title_key)}</h3>
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
                           <Badge variant="outline" className={cn("border-none text-xs font-bold", notification.color, notification.bgColor)}>
                             {t(notification.i18n_category_key, notification.category)}
@@ -81,7 +79,7 @@ export default function AnnouncementsPage() {
                   </AccordionTrigger>
                   <AccordionContent className="px-6 pb-6">
                     <div className="pl-10">
-                      <p className="text-muted-foreground">{notification.details}</p>
+                      <p className="text-muted-foreground">{t(notification.details_key, notification.details_key)}</p>
                     </div>
                   </AccordionContent>
                   </AccordionItem>
@@ -92,5 +90,3 @@ export default function AnnouncementsPage() {
     </div>
   );
 }
-
-    
