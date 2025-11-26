@@ -94,9 +94,10 @@ service cloud.firestore {
     
     /**
      * Ensures the 'id' field of a UserProfile cannot be changed on update.
+     * It must not exist in the request or, if it does, it must not differ.
      */
-    function userProfileIdIsImmutable() {
-      return request.resource.data.id == resource.data.id;
+    function userProfileIdIsImmutableOnUpdate() {
+      return !('id' in request.resource.data) || request.resource.data.id == resource.data.id;
     }
 
 
@@ -108,7 +109,7 @@ service cloud.firestore {
       allow get: if isOwner(userId) || isAssignedDoctor(userId);
       allow list: if false; // Prevent listing all users
       allow create: if isOwner(userId) && userProfileIdMatchesDocIdOnCreate(userId);
-      allow update: if isOwner(userId) && userProfileIdIsImmutable();
+      allow update: if isOwner(userId) && userProfileIdIsImmutableOnUpdate();
       allow delete: if isOwner(userId);
 
       /**
@@ -118,7 +119,6 @@ service cloud.firestore {
        */
       match /patients/{patientId} {
         allow read, list: if isOwner(userId); // A doctor can read/list their own patients.
-        // A doctor can add/remove patients. OR a new patient can add themselves to the doctor's list.
         allow write: if isOwner(userId) || (request.auth.uid == patientId && request.resource.data.patientId == patientId);
       }
       
