@@ -665,3 +665,5 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
     </Dialog>
   );
 }
+
+    
