@@ -153,9 +153,17 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
 
   const selectedRole = signupForm.watch("role");
 
-  function onLoginSubmit(values: z.infer<typeof loginSchema>) {
-    initiateEmailSignIn(auth, values.email, values.password);
-    setOpen(false);
+  async function onLoginSubmit(values: z.infer<typeof loginSchema>) {
+    try {
+      await initiateEmailSignIn(auth, values.email, values.password);
+      setOpen(false);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Login failed",
+        description: error.message,
+      });
+    }
   }
 
   async function onSignupSubmit(values: z.infer<typeof signupSchema>) {

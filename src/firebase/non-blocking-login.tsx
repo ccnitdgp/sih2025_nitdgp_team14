@@ -19,11 +19,10 @@ export function initiateEmailSignUp(authInstance: Auth, email: string, password:
 }
 
 /** 
- * Overridden for development: Initiates an anonymous sign-in regardless of email/password.
- * This allows for easy testing of authenticated routes.
+ * Initiates an email and password sign-in.
  */
-export function initiateEmailSignIn(authInstance: Auth, email: string, password: string): void {
-  signInAnonymously(authInstance);
+export function initiateEmailSignIn(authInstance: Auth, email: string, password: string): Promise<UserCredential> {
+  return signInWithEmailAndPassword(authInstance, email, password);
 }
 
 /** Send a password reset email. */
