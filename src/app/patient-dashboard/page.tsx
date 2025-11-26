@@ -85,7 +85,9 @@ export default function PatientDashboardPage() {
     };
     recognition.onerror = (event) => {
         console.error("Speech recognition error", event.error);
-        setIsListening(false);
+        if (isListening) {
+          setIsListening(false);
+        }
     }
     
     recognitionRef.current = recognition;
@@ -96,17 +98,19 @@ export default function PatientDashboardPage() {
         setPlayback({ isPlaying: false, isLoading: false });
     };
 
+    // Cleanup function to stop recognition and audio when the component unmounts or language changes.
     return () => {
       recognition.stop();
       audio.pause();
     }
-  }, [language]);
+  }, [language, isListening]);
 
 
   const handleListen = () => {
     if (recognitionRef.current) {
         if(isListening) {
             recognitionRef.current.stop();
+            setIsListening(false);
         } else {
             try {
               recognitionRef.current.start();
@@ -417,5 +421,3 @@ export default function PatientDashboardPage() {
     </div>
   );
 }
-
-    
