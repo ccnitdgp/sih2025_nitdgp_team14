@@ -1,12 +1,16 @@
+
 'use client';
 
 import { useState } from 'react';
+import QRCode from 'react-qr-code';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { RotateCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Logo } from '../logo';
 import { Skeleton } from '../ui/skeleton';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+
 
 const IdField = ({ label, value }) => (
   <div>
@@ -30,54 +34,56 @@ const BackField = ({ label, value }) => (
 );
 
 
-const VirtualIdCardFront = ({ user, userProfile }) => (
-  <div className="w-full bg-white rounded-lg p-4 border-2 border-gray-300">
-    <div className="flex justify-between items-start border-b-2 border-gray-200 pb-2">
-        <Logo className="scale-90 -ml-2" />
-        <div className="text-right">
-            <p className="font-bold text-sm text-gray-700">Health Plan of Swasthya</p>
-            <p className="text-xs text-gray-500">Medicaid</p>
-        </div>
-    </div>
-    <div className="grid grid-cols-2 gap-4 mt-2">
-        <div className="space-y-2">
-            <IdField label="Health Plan" value={userProfile.id?.substring(0, 12) || '911-76342-01'} />
-            <IdField label="Member ID" value={user?.uid.substring(0, 11) + '-01' || '999999992-00'} />
-            <IdField label="Member" value={`${userProfile.firstName || ''} ${userProfile.lastName || 'SAMPLE ID CARD'}`} />
-            <IdField label="Medicaid ID" value={userProfile.id?.substring(12) || '00001427598'} />
-            <div>
-                 <p className="text-xs text-gray-500">Benefit Code:</p>
-                 <div className="pl-2 mt-1 space-y-1">
-                    <IdFieldSmall label="Medical" value="MCNV0020" />
-                    <IdFieldSmall label="Rx" value="PLV00502" />
-                    <IdFieldSmall label="Vision" value="00000000" />
-                 </div>
+const VirtualIdCardFront = ({ user, userProfile }) => {
+    const qrCodeUrl = typeof window !== 'undefined' ? `${window.location.origin}/doctor-dashboard/patient/${user.uid}` : '';
+
+    return (
+        <div className="w-full bg-white rounded-lg p-4 border-2 border-gray-300">
+            <div className="flex justify-between items-start border-b-2 border-gray-200 pb-2">
+                <Logo className="scale-90 -ml-2" />
+                <div className="text-right">
+                    <p className="font-bold text-sm text-gray-700">Health Plan of Swasthya</p>
+                    <p className="text-xs text-gray-500">Medicaid</p>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 mt-3">
+                <div className="flex flex-col items-center col-span-1">
+                     <Avatar className="h-20 w-20 border-2 border-primary">
+                        <AvatarImage src={user?.photoURL ?? ''} />
+                        <AvatarFallback className="text-3xl">{userProfile?.firstName?.charAt(0).toUpperCase() ?? 'P'}</AvatarFallback>
+                    </Avatar>
+                </div>
+                 <div className="col-span-2">
+                    <IdField label="Member" value={`${userProfile.firstName || ''} ${userProfile.lastName || 'SAMPLE ID'}`} />
+                    <div className="mt-2">
+                        <IdField label="Member ID" value={user?.uid.substring(0, 11) + '-01' || '999999992-00'} />
+                    </div>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 mt-3 items-center">
+                 <div className="col-span-2 space-y-2">
+                    <IdField label="Health Plan" value={userProfile.id?.substring(0, 12) || '911-76342-01'} />
+                    <IdField label="Medicaid ID" value={userProfile.id?.substring(12) || '00001427598'} />
+                </div>
+                <div className="col-span-1 flex justify-center items-center h-full">
+                    <div className="bg-white p-1 rounded-sm border">
+                         <QRCode value={qrCodeUrl} size={64} />
+                    </div>
+                </div>
+            </div>
+
+            <div className="flex justify-between items-end mt-2 text-xs text-gray-500 pt-2 border-t">
+                <div>
+                    <p>Effective Date</p>
+                    <p className="font-semibold text-gray-700">01/01/2024</p>
+                </div>
+                <p className="text-[10px]">Underwritten by Health Plan of Swasthya, Inc.</p>
             </div>
         </div>
-        <div className="space-y-2">
-            <IdField label="Group Number" value="00000000" />
-             <div className="pt-5">
-                <IdField label="Payer ID" value="76342" />
-             </div>
-             <div className="border border-gray-400 rounded-md p-2 mt-4 text-center">
-                 <p className="font-bold text-orange-500 text-sm">Optum Rx®</p>
-                 <div className="grid grid-cols-2 gap-x-2 gap-y-1 mt-1 text-left">
-                    <IdFieldSmall label="Rx BIN:" value="610494" />
-                    <IdFieldSmall label="Rx GRP:" value="SIE" />
-                    <IdFieldSmall label="Rx PCN:" value="4700" />
-                 </div>
-             </div>
-        </div>
-    </div>
-     <div className="flex justify-between items-end mt-2 text-xs text-gray-500">
-        <div>
-            <p>Effective Date</p>
-            <p className="font-semibold text-gray-700">01/01/2024</p>
-        </div>
-        <p className="text-[10px]">Underwritten by Health Plan of Swasthya, Inc.</p>
-    </div>
-  </div>
-);
+    );
+};
 
 const VirtualIdCardBack = () => (
     <div className="w-full bg-white rounded-lg p-3 border-2 border-gray-300 text-[11px] leading-tight text-gray-700">
