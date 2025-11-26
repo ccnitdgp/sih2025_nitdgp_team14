@@ -378,3 +378,49 @@ export const pastAppointments = [
         avatar: 'https://picsum.photos/seed/doc1/200'
     }
 ];
+
+export const doctorUpcomingAppointments = [
+    {
+        id: 1,
+        patientName: 'Rohan Verma',
+        patientAvatar: 'https://picsum.photos/seed/patient1/200',
+        date: 'October 15, 2024',
+        time: '11:00 AM',
+        reason: 'Follow-up Consultation'
+    },
+    {
+        id: 2,
+        patientName: 'Sunita Devi',
+        patientAvatar: 'https://picsum.photos/seed/patient2/200',
+        date: 'October 15, 2024',
+        time: '12:30 PM',
+        reason: 'New Patient Check-up'
+    },
+     {
+        id: 3,
+        patientName: 'Amit Kumar',
+        patientAvatar: 'https://picsum.photos/seed/patient3/200',
+        date: 'October 16, 2024',
+        time: '10:00 AM',
+        reason: 'Routine Check-up'
+    }
+];
+
+export const doctorPastAppointments = [
+    {
+        id: 1,
+        patientName: 'Geeta Sharma',
+        patientAvatar: 'https://picsum.photos/seed/patient4/200',
+        date: 'October 10, 2024',
+        time: '09:00 AM',
+        reason: 'Fever and Cold'
+    },
+     {
+        id: 2,
+        patientName: 'Vikas Singh',
+        patientAvatar: 'https://picsum.photos/seed/patient5/200',
+        date: 'October 9, 2024',
+        time: '01:00 PM',
+        reason: 'Post-operative check-up'
+    }
+];
