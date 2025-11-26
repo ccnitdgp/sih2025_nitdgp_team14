@@ -144,37 +144,37 @@ export function Header() {
             </>
           )}
 
-          <div className="md:hidden">
-              <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <Menu className="h-5 w-5" />
-                    <span className="sr-only">Open navigation menu</span>
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left">
-                   <SheetHeader>
-                      <SheetTitle>
-                        <Logo />
-                      </SheetTitle>
-                      <SheetDescription className="sr-only">
-                        Main navigation menu
-                      </SheetDescription>
-                   </SheetHeader>
-                  <div className="py-4">
-                      <div className="mt-8">
-                        <NavContent isMobile />
-                        {!user && !isUserLoading && (
-                          <div className="mt-6 flex flex-col gap-3">
-                              <AuthDialog trigger={<Button variant="outline" className="w-full">Login</Button>} onOpenChange={setIsMobileMenuOpen} />
-                            <AuthDialog trigger={<Button className="w-full">Sign Up</Button>} defaultTab="signup" onOpenChange={setIsMobileMenuOpen} />
-                          </div>
-                        )}
-                      </div>
-                  </div>
-                </SheetContent>
-              </Sheet>
-          </div>
+          {isClient && (
+            <div className="md:hidden">
+                <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+                  <SheetTrigger asChild>
+                    <Button variant="outline" size="icon">
+                      <Menu className="h-5 w-5" />
+                      <span className="sr-only">Open navigation menu</span>
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="left">
+                     <SheetHeader>
+                        <SheetTitle><Logo /></SheetTitle>
+                        <SheetDescription className="sr-only">
+                          Main navigation menu
+                        </SheetDescription>
+                     </SheetHeader>
+                    <div className="py-4">
+                        <div className="mt-8">
+                          <NavContent isMobile />
+                          {!user && !isUserLoading && (
+                            <div className="mt-6 flex flex-col gap-3">
+                                <AuthDialog trigger={<Button variant="outline" className="w-full">Login</Button>} onOpenChange={setIsMobileMenuOpen} />
+                              <AuthDialog trigger={<Button className="w-full">Sign Up</Button>} defaultTab="signup" onOpenChange={setIsMobileMenuOpen} />
+                            </div>
+                          )}
+                        </div>
+                    </div>
+                  </SheetContent>
+                </Sheet>
+            </div>
+          )}
 
         </div>
       </div>
