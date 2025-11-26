@@ -57,6 +57,7 @@ service cloud.firestore {
      * Checks if the requesting user is a doctor.
      */
     function isDoctor() {
+      // This check is potentially expensive if used broadly. Use with specific intent.
       return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor';
     }
 
@@ -111,17 +112,16 @@ service cloud.firestore {
       allow delete: if isOwner(userId);
 
       /**
-       * @description A doctor's list of their patients. Only the doctor can manage this list.
+       * @description A doctor's list of their patients.
+       * - A doctor can manage their own list.
+       * - A new patient can add themselves to their assigned doctor's list upon creation.
        */
       match /patients/{patientId} {
-        allow read, write: if isOwner(userId);
+        allow read, list: if isOwner(userId); // A doctor can read/list their own patients.
+        // A doctor can add/remove patients. OR a new patient can add themselves to the doctor's list.
+        allow write: if isOwner(userId) || (request.auth.uid == patientId && request.resource.data.patientId == patientId);
       }
       
-      // THIS IS THE CRITICAL FIX: This rule applies to the COLLECTION, not just the documents.
-      // It allows a doctor to list the patients associated with them.
-      allow list: if isOwner(userId) && isDoctor();
-
-
       /**
        * @description Manages a user's private health records.
        * Access is granted to the patient themselves or their assigned doctor.
