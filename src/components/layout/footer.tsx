@@ -45,7 +45,7 @@ export function Footer() {
               <ul className="mt-4 space-y-2">
                 <li><Link href="/vaccination" className="text-sm text-muted-foreground hover:text-foreground">Vaccination Drives</Link></li>
                 <li><Link href="/camps" className="text-sm text-muted-foreground hover:text-foreground">Health Camps</Link></li>
-                <li><Link href="/notifications" className="text-sm text-muted-foreground hover:text-foreground">Medical Notifications</Link></li>
+                <li><Link href="/announcements" className="text-sm text-muted-foreground hover:text-foreground">Announcements</Link></li>
               </ul>
             </div>
             <div>

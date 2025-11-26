@@ -28,7 +28,7 @@ const navLinks = [
     { href: "/", label: "Home" },
     { href: "/vaccination", label: "Vaccination Drive" },
     { href: "/camps", label: "Visiting Camps" },
-    { href: "/notifications", label: "Medical Notification" },
+    { href: "/announcements", label: "Announcements" },
 ];
 
 

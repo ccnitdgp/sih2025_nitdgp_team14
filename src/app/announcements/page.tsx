@@ -15,8 +15,17 @@ import { Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
-export default function MedicalAdvisoriesPage() {
+export default function AnnouncementsPage() {
   return (
+    <div className="container mx-auto max-w-5xl px-6 py-12">
+        <div className="text-center mb-12">
+            <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl">
+                Announcements
+            </h1>
+            <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
+                Important health advisories and public announcements for the community.
+            </p>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {medicalNotifications.map((notification) => (
             <Card key={notification.id} className={cn("w-full border-l-4", notification.borderColor)}>
@@ -50,5 +59,6 @@ export default function MedicalAdvisoriesPage() {
             </Card>
           ))}
         </div>
+    </div>
   );
 }
