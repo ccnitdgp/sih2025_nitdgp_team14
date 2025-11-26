@@ -61,8 +61,8 @@ export function Header() {
 
   const NavContent = ({isMobile = false}: {isMobile?: boolean}) => (
     <nav className={cn(
-      "text-sm font-medium",
-      isMobile ? "flex flex-col gap-4 p-4" : "hidden md:flex items-center gap-6"
+      "items-center text-sm font-medium",
+      isMobile ? "flex flex-col gap-4 p-4" : "hidden md:flex gap-6"
     )}>
       {navLinks.map((link) => (
         <Link
@@ -82,11 +82,11 @@ export function Header() {
     <RoleRedirect />
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 max-w-7xl items-center">
-        <div className="flex items-center">
+        <div className="mr-auto flex items-center">
           <Logo />
         </div>
         
-        <div className="flex items-center justify-end gap-2 sm:gap-4 ml-auto">
+        <div className="flex items-center justify-end gap-2 sm:gap-4">
            <NavContent />
            
           {isUserLoading || !isClient ? (
@@ -99,7 +99,7 @@ export function Header() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.photoURL ?? `https://picsum.photos/seed/${user.uid}/200`} alt={user.displayName ?? "User"} />
+                    <AvatarImage src={user.photoURL ?? ""} alt={user.displayName ?? "User"} />
                     <AvatarFallback>
                       {userProfile?.firstName?.charAt(0).toUpperCase() ?? user.email?.charAt(0).toUpperCase()}
                     </AvatarFallback>
