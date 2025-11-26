@@ -424,3 +424,13 @@ export const doctorPastAppointments = [
         reason: 'Post-operative check-up'
     }
 ];
+
+export const weeklyActivity = [
+  { day: "Sunday", appointments: 0 },
+  { day: "Monday", appointments: 4 },
+  { day: "Tuesday", appointments: 3 },
+  { day: "Wednesday", appointments: 2 },
+  { day: "Thursday", appointments: 1 },
+  { day: "Friday", appointments: 3 },
+  { day: "Saturday", appointments: 0 },
+]
