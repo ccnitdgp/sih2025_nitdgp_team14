@@ -59,14 +59,54 @@ const signupSchema = z.object({
   gender: z.string().optional(),
   bloodGroup: z.string().optional(),
   address: z.string().min(1, { message: "Address is required." }),
-  emergencyContactName: z.string().min(1, { message: "Emergency contact name is required." }),
-  emergencyContactPhone: z.string().min(1, { message: "Emergency contact phone is required." }),
-  emergencyContactRelation: z.string().min(1, { message: "Emergency contact relation is required." }),
+  emergencyContactName: z.string().optional(),
+  emergencyContactPhone: z.string().optional(),
+  emergencyContactRelation: z.string().optional(),
   phoneNumber: z.string().min(10, { message: "Phone number must be at least 10 digits." }),
   email: z.string().email({ message: "Invalid email address." }),
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+  confirmPassword: z.string().min(6, { message: "Password must be at least 6 characters." }),
   doctorId: z.string().optional(),
+}).superRefine((data, ctx) => {
+    if (data.password !== data.confirmPassword) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Passwords do not match.",
+            path: ["confirmPassword"],
+        });
+    }
+    if (data.role === 'patient') {
+        if (!data.bloodGroup) {
+             ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Blood group is required.",
+                path: ["bloodGroup"],
+            });
+        }
+        if (!data.emergencyContactName) {
+             ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Emergency contact name is required.",
+                path: ["emergencyContactName"],
+            });
+        }
+        if (!data.emergencyContactPhone) {
+             ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Emergency contact phone is required.",
+                path: ["emergencyContactPhone"],
+            });
+        }
+        if (!data.emergencyContactRelation) {
+             ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Emergency contact relation is required.",
+                path: ["emergencyContactRelation"],
+            });
+        }
+    }
 });
+
 
 type AuthDialogProps = {
   trigger: React.ReactNode;
@@ -101,6 +141,7 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
       phoneNumber: "",
       email: "",
       password: "",
+      confirmPassword: "",
       address: "",
       bloodGroup: undefined,
       emergencyContactName: "",
@@ -109,6 +150,8 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
       doctorId: HARDCODED_DOCTOR_ID,
     },
   });
+
+  const selectedRole = signupForm.watch("role");
 
   function onLoginSubmit(values: z.infer<typeof loginSchema>) {
     initiateEmailSignIn(auth, values.email, values.password);
@@ -129,17 +172,17 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
           dateOfBirth: values.dateOfBirth,
           gender: values.gender,
           phoneNumber: values.phoneNumber,
-          bloodGroup: values.bloodGroup,
           address: values.address,
-          emergencyContact: {
-            name: values.emergencyContactName,
-            phone: values.emergencyContactPhone,
-            relation: values.emergencyContactRelation,
-          },
         };
         
         if (values.role === 'patient') {
           userProfile.doctorId = HARDCODED_DOCTOR_ID;
+          userProfile.bloodGroup = values.bloodGroup;
+          userProfile.emergencyContact = {
+            name: values.emergencyContactName,
+            phone: values.emergencyContactPhone,
+            relation: values.emergencyContactRelation,
+          };
         }
 
         const userDocRef = doc(firestore, 'users', user.uid);
@@ -454,33 +497,35 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
                             </FormItem>
                         )}
                         />
-                        <FormField
-                        control={signupForm.control}
-                        name="bloodGroup"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Blood Group</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select..." />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    <SelectItem value="A+">A+</SelectItem>
-                                    <SelectItem value="A-">A-</SelectItem>
-                                    <SelectItem value="B+">B+</SelectItem>
-                                    <SelectItem value="B-">B-</SelectItem>
-                                    <SelectItem value="AB+">AB+</SelectItem>
-                                    <SelectItem value="AB-">AB-</SelectItem>
-                                    <SelectItem value="O+">O+</SelectItem>
-                                    <SelectItem value="O-">O-</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                            </FormItem>
+                        {selectedRole === 'patient' && (
+                            <FormField
+                            control={signupForm.control}
+                            name="bloodGroup"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Blood Group</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select..." />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="A+">A+</SelectItem>
+                                        <SelectItem value="A-">A-</SelectItem>
+                                        <SelectItem value="B+">B+</SelectItem>
+                                        <SelectItem value="B-">B-</SelectItem>
+                                        <SelectItem value="AB+">AB+</SelectItem>
+                                        <SelectItem value="AB-">AB-</SelectItem>
+                                        <SelectItem value="O+">O+</SelectItem>
+                                        <SelectItem value="O-">O-</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                            />
                         )}
-                        />
                     </div>
                     
                     <FormField
@@ -511,47 +556,49 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
                       )}
                     />
 
-                    <div>
-                        <FormLabel>Emergency Contact</FormLabel>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
-                             <FormField
-                                control={signupForm.control}
-                                name="emergencyContactName"
-                                render={({ field }) => (
-                                <FormItem>
-                                    <FormControl>
-                                    <Input placeholder="Name" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                                )}
-                            />
-                             <FormField
-                                control={signupForm.control}
-                                name="emergencyContactPhone"
-                                render={({ field }) => (
-                                <FormItem>
-                                    <FormControl>
-                                    <Input type="tel" placeholder="Phone" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                                )}
-                            />
-                             <FormField
-                                control={signupForm.control}
-                                name="emergencyContactRelation"
-                                render={({ field }) => (
-                                <FormItem>
-                                    <FormControl>
-                                    <Input placeholder="Relation" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                                )}
-                            />
+                    {selectedRole === 'patient' && (
+                        <div>
+                            <FormLabel>Emergency Contact</FormLabel>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
+                                <FormField
+                                    control={signupForm.control}
+                                    name="emergencyContactName"
+                                    render={({ field }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                        <Input placeholder="Name" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={signupForm.control}
+                                    name="emergencyContactPhone"
+                                    render={({ field }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                        <Input type="tel" placeholder="Phone" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={signupForm.control}
+                                    name="emergencyContactRelation"
+                                    render={({ field }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                        <Input placeholder="Relation" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                    )}
+                                />
+                            </div>
                         </div>
-                    </div>
+                    )}
 
 
                     <FormField
@@ -578,6 +625,24 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
                                 <Input type={showPassword ? "text" : "password"} placeholder="••••••••" {...field} />
                               </FormControl>
                               <Button type="button" variant="ghost" size="icon" className="absolute top-1/2 right-2 -translate-y-1/2 h-7 w-7 text-muted-foreground" onClick={togglePasswordVisibility}>
+                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </Button>
+                            </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                     <FormField
+                      control={signupForm.control}
+                      name="confirmPassword"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Confirm Password</FormLabel>
+                            <div className="relative">
+                              <FormControl>
+                                <Input type={showPassword ? "text" : "password"} placeholder="••••••••" {...field} />
+                              </FormControl>
+                               <Button type="button" variant="ghost" size="icon" className="absolute top-1/2 right-2 -translate-y-1/2 h-7 w-7 text-muted-foreground" onClick={togglePasswordVisibility}>
                                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                               </Button>
                             </div>
