@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,13 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 export function HeroSection() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
+  const [isClient, setIsClient] = useState(false);
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-image');
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,18 +42,20 @@ export function HeroSection() {
             <p className="max-w-[600px] text-lg text-muted-foreground">
               Access vaccination drives, health camps, and your medical records with ease.
             </p>
-            <form onSubmit={handleSearch} className="flex w-full max-w-md items-center space-x-2" key="search-form">
-              <Input 
-                type="text" 
-                placeholder="Search for camps, vaccines..." 
-                className="flex-1"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <Button type="submit" variant="default">
-                <Search className="mr-2 h-4 w-4" /> Search
-              </Button>
-            </form>
+            {isClient && (
+              <form onSubmit={handleSearch} className="flex w-full max-w-md items-center space-x-2" key="search-form">
+                <Input 
+                  type="text" 
+                  placeholder="Search for camps, vaccines..." 
+                  className="flex-1"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <Button type="submit" variant="default">
+                  <Search className="mr-2 h-4 w-4" /> Search
+                </Button>
+              </form>
+            )}
           </div>
           <div className="flex items-center justify-center">
             {heroImage && (
