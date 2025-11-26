@@ -23,13 +23,21 @@ import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
-const navLinks = [
+const generalNavLinks = [
     { href: "/", label: "Home" },
     { href: "/vaccination", label: "Vaccination Drive" },
     { href: "/camps", label: "Visiting Camps" },
     { href: "/announcements", label: "Announcements" },
 ];
 
+const doctorNavLinks = [
+    { href: "/doctor-dashboard", label: "Dashboard" },
+    { href: "/doctor-dashboard/patients", label: "Patients" },
+    { href: "/doctor-dashboard/appointments", label: "Appointments" },
+    { href: "/doctor-dashboard/prescriptions", label: "Prescriptions" },
+    { href: "/doctor-dashboard/medical-info", label: "Medical Info", disabled: true },
+    { href: "/doctor-dashboard/upload-documents", label: "Upload Documents", disabled: true },
+];
 
 export function Header() {
   const { user, isUserLoading } = useUser();
@@ -49,6 +57,9 @@ export function Header() {
   }, [user, firestore]);
 
   const { data: userProfile } = useDoc(userDocRef);
+  
+  const isDoctor = userProfile?.role === 'doctor';
+  const navLinks = isDoctor ? doctorNavLinks : generalNavLinks;
 
   const handleLogout = () => {
     signOut(auth).then(() => {
@@ -65,7 +76,7 @@ export function Header() {
         <Link
           key={link.label}
           href={link.href}
-          className="text-muted-foreground transition-colors hover:text-foreground whitespace-nowrap"
+          className={cn("text-muted-foreground transition-colors hover:text-foreground whitespace-nowrap", link.disabled && "pointer-events-none opacity-50")}
           onClick={() => isMobile && setIsMobileMenuOpen(false)}
         >
           {link.label}
@@ -143,14 +154,14 @@ export function Header() {
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="left">
-                  <SheetHeader>
-                    <SheetTitle>
-                        <Logo />
-                    </SheetTitle>
-                    <SheetDescription>
-                        Main navigation menu
-                    </SheetDescription>
-                  </SheetHeader>
+                   <SheetHeader>
+                     <SheetTitle>
+                         <Logo />
+                     </SheetTitle>
+                     <SheetDescription>
+                         Main navigation menu
+                     </SheetDescription>
+                   </SheetHeader>
                   <div className="py-4">
                       <div className="mt-8">
                         <NavContent isMobile />
