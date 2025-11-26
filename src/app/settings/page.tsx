@@ -203,12 +203,6 @@ export default function SettingsPage() {
               description="Update your name, contact details, and address."
               control={<Button variant="outline" asChild><Link href="/patient-profile">Edit</Link></Button>}
             />
-             <SettingItem
-              icon={Palette}
-              title="Change Profile Photo"
-              description="Upload a new profile picture."
-              control={<ComingSoonTooltip><Button variant="outline" disabled>Upload</Button></ComingSoonTooltip>}
-            />
             <SettingItem
               icon={Lock}
               title="Change Password"
