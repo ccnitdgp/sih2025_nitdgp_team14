@@ -43,8 +43,10 @@ export function Combobox({ options, value, onChange, placeholder = "Select optio
   }, []);
 
   React.useEffect(() => {
-    setInputValue(value ? options.find(o => o.value === value)?.label || "" : "");
-  }, [value, options]);
+    if (isMounted) {
+      setInputValue(value ? options.find(o => o.value === value)?.label || "" : "");
+    }
+  }, [value, options, isMounted]);
   
   if (!isMounted) {
     return null;
