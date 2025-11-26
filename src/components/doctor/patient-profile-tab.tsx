@@ -98,7 +98,6 @@ export function PatientProfileTab({ patientId, patientProfile, isLoading }) {
             <ProfileDetail icon={Cake} label="Date of Birth" value={patientProfile.dateOfBirth?.toDate ? `${patientProfile.dateOfBirth.toDate().toLocaleDateString()} (${getAge(patientProfile.dateOfBirth)} years)` : 'Not Provided'} />
             <ProfileDetail icon={Users} label="Gender" value={patientProfile.gender} />
             <ProfileDetail icon={Droplet} label="Blood Group" value={patientProfile.bloodGroup} />
-            <ProfileDetail icon={Heart} label="Marital Status" value={patientProfile.maritalStatus} />
         </CardContent>
         </Card>
 

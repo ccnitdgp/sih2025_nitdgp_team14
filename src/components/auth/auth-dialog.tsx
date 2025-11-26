@@ -58,7 +58,6 @@ const signupSchema = z.object({
   }),
   gender: z.string().optional(),
   bloodGroup: z.string().optional(),
-  maritalStatus: z.string().optional(),
   address: z.string().min(1, { message: "Address is required." }),
   emergencyContactName: z.string().min(1, { message: "Emergency contact name is required." }),
   emergencyContactPhone: z.string().min(1, { message: "Emergency contact phone is required." }),
@@ -104,7 +103,6 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
       password: "",
       address: "",
       bloodGroup: undefined,
-      maritalStatus: undefined,
       emergencyContactName: "",
       emergencyContactPhone: "",
       emergencyContactRelation: "",
@@ -132,7 +130,6 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
           gender: values.gender,
           phoneNumber: values.phoneNumber,
           bloodGroup: values.bloodGroup,
-          maritalStatus: values.maritalStatus,
           address: values.address,
           emergencyContact: {
             name: values.emergencyContactName,
@@ -485,30 +482,6 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
                         )}
                         />
                     </div>
-                     <FormField
-                      control={signupForm.control}
-                      name="maritalStatus"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Marital Status</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select your marital status" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="Single">Single</SelectItem>
-                              <SelectItem value="Married">Married</SelectItem>
-                              <SelectItem value="Divorced">Divorced</SelectItem>
-                              <SelectItem value="Widowed">Widowed</SelectItem>
-                              <SelectItem value="Prefer not to say">Prefer not to say</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
                     
                     <FormField
                       control={signupForm.control}
@@ -627,5 +600,3 @@ export function AuthDialog({ trigger, defaultTab = "login" }: AuthDialogProps) {
     </Dialog>
   );
 }
-
-    

@@ -85,11 +85,6 @@
             "description": "User's blood group.",
             "enum": ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
         },
-        "maritalStatus": {
-            "type": "string",
-            "description": "User's marital status.",
-            "enum": ["Single", "Married", "Divorced", "Widowed", "Prefer not to say"]
-        },
         "address": {
             "type": "string",
             "description": "User's full address (City, State, ZIP)."

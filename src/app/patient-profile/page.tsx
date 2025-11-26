@@ -131,7 +131,6 @@ export default function PatientProfilePage() {
                         <ProfileDetail icon={Cake} label="Date of Birth" value={userProfile.dateOfBirth?.toDate ? userProfile.dateOfBirth.toDate().toLocaleDateString() : 'Not Provided'} />
                         <ProfileDetail icon={Users} label="Gender" value={userProfile.gender} />
                         <ProfileDetail icon={Droplet} label="Blood Group" value={userProfile.bloodGroup} />
-                        <ProfileDetail icon={Heart} label="Marital Status" value={userProfile.maritalStatus} />
                     </CardContent>
                     </Card>
 
@@ -167,5 +166,3 @@ export default function PatientProfilePage() {
     </div>
   );
 }
-
-    
