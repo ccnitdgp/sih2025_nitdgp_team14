@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -175,7 +174,7 @@ export default function PatientDashboardPage() {
                       </CardHeader>
                       <CardContent className="flex flex-col items-center text-center">
                           <Avatar className="h-28 w-28 mb-4 border-2 border-primary">
-                              <AvatarImage src={user?.photoURL ?? `https://picsum.photos/seed/${'user?.uid'}/200`} data-ai-hint="profile photo" />
+                              <AvatarImage src={user?.photoURL ?? ''} data-ai-hint="profile photo" />
                               <AvatarFallback className="text-3xl">{userProfile?.firstName?.charAt(0).toUpperCase() ?? user?.email?.charAt(0).toUpperCase()}</AvatarFallback>
                           </Avatar>
                           <h3 className="font-semibold text-xl">{userProfile?.firstName} {userProfile?.lastName}</h3>
