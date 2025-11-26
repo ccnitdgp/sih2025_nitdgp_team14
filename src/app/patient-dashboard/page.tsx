@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -6,13 +7,15 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CalendarPlus, Receipt, ScanText, Mic, ArrowRight, Sparkles, Bot, BookUser, FlaskConical, History, ShieldCheck, FileText, ChevronRight } from 'lucide-react';
+import { CalendarPlus, Receipt, ScanText, Mic, ArrowRight, Sparkles, Bot, BookUser, FlaskConical, History, ShieldCheck, FileText, ChevronRight, ChevronsUpDown, Volume2, Loader2, Play } from 'lucide-react';
 import { doc } from 'firebase/firestore';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getHealthInformation, type HealthAssistantOutput } from '@/ai/flows/health-assistant-flow';
+import { textToSpeech, type TextToSpeechOutput } from '@/ai/flows/text-to-speech-flow';
 import { useToast } from '@/hooks/use-toast';
 import { VirtualIdCard } from '@/components/patient/virtual-id-card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import hi from '@/lib/locales/hi.json';
 import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
@@ -20,6 +23,10 @@ import te from '@/lib/locales/te.json';
 import mr from '@/lib/locales/mr.json';
 
 const languageFiles = { hi, bn, ta, te, mr };
+
+interface IWindow extends Window {
+  webkitSpeechRecognition: any;
+}
 
 export default function PatientDashboardPage() {
   const { user } = useUser();
@@ -31,6 +38,13 @@ export default function PatientDashboardPage() {
   const [language, setLanguage] = useState('en');
   const [isLoading, setIsLoading] = useState(false);
   const [assistantResponse, setAssistantResponse] = useState<HealthAssistantOutput | null>(null);
+
+  const [isAssistantResponseOpen, setIsAssistantResponseOpen] = useState(true);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  
+  const [playback, setPlayback] = useState<{isPlaying: boolean, isLoading: boolean}>({isPlaying: false, isLoading: false});
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const userDocRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
@@ -50,6 +64,77 @@ export default function PatientDashboardPage() {
   }, [userProfile]);
 
   const t = (key: string, fallback: string) => translations[key] || fallback;
+
+  useEffect(() => {
+    const SpeechRecognition = (window as IWindow).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = language;
+
+      recognition.onstart = () => {
+        setIsListening(true);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setQuestion(transcript);
+      };
+      
+      recognitionRef.current = recognition;
+    }
+
+    const audio = new Audio();
+    audioRef.current = audio;
+    audio.onended = () => {
+        setPlayback({ isPlaying: false, isLoading: false });
+    };
+
+    return () => {
+      audio.pause();
+    }
+  }, [language]);
+
+
+  const handleListen = () => {
+    if (recognitionRef.current) {
+        if(isListening) {
+            recognitionRef.current.stop();
+        } else {
+            recognitionRef.current.start();
+        }
+    } else {
+        toast({ variant: 'destructive', title: 'Feature Not Supported', description: 'Speech recognition is not supported in your browser.' });
+    }
+  };
+
+  const handleTextToSpeech = async (text: string) => {
+    if(playback.isLoading || playback.isPlaying) {
+        audioRef.current?.pause();
+        setPlayback({ isPlaying: false, isLoading: false });
+        return;
+    }
+
+    setPlayback({ isPlaying: false, isLoading: true });
+    try {
+        const { audioDataUri } = await textToSpeech({ text });
+        if(audioRef.current) {
+            audioRef.current.src = audioDataUri;
+            audioRef.current.play();
+            setPlayback({ isPlaying: true, isLoading: false });
+        }
+    } catch(e) {
+        console.error(e);
+        toast({ variant: 'destructive', title: 'Text-to-Speech failed' });
+        setPlayback({ isPlaying: false, isLoading: false });
+    }
+  }
+
 
   const handleGetInformation = async () => {
     if (!question) return;
@@ -147,8 +232,8 @@ export default function PatientDashboardPage() {
                                   className="pr-12 min-h-[120px]"
                                   rows={4}
                                  />
-                                 <Button variant="ghost" size="icon" className="absolute bottom-2.5 right-2.5 text-muted-foreground">
-                                  <Mic className="h-5 w-5"/>
+                                 <Button variant="ghost" size="icon" className="absolute bottom-2.5 right-2.5 text-muted-foreground" onClick={handleListen}>
+                                  <Mic className={`h-5 w-5 ${isListening ? 'text-primary' : ''}`}/>
                                  </Button>
                               </div>
                           </div>
@@ -174,19 +259,40 @@ export default function PatientDashboardPage() {
                       </CardContent>
                   </Card>
                    {assistantResponse && (
-                    <Card className="shadow-sm">
-                      <CardHeader>
-                        <div className="flex items-center gap-3">
-                          <Bot className="h-6 w-6 text-accent" />
-                          <CardTitle>{t('assistant_response_title', 'Assistant\'s Response')}</CardTitle>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="prose prose-sm max-w-full text-foreground whitespace-pre-wrap">
-                          {assistantResponse.answer}
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <Collapsible asChild open={isAssistantResponseOpen} onOpenChange={setIsAssistantResponseOpen}>
+                      <Card className="shadow-sm">
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <Bot className="h-6 w-6 text-accent" />
+                              <CardTitle>{t('assistant_response_title', 'Assistant\'s Response')}</CardTitle>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Button variant="ghost" size="icon" disabled={playback.isLoading} onClick={() => handleTextToSpeech(assistantResponse.answer)}>
+                                    {playback.isLoading ? (
+                                        <Loader2 className="h-5 w-5 animate-spin" />
+                                    ) : playback.isPlaying ? (
+                                        <Play className="h-5 w-5 text-primary fill-primary" />
+                                    ) : (
+                                        <Volume2 className="h-5 w-5" />
+                                    )}
+                                </Button>
+                                <CollapsibleTrigger asChild>
+                                    <Button variant="ghost" size="icon">
+                                        <ChevronsUpDown className="h-4 w-4" />
+                                        <span className="sr-only">Toggle</span>
+                                    </Button>
+                                </CollapsibleTrigger>
+                            </div>
+                        </CardHeader>
+                        <CollapsibleContent>
+                          <CardContent>
+                            <div className="prose prose-sm max-w-full text-foreground whitespace-pre-wrap">
+                              {assistantResponse.answer}
+                            </div>
+                          </CardContent>
+                        </CollapsibleContent>
+                      </Card>
+                    </Collapsible>
                   )}
               </div>
               <div className="space-y-8">
