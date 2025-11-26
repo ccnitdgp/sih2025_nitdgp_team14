@@ -133,6 +133,7 @@ export default function SettingsPage() {
         }
 
         updateDocumentNonBlocking(userDocRef, { [key]: value });
+        toast({ title: 'Preference Saved', description: `Your ${key === 'preferredLanguage' ? 'language' : 'date format'} preference has been updated.` });
     };
 
     const handleNotificationChange = (key: string, value: boolean) => {
@@ -502,3 +503,5 @@ const SettingsSkeleton = () => (
         </div>
     </div>
 )
+
+    
