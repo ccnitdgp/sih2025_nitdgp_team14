@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -58,7 +59,7 @@ export function useCollection<T = any>(
   type StateDataType = ResultItemType[] | null;
 
   const [data, setData] = useState<StateDataType>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
   useEffect(() => {
@@ -86,10 +87,19 @@ export function useCollection<T = any>(
       },
       (error: FirestoreError) => {
         // This logic extracts the path from either a ref or a query
-        const path: string =
-          memoizedTargetRefOrQuery.type === 'collection'
-            ? (memoizedTargetRefOrQuery as CollectionReference).path
-            : (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString()
+        let path: string;
+        if (memoizedTargetRefOrQuery.type === 'collection') {
+           path = (memoizedTargetRefOrQuery as CollectionReference).path;
+        } else {
+           // For queries, we need to handle CollectionGroup queries which don't have a simple path.
+           // For now, we'll try to get the path, but this might not be perfect for all query types.
+           try {
+              path = (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString()
+           } catch (e) {
+              path = 'unknown path (likely collection group query)';
+           }
+        }
+        
 
         const contextualError = new FirestorePermissionError({
           operation: 'list',
@@ -107,8 +117,10 @@ export function useCollection<T = any>(
 
     return () => unsubscribe();
   }, [memoizedTargetRefOrQuery]); // Re-run if the target query/reference changes.
+  
   if(memoizedTargetRefOrQuery && !memoizedTargetRefOrQuery.__memo) {
     throw new Error(memoizedTargetRefOrQuery + ' was not properly memoized using useMemoFirebase');
   }
+  
   return { data, isLoading, error };
 }
