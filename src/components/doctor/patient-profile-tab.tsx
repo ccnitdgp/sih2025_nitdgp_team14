@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AtSign, Cake, Droplet, Heart, Home, Phone, User as UserIcon, Users } from 'lucide-react';
+import { AtSign, Cake, Droplet, Home, Locate, MapPin, Phone, User as UserIcon, Users } from 'lucide-react';
 import { differenceInYears } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -103,12 +103,15 @@ export function PatientProfileTab({ patientId, patientProfile, isLoading }) {
 
         <Card>
         <CardHeader>
-            <CardTitle>Contact Details</CardTitle>
+            <CardTitle>Contact & Address</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
             <ProfileDetail icon={Phone} label="Phone Number" value={patientProfile.phoneNumber} />
             <ProfileDetail icon={AtSign} label="Email Address" value={patientProfile.email} />
-            <ProfileDetail icon={Home} label="Full Address" value={patientProfile.address} />
+            <ProfileDetail icon={Home} label="Full Address" value={patientProfile.address?.fullAddress} />
+            <ProfileDetail icon={MapPin} label="City / State / Country" value={patientProfile.address?.cityStateCountry} />
+            <ProfileDetail icon={MapPin} label="Pin Code" value={patientProfile.address?.pinCode} />
+            <ProfileDetail icon={Locate} label="Geo-location" value={patientProfile.address?.geolocation ? 'Set' : 'Not Set'} />
             {patientProfile.emergencyContact?.name && (
                 <div className="flex items-start gap-4">
                     <Users className="h-5 w-5 text-destructive mt-1 flex-shrink-0" />
@@ -124,3 +127,5 @@ export function PatientProfileTab({ patientId, patientProfile, isLoading }) {
     </div>
   )
 }
+
+    

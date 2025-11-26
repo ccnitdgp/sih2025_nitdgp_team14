@@ -5,7 +5,7 @@ import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocki
 import { doc } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AtSign, Cake, Droplet, Phone, User as UserIcon, Users, Home, Pencil, X, Camera } from 'lucide-react';
+import { AtSign, Cake, Droplet, Phone, User as UserIcon, Users, Home, Pencil, X, Camera, MapPin, Locate, ArrowLeft } from 'lucide-react';
 import { differenceInYears, format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { CalendarIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
 
 const profileSchema = z.object({
   firstName: z.string().min(2, "First name is required."),
@@ -29,11 +30,14 @@ const profileSchema = z.object({
   gender: z.string().optional(),
   bloodGroup: z.string().optional(),
   phoneNumber: z.string().min(10, "Phone number must be at least 10 digits."),
-  address: z.string().min(1, "Address is required."),
+  fullAddress: z.string().min(1, "Full address is required."),
+  cityStateCountry: z.string().min(1, "City/State/Country is required."),
+  pinCode: z.string().min(1, "Pin Code is required."),
   emergencyContactName: z.string().optional(),
   emergencyContactPhone: z.string().optional(),
   emergencyContactRelation: z.string().optional(),
 });
+
 
 const ProfileDetail = ({ icon: Icon, label, value }) => {
   if (!value) return null;
@@ -77,7 +81,9 @@ export default function PatientProfilePage() {
         gender: userProfile.gender || '',
         bloodGroup: userProfile.bloodGroup || '',
         phoneNumber: userProfile.phoneNumber || '',
-        address: userProfile.address || '',
+        fullAddress: userProfile.address?.fullAddress || '',
+        cityStateCountry: userProfile.address?.cityStateCountry || '',
+        pinCode: userProfile.address?.pinCode || '',
         emergencyContactName: userProfile.emergencyContact?.name || '',
         emergencyContactPhone: userProfile.emergencyContact?.phone || '',
         emergencyContactRelation: userProfile.emergencyContact?.relation || '',
@@ -117,18 +123,24 @@ export default function PatientProfilePage() {
     if (!userDocRef) return;
     
     const updatedData = {
-        ...values,
+        firstName: values.firstName,
+        lastName: values.lastName,
+        dateOfBirth: values.dateOfBirth,
+        gender: values.gender,
+        bloodGroup: values.bloodGroup,
+        phoneNumber: values.phoneNumber,
+        address: {
+            fullAddress: values.fullAddress,
+            cityStateCountry: values.cityStateCountry,
+            pinCode: values.pinCode,
+        },
         emergencyContact: {
             name: values.emergencyContactName,
             phone: values.emergencyContactPhone,
             relation: values.emergencyContactRelation
         }
     };
-    // remove the separate emergency contact fields
-    delete updatedData.emergencyContactName;
-    delete updatedData.emergencyContactPhone;
-    delete updatedData.emergencyContactRelation;
-
+    
     // Here you would also handle the uploaded photo URL if it exists
     // if (photoPreview) { updatedData.photoURL = uploadedPhotoUrl; }
 
@@ -167,6 +179,12 @@ export default function PatientProfilePage() {
 
   return (
     <div className="container mx-auto max-w-5xl px-6 py-12">
+        <Button variant="ghost" asChild className="mb-4">
+            <Link href="/patient-dashboard">
+                <ArrowLeft className="mr-2 h-4 w-4"/>
+                Back to Dashboard
+            </Link>
+        </Button>
         <div className="text-center mb-8">
             <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl">
                 Patient Profile
@@ -235,7 +253,18 @@ export default function PatientProfilePage() {
                               <FormField control={form.control} name="bloodGroup" render={({ field }) => (<FormItem><FormLabel>Blood Group</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger></FormControl><SelectContent><SelectItem value="A+">A+</SelectItem><SelectItem value="A-">A-</SelectItem><SelectItem value="B+">B+</SelectItem><SelectItem value="B-">B-</SelectItem><SelectItem value="AB+">AB+</SelectItem><SelectItem value="AB-">AB-</SelectItem><SelectItem value="O+">O+</SelectItem><SelectItem value="O-">O-</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
                            </div>
                            <FormField control={form.control} name="phoneNumber" render={({ field }) => (<FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input type="tel" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                           <FormField control={form.control} name="address" render={({ field }) => (<FormItem><FormLabel>Address</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                           
+                           <div>
+                            <FormLabel>Address & Location</FormLabel>
+                            <div className="space-y-4 mt-2">
+                                <FormField control={form.control} name="fullAddress" render={({ field }) => (<FormItem><FormControl><Input placeholder="Full Address" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                <div className="grid grid-cols-2 gap-4">
+                                  <FormField control={form.control} name="cityStateCountry" render={({ field }) => (<FormItem><FormControl><Input placeholder="City / State / Country" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                  <FormField control={form.control} name="pinCode" render={({ field }) => (<FormItem><FormControl><Input placeholder="Pin Code" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                </div>
+                                <Button variant="outline" type="button" disabled><Locate className="mr-2" /> Geo-location (optional)</Button>
+                            </div>
+                           </div>
 
                            <div>
                             <FormLabel>Emergency Contact</FormLabel>
@@ -269,7 +298,10 @@ export default function PatientProfilePage() {
                         <CardContent className="space-y-6">
                             <ProfileDetail icon={Phone} label="Phone Number" value={userProfile.phoneNumber} />
                             <ProfileDetail icon={AtSign} label="Email Address" value={user?.email} />
-                            <ProfileDetail icon={Home} label="Full Address" value={userProfile.address} />
+                            <ProfileDetail icon={Home} label="Full Address" value={userProfile.address?.fullAddress} />
+                            <ProfileDetail icon={MapPin} label="City / State / Country" value={userProfile.address?.cityStateCountry} />
+                            <ProfileDetail icon={MapPin} label="Pin Code" value={userProfile.address?.pinCode} />
+                            <ProfileDetail icon={Locate} label="Geo-location" value={userProfile.address?.geolocation ? 'Set' : 'Not Set'} />
                              {userProfile.emergencyContact?.name && (
                                 <div className="flex items-start gap-4">
                                     <Users className="h-5 w-5 text-destructive mt-1 flex-shrink-0" />
@@ -295,3 +327,5 @@ export default function PatientProfilePage() {
     </div>
   );
 }
+
+    
