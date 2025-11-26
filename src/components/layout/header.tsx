@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { LogOut, Settings, LayoutDashboard } from "lucide-react";
+import { LogOut, Settings, LayoutDashboard, Menu } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +22,7 @@ import { RoleRedirect } from "@/components/auth/role-redirect";
 import { doc } from 'firebase/firestore';
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 const navLinks = [
     { href: "/", label: "Home" },
@@ -37,6 +38,7 @@ export function Header() {
   const firestore = useFirestore();
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -57,33 +59,43 @@ export function Header() {
   
   const dashboardLink = userProfile?.role === 'doctor' ? '/doctor-dashboard' : '/patient-dashboard';
 
+  const NavContent = ({isMobile = false}: {isMobile?: boolean}) => (
+    <nav className={cn(
+      "text-sm font-medium",
+      isMobile ? "flex flex-col gap-4 p-4" : "hidden md:flex items-center gap-6"
+    )}>
+      {navLinks.map((link) => (
+        <Link
+          key={link.label}
+          href={link.href}
+          className="text-muted-foreground transition-colors hover:text-foreground whitespace-nowrap"
+          onClick={() => isMobile && setIsMobileMenuOpen(false)}
+        >
+          {link.label}
+        </Link>
+      ))}
+       {isClient && user && !isUserLoading && (
+        <Link href={dashboardLink} className="text-primary transition-colors hover:text-primary/80 font-semibold whitespace-nowrap" onClick={() => isMobile && setIsMobileMenuOpen(false)}>
+            Dashboard
+        </Link>
+       )}
+    </nav>
+  );
+
   return (
     <>
     <RoleRedirect />
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 max-w-7xl items-center">
-        <div className="flex-1 flex items-center justify-start">
+        <div className="mr-auto flex items-center">
           <Logo />
         </div>
         
-        <nav className="hidden md:flex flex-1 items-center justify-center md:gap-6 text-sm font-medium">
-          {navLinks.map((link) => (
-            <Link
-              key={link.label}
-              href={link.href}
-              className="text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {link.label}
-            </Link>
-          ))}
-           {isClient && user && !isUserLoading && (
-            <Link href={dashboardLink} className="text-muted-foreground transition-colors hover:text-foreground font-semibold text-primary">
-                Dashboard
-            </Link>
-           )}
-        </nav>
+        <div className="hidden md:flex items-center">
+          <NavContent />
+        </div>
 
-        <div className="flex flex-1 items-center justify-end gap-2 sm:gap-4">
+        <div className="flex items-center justify-end gap-2 sm:gap-4 ml-auto">
           {isUserLoading || !isClient ? (
             <div className="flex items-center gap-2">
                 <Skeleton className="h-8 w-20" />
@@ -127,10 +139,38 @@ export function Header() {
             </DropdownMenu>
           ) : (
             <>
-              <AuthDialog trigger={<Button variant="outline">Login</Button>} />
-              <AuthDialog trigger={<Button>Sign Up</Button>} defaultTab="signup" />
+              <div className="hidden sm:flex">
+                <AuthDialog trigger={<Button variant="outline">Login</Button>} />
+                <AuthDialog trigger={<Button className="ml-2">Sign Up</Button>} defaultTab="signup" />
+              </div>
             </>
           )}
+
+          <div className="md:hidden">
+              <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <Menu className="h-5 w-5" />
+                    <span className="sr-only">Open navigation menu</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left">
+                    <div className="py-6">
+                        <Logo />
+                        <div className="mt-8">
+                          <NavContent isMobile />
+                          {!user && !isUserLoading && (
+                            <div className="mt-6 flex flex-col gap-3">
+                               <AuthDialog trigger={<Button variant="outline" className="w-full">Login</Button>} />
+                              <AuthDialog trigger={<Button className="w-full">Sign Up</Button>} defaultTab="signup" />
+                            </div>
+                          )}
+                        </div>
+                    </div>
+                </SheetContent>
+              </Sheet>
+          </div>
+
         </div>
       </div>
     </header>
