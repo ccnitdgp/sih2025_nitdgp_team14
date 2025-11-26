@@ -6,7 +6,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, query, where, orderBy } from 'firebase/firestore';
+import { collection, serverTimestamp, query, where, orderBy, collectionGroup } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
@@ -63,11 +63,11 @@ export default function DoctorPrescriptionsPage() {
 
   const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsCollectionRef);
 
-  // This query will fetch all prescriptions added by the current doctor
+  // This query will fetch all prescriptions added by the current doctor across all patients
   const issuedPrescriptionsQuery = useMemoFirebase(() => {
     if (!doctorUser || !firestore) return null;
     return query(
-      collection(firestore, 'healthRecords'),
+      collectionGroup(firestore, 'healthRecords'),
       where('recordType', '==', 'prescription'),
       where('addedBy', '==', doctorUser.uid),
       orderBy('dateCreated', 'desc')
