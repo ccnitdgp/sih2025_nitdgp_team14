@@ -10,10 +10,10 @@ const socialLinks = [
 ];
 
 const footerLinks = [
-  { href: "#", label: "About Us" },
-  { href: "#", label: "Contact" },
-  { href: "#", label: "Privacy Policy" },
-  { href: "#", label: "Terms of Service" },
+  { href: "/about", label: "About Us" },
+  { href: "/contact", label: "Contact" },
+  { href: "/privacy-policy", label: "Privacy Policy" },
+  { href: "/terms-of-service", label: "Terms of Service" },
 ];
 
 export function Footer() {
