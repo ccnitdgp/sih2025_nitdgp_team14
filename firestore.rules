@@ -112,7 +112,8 @@ service cloud.firestore {
        * - A new patient can add themselves to their assigned doctor's list upon creation.
        */
       match /patients/{patientId} {
-        allow read, list: if isOwner(userId); // A doctor can read/list their own patients.
+        allow read: if isOwner(userId);
+        allow list: if isOwner(userId);
         allow write: if isOwner(userId) || (request.auth.uid == patientId && request.resource.data.patientId == patientId);
       }
       
