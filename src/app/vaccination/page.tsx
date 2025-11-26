@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useSearchParams } from 'next/navigation';
@@ -15,11 +16,38 @@ import {
 import { vaccinationDrives } from '@/lib/data';
 import { Calendar, MapPin, Syringe } from 'lucide-react';
 import { Highlight } from '@/components/ui/highlight';
-
+import { useUser } from '@/firebase';
+import { AuthDialog } from '@/components/auth/auth-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 export default function VaccinationPage() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get('search') || '';
+  const { user } = useUser();
+  const { toast } = useToast();
+
+  const handleRegister = () => {
+    toast({
+      title: 'Registration Successful!',
+      description: 'You have been successfully registered for the drive.',
+    });
+  };
+
+  const RegisterButton = ({ driveId }) => {
+    if (user) {
+      // If user is logged in, show the actual register button
+      return <Button onClick={handleRegister}>Register Now</Button>;
+    }
+    // If user is not logged in, trigger the Auth dialog
+    return (
+      <AuthDialog 
+        trigger={
+           <Button>Register Now</Button>
+        }
+      />
+    );
+  };
+
 
   return (
     <div className="bg-background">
@@ -65,7 +93,7 @@ export default function VaccinationPage() {
                         <p className="text-muted-foreground">
                            <Highlight text={drive.details} query={searchQuery} />
                         </p>
-                        <Button>Register Now</Button>
+                        <RegisterButton driveId={drive.id} />
                       </div>
                     </AccordionContent>
                   </AccordionItem>

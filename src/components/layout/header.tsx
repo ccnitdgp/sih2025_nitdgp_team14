@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { LogOut, Settings } from "lucide-react";
+import { LogOut, Settings, LayoutDashboard } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,20 +23,11 @@ import { doc } from 'firebase/firestore';
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const patientNavLinks = [
-  { href: "/patient-dashboard", label: "Home" },
-  { href: "#", label: "Assistant" },
-  { href: "/records", label: "Records" },
-  { href: "/notifications", label: "Notifications" },
-  { href: "/appointments", label: "Appointment" },
-  { href: "/billing", label: "Bills" },
-];
-
-const doctorNavLinks = [
-    { href: "/doctor-dashboard", label: "Dashboard" },
-    { href: "#", label: "Patients" },
-    { href: "/records", label: "Records" },
-    { href: "#", label: "Appointments" },
+const navLinks = [
+    { href: "/", label: "Home" },
+    { href: "/vaccination", label: "Vaccination Drive" },
+    { href: "/camps", label: "Visiting Camps" },
+    { href: "/notifications", label: "Medical Notification" },
 ];
 
 
@@ -64,15 +55,7 @@ export function Header() {
     });
   };
   
-  const navLinks = userProfile?.role === 'doctor' ? doctorNavLinks : patientNavLinks;
-  const publicNavLinks =  [
-    { href: "/", label: "Home" },
-    { href: "/vaccination", label: "Vaccination Drive" },
-    { href: "/camps", label: "Visiting Camps" },
-    { href: "/notifications", label: "Medical Notification" },
-  ];
-
-  const linksToShow = user ? navLinks : publicNavLinks;
+  const dashboardLink = userProfile?.role === 'doctor' ? '/doctor-dashboard' : '/patient-dashboard';
 
   return (
     <>
@@ -84,7 +67,7 @@ export function Header() {
         </div>
         
         <nav className="hidden md:flex flex-1 items-center justify-center md:gap-6 text-sm font-medium">
-          {isClient && !isUserLoading && linksToShow.map((link) => (
+          {navLinks.map((link) => (
             <Link
               key={link.label}
               href={link.href}
@@ -93,11 +76,11 @@ export function Header() {
               {link.label}
             </Link>
           ))}
-          {isUserLoading && isClient && (
-            <div className="flex items-center gap-6">
-                {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-4 w-20" />)}
-            </div>
-          )}
+           {isClient && user && !isUserLoading && (
+            <Link href={dashboardLink} className="text-muted-foreground transition-colors hover:text-foreground font-semibold text-primary">
+                Dashboard
+            </Link>
+           )}
         </nav>
 
         <div className="flex flex-1 items-center justify-end gap-2 sm:gap-4">
@@ -119,6 +102,10 @@ export function Header() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
+                 <DropdownMenuItem onClick={() => router.push(dashboardLink)}>
+                  <LayoutDashboard className="mr-2 h-4 w-4" />
+                  <span>Dashboard</span>
+                </DropdownMenuItem>
                 <DropdownMenuItem disabled>
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">{userProfile?.firstName ? `${userProfile.firstName} ${userProfile.lastName}` : 'Welcome'}</p>

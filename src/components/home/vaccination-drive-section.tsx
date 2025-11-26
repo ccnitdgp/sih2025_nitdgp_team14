@@ -1,10 +1,39 @@
+
+'use client';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { vaccinationDrives } from "@/lib/data";
 import { MapPin, CalendarDays, ArrowRight, Syringe } from "lucide-react";
 import Link from "next/link";
+import { useUser } from "@/firebase";
+import { AuthDialog } from "@/components/auth/auth-dialog";
 
 export function VaccinationDriveSection() {
+  const { user } = useUser();
+
+  const RegisterButton = ({ driveId }) => {
+    if (user) {
+      // If user is logged in, link to the details page
+      return (
+         <Button asChild variant="secondary" className="w-full">
+            <Link href="/vaccination">
+                View Details & Register
+            </Link>
+        </Button>
+      );
+    }
+    // If user is not logged in, trigger the Auth dialog
+    return (
+      <AuthDialog 
+        trigger={
+           <Button variant="secondary" className="w-full">
+                View Details & Register
+            </Button>
+        }
+      />
+    );
+  };
+
   return (
     <section id="vaccination" className="py-12 sm:py-24">
       <div className="container mx-auto max-w-7xl px-6">
@@ -45,11 +74,7 @@ export function VaccinationDriveSection() {
                 </div>
               </CardContent>
               <CardFooter>
-                 <Button asChild variant="secondary" className="w-full">
-                    <Link href="/vaccination">
-                      View Details & Register
-                    </Link>
-                  </Button>
+                 <RegisterButton driveId={drive.id} />
               </CardFooter>
             </Card>
           ))}
