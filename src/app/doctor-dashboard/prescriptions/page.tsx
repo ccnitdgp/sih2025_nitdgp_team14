@@ -5,8 +5,8 @@ import { useState, useMemo, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, query, where, orderBy, collectionGroup } from 'firebase/firestore';
+import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking, useDoc } from '@/firebase';
+import { collection, serverTimestamp, query, where, orderBy, collectionGroup, doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
@@ -23,6 +23,13 @@ import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import hi from '@/lib/locales/hi.json';
+import bn from '@/lib/locales/bn.json';
+import ta from '@/lib/locales/ta.json';
+import te from '@/lib/locales/te.json';
+import mr from '@/lib/locales/mr.json';
+
+const languageFiles = { hi, bn, ta, te, mr };
 
 const prescriptionSchema = z.object({
   patientId: z.string().min(1, 'Please select a patient.'),
@@ -46,6 +53,24 @@ export default function DoctorPrescriptionsPage() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+  const [translations, setTranslations] = useState({});
+
+  const userDocRef = useMemoFirebase(() => {
+    if (!doctorUser || !firestore) return null;
+    return doc(firestore, 'users', doctorUser.uid);
+  }, [doctorUser, firestore]);
+
+  const { data: userProfile } = useDoc(userDocRef);
+
+  useEffect(() => {
+    if (userProfile?.preferredLanguage && languageFiles[userProfile.preferredLanguage]) {
+      setTranslations(languageFiles[userProfile.preferredLanguage]);
+    } else {
+      setTranslations({});
+    }
+  }, [userProfile]);
+
+  const t = (key: string, fallback: string) => translations[key] || fallback;
 
   const form = useForm<z.infer<typeof prescriptionSchema>>({
     resolver: zodResolver(prescriptionSchema),
@@ -131,8 +156,8 @@ export default function DoctorPrescriptionsPage() {
     <div className="container mx-auto max-w-7xl px-6 py-12 space-y-8">
         <Card>
             <CardHeader>
-                <CardTitle>Add New Prescription</CardTitle>
-                <CardDescription>Fill in the details to issue a new prescription for a patient.</CardDescription>
+                <CardTitle>{t('add_new_prescription_title', 'Add New Prescription')}</CardTitle>
+                <CardDescription>{t('add_new_prescription_desc', 'Fill in the details to issue a new prescription for a patient.')}</CardDescription>
             </CardHeader>
             <CardContent>
                 <Form {...form}>
@@ -143,11 +168,11 @@ export default function DoctorPrescriptionsPage() {
                                 name="patientId"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Patient</FormLabel>
+                                        <FormLabel>{t('patient_label', 'Patient')}</FormLabel>
                                         <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingPatients}>
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder={isLoadingPatients ? "Loading patients..." : "Select a patient"} />
+                                                    <SelectValue placeholder={isLoadingPatients ? t('loading_patients', 'Loading patients...') : t('select_patient', 'Select a patient')} />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
@@ -165,13 +190,13 @@ export default function DoctorPrescriptionsPage() {
                                 name="medicationName"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Medication Name</FormLabel>
+                                        <FormLabel>{t('medication_name_label', 'Medication Name')}</FormLabel>
                                         <FormControl>
                                             <Combobox
                                                 options={medications}
                                                 value={field.value}
                                                 onChange={field.onChange}
-                                                placeholder="Search medication..."
+                                                placeholder={t('search_medication_placeholder', 'Search medication...')}
                                             />
                                         </FormControl>
                                         <FormMessage />
@@ -183,9 +208,9 @@ export default function DoctorPrescriptionsPage() {
                                 name="dosage"
                                 render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Dosage & Instructions</FormLabel>
+                                    <FormLabel>{t('dosage_instructions_label', 'Dosage & Instructions')}</FormLabel>
                                     <FormControl>
-                                    <Input placeholder="e.g., 500mg, twice a day" {...field} />
+                                    <Input placeholder={t('dosage_instructions_placeholder', 'e.g., 500mg, twice a day')} {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -196,7 +221,7 @@ export default function DoctorPrescriptionsPage() {
                                 name="endDate"
                                 render={({ field }) => (
                                     <FormItem className="flex flex-col">
-                                    <FormLabel>End Date (Optional)</FormLabel>
+                                    <FormLabel>{t('end_date_optional_label', 'End Date (Optional)')}</FormLabel>
                                     <Popover>
                                         <PopoverTrigger asChild>
                                         <FormControl>
@@ -210,7 +235,7 @@ export default function DoctorPrescriptionsPage() {
                                             {field.value ? (
                                                 format(field.value, "PPP")
                                             ) : (
-                                                <span>Pick a date</span>
+                                                <span>{t('pick_a_date', 'Pick a date')}</span>
                                             )}
                                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                             </Button>
@@ -235,7 +260,7 @@ export default function DoctorPrescriptionsPage() {
                         </div>
                         <Button type="submit" disabled={isSubmitting}>
                             <PlusCircle className="mr-2 h-4 w-4"/>
-                            {isSubmitting ? "Adding Prescription..." : "Add Prescription"}
+                            {isSubmitting ? t('adding_prescription_button', 'Adding Prescription...') : t('add_prescription_button', 'Add Prescription')}
                         </Button>
                     </form>
                 </Form>
@@ -244,18 +269,18 @@ export default function DoctorPrescriptionsPage() {
 
         <Card>
             <CardHeader>
-                <CardTitle>Issued Prescriptions</CardTitle>
-                <CardDescription>A log of all prescriptions you have written.</CardDescription>
+                <CardTitle>{t('issued_prescriptions_title', 'Issued Prescriptions')}</CardTitle>
+                <CardDescription>{t('issued_prescriptions_desc', 'A log of all prescriptions you have written.')}</CardDescription>
             </CardHeader>
             <CardContent>
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Patient</TableHead>
-                            <TableHead>Medication</TableHead>
-                            <TableHead>Dosage</TableHead>
-                            <TableHead>Date Issued</TableHead>
-                            <TableHead>Status</TableHead>
+                            <TableHead>{t('table_header_patient', 'Patient')}</TableHead>
+                            <TableHead>{t('table_header_medication', 'Medication')}</TableHead>
+                            <TableHead>{t('table_header_dosage', 'Dosage')}</TableHead>
+                            <TableHead>{t('table_header_date_issued', 'Date Issued')}</TableHead>
+                            <TableHead>{t('table_header_status', 'Status')}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -281,7 +306,7 @@ export default function DoctorPrescriptionsPage() {
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={5} className="text-center h-24">No prescriptions issued yet.</TableCell>
+                                <TableCell colSpan={5} className="text-center h-24">{t('no_prescriptions_issued', 'No prescriptions issued yet.')}</TableCell>
                             </TableRow>
                         )}
                     </TableBody>
@@ -291,5 +316,3 @@ export default function DoctorPrescriptionsPage() {
     </div>
   )
 }
-
-    
