@@ -23,7 +23,7 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { format, addDays, startOfDay, addMinutes, getDay, setHours, setMinutes } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useUser, useDoc, useFirestore, useMemoFirebase, useCollection, addDocumentNonBlocking } from '@/firebase';
+import { useUser, useDoc, useFirestore, useMemoFirebase, addDocumentNonBlocking, useCollection } from '@/firebase';
 import { doc, collection, query, where } from 'firebase/firestore';
 import hi from '@/lib/locales/hi.json';
 import bn from '@/lib/locales/bn.json';
@@ -303,7 +303,7 @@ const FindDoctors = ({ t }) => {
                     <Sparkles className="h-6 w-6 text-primary" />
                     <CardTitle className="text-2xl">{t('symptom_checker_title', 'AI-Powered Symptom Checker')}</CardTitle>
                     </div>
-                    <p className="text-muted-foreground pt-2">{t('symptom_checker_desc', 'Describe your symptoms, and we\\'ll suggest the right specialist for you.')}</p>
+                    <p className="text-muted-foreground pt-2">{t('symptom_checker_desc', "Describe your symptoms, and we'll suggest the right specialist for you.")}</p>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div>
