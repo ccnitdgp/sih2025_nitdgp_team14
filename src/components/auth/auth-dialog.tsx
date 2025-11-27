@@ -170,7 +170,7 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
       toast({
         variant: "destructive",
         title: "Login failed",
-        description: error.message,
+        description: "Invalid credentials. Please check your email and password.",
       });
     }
   }
@@ -181,21 +181,20 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
         if (userCredential && userCredential.user) {
             const user = userCredential.user;
 
-            // Check if a pre-existing profile exists for this email
             const usersRef = collection(firestore, "users");
             const q = query(usersRef, where("email", "==", values.email), where("role", "==", values.role));
             const querySnapshot = await getDocs(q);
 
-            let userDocRef;
             let userProfileData: any;
 
             if (!querySnapshot.empty) {
-                // A profile already exists, link this new auth account to it.
+                // A pre-existing profile was found for this email.
                 const existingDoc = querySnapshot.docs[0];
-                userDocRef = existingDoc.ref;
+                const existingData = existingDoc.data();
+
+                // Prepare the new profile data, inheriting from the old one
                 userProfileData = {
-                    ...existingDoc.data(),
-                    // Overwrite details from sign-up form
+                    ...existingData,
                     firstName: values.firstName,
                     lastName: values.lastName,
                     dateOfBirth: values.dateOfBirth,
@@ -206,20 +205,26 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
                       cityStateCountry: values.cityStateCountry,
                       pinCode: values.pinCode,
                     },
-                    // Crucially, update the ID to the new auth user's ID
-                    id: user.uid, 
+                    id: user.uid, // CRITICAL: Update the ID to the new auth user's ID
                 };
+                 if (values.role === 'patient') {
+                    userProfileData.bloodGroup = values.bloodGroup;
+                    userProfileData.emergencyContact = {
+                        name: values.emergencyContactName,
+                        phone: values.emergencyContactPhone,
+                        relation: values.emergencyContactRelation,
+                    };
+                }
 
-                // Because we are changing the document ID, we must delete the old one and create a new one.
+                // Use a batch write to delete the old doc and create the new one atomically.
                 const batch = writeBatch(firestore);
                 batch.delete(existingDoc.ref);
-                const newDocRefWithAuthId = doc(firestore, 'users', user.uid);
-                batch.set(newDocRefWithAuthId, userProfileData);
+                const newDocRef = doc(firestore, 'users', user.uid);
+                batch.set(newDocRef, userProfileData);
                 await batch.commit();
 
             } else {
                 // No pre-existing profile, create a new one from scratch.
-                userDocRef = doc(firestore, 'users', user.uid);
                 userProfileData = {
                     id: user.uid,
                     firstName: values.firstName,
@@ -244,10 +249,10 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
                         relation: values.emergencyContactRelation,
                     };
                 }
+                const userDocRef = doc(firestore, 'users', user.uid);
                 setDocumentNonBlocking(userDocRef, userProfileData, { merge: true });
             }
 
-            // If a patient signs up, ensure they are in the doctor's patient list
             if (userProfileData.role === 'patient' && userProfileData.doctorId) {
                 const doctorPatientsColRef = collection(firestore, 'users', userProfileData.doctorId, 'patients');
                 const patientLinkDocRef = doc(doctorPatientsColRef, user.uid);
@@ -271,14 +276,6 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
         });
     }
 }
-  
-  const handleSignUp = async (values: z.infer<typeof signupSchema>) => {
-    try {
-      await onSignupSubmit(values);
-    } catch (error) {
-      // The error is already handled and displayed as a toast in onSignupSubmit
-    }
-  };
   
   const handleForgotPassword = async () => {
     const email = loginForm.getValues("email");
@@ -425,7 +422,7 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
                   Start your journey to better health management.
                 </DialogDescription>
                 <Form {...signupForm}>
-                  <form onSubmit={signupForm.handleSubmit(handleSignUp)} className="space-y-4">
+                  <form onSubmit={signupForm.handleSubmit(onSignupSubmit)} className="space-y-4">
                     <FormField
                       control={signupForm.control}
                       name="role"
@@ -724,3 +721,5 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
     </Dialog>
   );
 }
+
+    
