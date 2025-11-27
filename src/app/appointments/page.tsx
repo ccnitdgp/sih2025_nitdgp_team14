@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,7 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { format, addDays, startOfDay } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { upcomingAppointments, pastAppointments, appointments as allAppointments } from '@/lib/data';
+import { appointments as allAppointments } from '@/lib/data';
 import { useUser, useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
 import { doc, collection, query, where } from 'firebase/firestore';
 import hi from '@/lib/locales/hi.json';
@@ -284,7 +284,8 @@ const FindDoctors = ({ t }) => {
                              disabled={(date) => {
                                 if (date < startOfDay(new Date())) return true;
                                 if (!selectedDoctor) return true;
-                                return getAvailableTimesForDate(selectedDoctor, date).length === 0;
+                                const availableTimes = getAvailableTimesForDate(selectedDoctor, date);
+                                return availableTimes.length === 0;
                             }}
                             initialFocus
                         />
@@ -316,6 +317,13 @@ const FindDoctors = ({ t }) => {
 }
 
 const MyAppointments = ({ t }) => {
+    const {data: upcomingAppointmentsData, isLoading} = useCollection(useMemoFirebase(() => {
+        if (!allAppointments) return null;
+        const upcoming = allAppointments.filter(appt => new Date(appt.date) >= new Date());
+        return upcoming.length > 0 ? query(collection(useFirestore(), 'users')) : null; // A bit of a hack to get a query
+    }, [allAppointments]));
+    const upcomingAppointments = allAppointments.filter(appt => new Date(appt.date) >= new Date());
+
     return (
         <Card>
             <CardHeader>
@@ -334,7 +342,7 @@ const MyAppointments = ({ t }) => {
                             <p className="text-sm text-muted-foreground">{appt.specialty}</p>
                             <div className="flex items-center gap-2 mt-2 text-sm">
                                 <CalendarIcon className="h-4 w-4" />
-                                <span>{appt.date} at {appt.time}</span>
+                                <span>{format(new Date(appt.date), 'PPP')} at {appt.time}</span>
                             </div>
                              <div className="flex items-center gap-2 text-sm">
                                 <MapPin className="h-4 w-4" />
@@ -358,6 +366,7 @@ const MyAppointments = ({ t }) => {
 }
 
 const HistoryTab = ({ t }) => {
+     const pastAppointments = allAppointments.filter(appt => new Date(appt.date) < new Date());
     return (
          <Card>
             <CardHeader>
@@ -376,7 +385,7 @@ const HistoryTab = ({ t }) => {
                             <p className="text-sm text-muted-foreground">{appt.specialty}</p>
                              <div className="flex items-center gap-2 mt-2 text-sm">
                                 <CalendarIcon className="h-4 w-4" />
-                                <span>{appt.date} at {appt.time}</span>
+                                <span>{format(new Date(appt.date), 'PPP')} at {appt.time}</span>
                             </div>
                              <div className="flex items-center gap-2 text-sm">
                                 <MapPin className="h-4 w-4" />
