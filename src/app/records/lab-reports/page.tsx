@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, doc, query, where, or } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import hi from '@/lib/locales/hi.json';
 import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
@@ -22,6 +22,26 @@ import mr from '@/lib/locales/mr.json';
 import { dummyPdfContent } from '@/lib/dummy-pdf';
 
 const languageFiles = { hi, bn, ta, te, mr };
+
+const ReportCard = ({ report, icon, onDownload, t }) => (
+    <Card className="p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+        <div className="flex items-center gap-4 flex-1">
+            <div className="p-2 bg-primary/10 rounded-md">
+                {icon}
+            </div>
+            <div className="flex-1">
+                <h3 className="font-semibold text-lg">{report.details.name}</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                    {t('date_label', 'Date')}: {report.details.date} - {t('issued_by_label', 'Issued by')}: {report.details.issuer}
+                </p>
+            </div>
+        </div>
+        <Button variant="outline" size="sm" onClick={() => onDownload(report)}>
+            <FileDown className="mr-2 h-4 w-4"/>
+            {t('download_button', 'Download')}
+        </Button>
+    </Card>
+);
 
 export default function LabReportsPage() {
   const { user } = useUser();
@@ -55,16 +75,8 @@ export default function LabReportsPage() {
   
   const { data: healthRecords, isLoading } = useCollection(healthRecordsQuery);
 
-  const getIcon = (recordType: string) => {
-    switch(recordType) {
-        case 'labReport':
-            return <FlaskConical className="h-5 w-5 text-primary" />;
-        case 'scanReport':
-            return <Scan className="h-5 w-5 text-primary" />;
-        default:
-            return <FileDown className="h-5 w-5 text-primary" />;
-    }
-  }
+  const labReports = useMemo(() => healthRecords?.filter(r => r.recordType === 'labReport') || [], [healthRecords]);
+  const scanReports = useMemo(() => healthRecords?.filter(r => r.recordType === 'scanReport') || [], [healthRecords]);
 
   const handleDownload = (report) => {
     const link = document.createElement('a');
@@ -91,43 +103,57 @@ export default function LabReportsPage() {
   );
 
   return (
-    <Card>
-      <CardHeader>
-         <div>
-            <div className="flex items-center gap-3">
-            <FlaskConical className="h-6 w-6" />
-            <CardTitle className="text-2xl">{t('lab_reports_page_title', 'Lab & Scan Reports')}</CardTitle>
-            </div>
-            <CardDescription>
-                {t('lab_reports_page_desc', 'View and manage your diagnostic lab and scan reports.')}
-            </CardDescription>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {isLoading ? <SkeletonLoader /> : healthRecords && healthRecords.length > 0 ? (
-            healthRecords.map((report) => (
-              <Card key={report.id} className="p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                  <div className="flex items-center gap-4 flex-1">
-                      <div className="p-2 bg-primary/10 rounded-md">
-                        {getIcon(report.recordType)}
-                      </div>
-                      <div className="flex-1">
-                          <h3 className="font-semibold text-lg">{report.details.name}</h3>
-                          <p className="text-sm text-muted-foreground mt-1">
-                              {t('date_label', 'Date')}: {report.details.date} - {t('issued_by_label', 'Issued by')}: {report.details.issuer}
-                          </p>
-                      </div>
-                  </div>
-                   <Button variant="outline" size="sm" onClick={() => handleDownload(report)}>
-                      <FileDown className="mr-2 h-4 w-4"/>
-                      {t('download_button', 'Download')}
-                  </Button>
-              </Card>
-            ))
-        ) : (
-          !isLoading && <p className="text-muted-foreground text-center py-4">{t('no_lab_reports_text', 'No lab reports uploaded yet.')}</p>
-        )}
-      </CardContent>
-    </Card>
+    <div className="space-y-8">
+        <Card>
+            <CardHeader>
+                <div className="flex items-center gap-3">
+                <FlaskConical className="h-6 w-6" />
+                <CardTitle className="text-2xl">{t('lab_reports_page_title', 'Lab & Scan Reports')}</CardTitle>
+                </div>
+                <CardDescription>
+                    {t('lab_reports_page_desc', 'View and manage your diagnostic lab and scan reports.')}
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <div>
+                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><FlaskConical className="h-5 w-5 text-primary" />{t('lab_reports_section_title', 'Lab Reports')}</h3>
+                    <div className="space-y-4">
+                        {isLoading ? <SkeletonLoader /> : labReports.length > 0 ? (
+                            labReports.map((report) => (
+                                <ReportCard 
+                                    key={report.id}
+                                    report={report}
+                                    icon={<FlaskConical className="h-5 w-5 text-primary" />}
+                                    onDownload={handleDownload}
+                                    t={t}
+                                />
+                            ))
+                        ) : (
+                          !isLoading && <p className="text-muted-foreground text-center py-4">{t('no_lab_reports_text', 'No lab reports uploaded yet.')}</p>
+                        )}
+                    </div>
+                </div>
+
+                <div className="border-t pt-6">
+                     <h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><Scan className="h-5 w-5 text-primary" />{t('scan_reports_section_title', 'Scans')}</h3>
+                    <div className="space-y-4">
+                        {isLoading ? <SkeletonLoader /> : scanReports.length > 0 ? (
+                            scanReports.map((report) => (
+                                <ReportCard 
+                                    key={report.id}
+                                    report={report}
+                                    icon={<Scan className="h-5 w-5 text-primary" />}
+                                    onDownload={handleDownload}
+                                    t={t}
+                                />
+                            ))
+                        ) : (
+                          !isLoading && <p className="text-muted-foreground text-center py-4">{t('no_scan_reports_text', 'No scan reports uploaded yet.')}</p>
+                        )}
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    </div>
   );
 }
