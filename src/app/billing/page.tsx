@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Activity, Pill, Stethoscope, FileDown, CreditCard, DollarSign } from 'lucide-react';
+import { Activity, Pill, Stethoscope, FileDown, CreditCard, DollarSign, ArrowLeft } from 'lucide-react';
 import { billingHistory, type Bill } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
@@ -19,6 +19,8 @@ import mr from '@/lib/locales/mr.json';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { dummyPdfContent } from '@/lib/dummy-pdf';
+import Link from 'next/link';
+
 
 const languageFiles = { hi, bn, ta, te, mr };
 
@@ -35,6 +37,7 @@ export default function BillingPage() {
   const [translations, setTranslations] = useState({});
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('outstanding');
   const { toast } = useToast();
 
   const userDocRef = useMemoFirebase(() => {
@@ -75,6 +78,7 @@ export default function BillingPage() {
 
     setIsPaymentDialogOpen(false);
     setSelectedBill(null);
+    setActiveTab('paid');
   };
 
   const handleDownloadInvoice = (bill: Bill) => {
@@ -94,6 +98,12 @@ export default function BillingPage() {
 
   return (
     <div className="container mx-auto max-w-5xl px-6 py-12">
+       <Button variant="ghost" asChild className="mb-4">
+            <Link href="/patient-dashboard">
+                <ArrowLeft className="mr-2 h-4 w-4"/>
+                Back to Dashboard
+            </Link>
+        </Button>
       <div className="space-y-8">
         <div className="text-center mb-12">
           <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl">
@@ -123,7 +133,7 @@ export default function BillingPage() {
           </CardHeader>
         </Card>
 
-        <Tabs defaultValue="outstanding" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="outstanding">
               {t('outstanding_bills_tab', 'Outstanding Bills')} ({outstandingBills.length})
