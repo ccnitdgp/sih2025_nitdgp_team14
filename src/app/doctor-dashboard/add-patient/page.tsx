@@ -43,6 +43,15 @@ const addPatientSchema = z.object({
   pinCode: z.string().min(1, { message: "Pin Code is required." }),
 });
 
+const generatePatientId = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = 'PT-';
+    for (let i = 0; i < 10; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+}
+
 export default function AddPatientPage() {
   const { user: doctorUser } = useUser();
   const firestore = useFirestore();
@@ -76,9 +85,11 @@ export default function AddPatientPage() {
       // Create a new patient profile document with a new unique ID
       const newPatientDocRef = doc(collection(firestore, 'users'));
       const newPatientId = newPatientDocRef.id;
+      const patientId = generatePatientId();
 
       const userProfile = {
         id: newPatientId,
+        patientId: patientId,
         firstName: values.firstName,
         lastName: values.lastName,
         role: "patient",

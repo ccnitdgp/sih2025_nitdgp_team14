@@ -85,6 +85,10 @@
           "type": "string",
           "description": "Unique identifier for the UserProfile entity."
         },
+        "patientId": {
+            "type": "string",
+            "description": "Custom, user-facing patient identifier (e.g., PT-XXXXXXXXXX)."
+        },
         "doctorId": {
           "type": "string",
           "description": "The UID of the assigned doctor (for patients)."
