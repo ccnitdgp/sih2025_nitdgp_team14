@@ -14,7 +14,41 @@
         "city": { "type": "string" },
         "state": { "type": "string" },
         "country": { "type": "string" },
-        "clinic": { "type": "string", "description": "Primary clinic or hospital name."}
+        "clinic": { "type": "string", "description": "Primary clinic or hospital name." },
+        "biography": { "type": "string" },
+        "languagesKnown": { "type": "array", "items": { "type": "string" } },
+        "subSpecializations": { "type": "array", "items": { "type": "string" } },
+        "qualifications": { "type": "string" },
+        "licenseNumber": { "type": "string" },
+        "yearsOfExperience": { "type": "number" },
+        "designation": { "type": "string" },
+        "treatmentsAndProcedures": { "type": "string" },
+        "conditionsHandled": { "type": "string" },
+        "teleconsultation": { "type": "boolean" },
+        "availability": {
+          "type": "object",
+          "properties": {
+            "workingHours": { "type": "string" },
+            "availableDays": { "type": "string" },
+            "appointmentDuration": { "type": "number" },
+            "onlineSlots": { "type": "string" }
+          }
+        },
+        "pricing": {
+          "type": "object",
+          "properties": {
+            "clinicFee": { "type": "number" },
+            "onlineFee": { "type": "number" },
+            "followUpFee": { "type": "number" }
+          }
+        },
+        "stats": {
+            "type": "object",
+            "properties": {
+                "averageRating": { "type": "number" },
+                "totalConsultations": { "type": "number" }
+            }
+        }
       },
       "required": ["id", "firstName", "lastName", "specialty", "city", "state", "country"]
     },
@@ -168,7 +202,8 @@
             "knownAllergies": { "type": "string", "description": "All known drug, food, or environmental allergies." },
             "existingMedicalConditions": { "type": "string", "description": "Ongoing medical conditions like Diabetes, BP, etc." }
           }
-        }
+        },
+        "languagesKnown": { "type": "array", "items": { "type": "string" } }
       },
       "required": [
         "id",

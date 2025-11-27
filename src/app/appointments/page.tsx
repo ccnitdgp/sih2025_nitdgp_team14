@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Lightbulb, Sparkles, MapPin, Calendar as CalendarIcon, Star, Clock, Search, ClipboardList, History, Video } from 'lucide-react';
+import { Lightbulb, Sparkles, MapPin, Calendar as CalendarIcon, Star, Clock, Search, ClipboardList, History, Video, GraduationCap } from 'lucide-react';
 import { getSpecialistSuggestion, type SymptomCheckerOutput } from '@/ai/flows/symptom-checker-flow';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
@@ -51,6 +51,8 @@ type Doctor = {
   reviews: number;
   avatar: string;
   availableSlots: Record<string, string[]>;
+  qualifications?: string;
+  yearsOfExperience?: number;
 };
 
 const FindDoctors = ({ t }) => {
@@ -82,6 +84,8 @@ const FindDoctors = ({ t }) => {
       rating: 4.8, // Placeholder
       reviews: 0, // Placeholder
       avatar: `https://picsum.photos/seed/${doc.id}/200`,
+      qualifications: doc.qualifications,
+      yearsOfExperience: doc.yearsOfExperience,
       availableSlots: { // Placeholder slots
         [format(today, 'yyyy-MM-dd')]: ['04:00 PM', '04:30 PM'],
         [format(tomorrow, 'yyyy-MM-dd')]: ['10:00 AM', '11:30 AM', '02:00 PM'],
@@ -228,7 +232,8 @@ const FindDoctors = ({ t }) => {
                             </Avatar>
                             <div>
                             <h3 className="font-bold text-lg">{doctor.name}</h3>
-                            <p className="text-sm text-muted-foreground">{doctor.specialty}</p>
+                            <p className="text-sm text-primary font-semibold">{doctor.specialty}</p>
+                            {doctor.qualifications && <p className="text-xs text-muted-foreground">{doctor.qualifications}</p>}
                             </div>
                         </div>
                         <div className="space-y-2 text-sm text-muted-foreground">
@@ -236,10 +241,12 @@ const FindDoctors = ({ t }) => {
                                 <MapPin className="h-4 w-4 text-primary"/>
                                 <span>{doctor.location}</span>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <Star className="h-4 w-4 text-yellow-500 fill-yellow-500"/>
-                                <span>{doctor.rating} ({doctor.reviews} {t('reviews_text', 'reviews')})</span>
-                            </div>
+                            {doctor.yearsOfExperience && (
+                                <div className="flex items-center gap-2">
+                                    <GraduationCap className="h-4 w-4 text-primary"/>
+                                    <span>{doctor.yearsOfExperience} years of experience</span>
+                                </div>
+                            )}
                         </div>
                         <div className="flex md:justify-end">
                             <Button onClick={() => handleOpenSlots(doctor)}>{t('book_appointment_button', 'Book Appointment')}</Button>
@@ -460,5 +467,3 @@ export default function AppointmentsPage() {
     </div>
   );
 }
-
-    

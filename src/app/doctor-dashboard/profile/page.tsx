@@ -10,19 +10,38 @@ import { doc } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AtSign, BriefcaseMedical, Building, Phone, User as UserIcon, Pencil, X, Save } from 'lucide-react';
+import { AtSign, BriefcaseMedical, Building, Phone, User as UserIcon, Pencil, X, Save, Star, Activity, Languages, GraduationCap, FileBadge, Calendar, Clock, BookText, Stethoscope, Wallet, Globe, Video } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { Textarea } from '@/components/ui/textarea';
 
 const profileSchema = z.object({
   firstName: z.string().min(2, "First name is required."),
   lastName: z.string().min(2, "Last name is required."),
   phoneNumber: z.string().min(10, "Phone number must be at least 10 digits."),
+  languagesKnown: z.string().optional(),
+  biography: z.string().optional(),
+  
   specialty: z.string().min(1, "Specialty is required."),
+  qualifications: z.string().optional(),
+  licenseNumber: z.string().optional(),
+  yearsOfExperience: z.coerce.number().optional(),
+  designation: z.string().optional(),
   clinic: z.string().min(1, "Clinic/Hospital is required."),
+  
+  treatmentsAndProcedures: z.string().optional(),
+  conditionsHandled: z.string().optional(),
+  teleconsultation: z.boolean().default(false),
+
+  workingHours: z.string().optional(),
+  availableDays: z.string().optional(),
+  appointmentDuration: z.coerce.number().optional(),
+
+  clinicFee: z.coerce.number().optional(),
+  onlineFee: z.coerce.number().optional(),
 });
 
 
@@ -33,7 +52,7 @@ const ProfileDetail = ({ icon: Icon, label, value }) => {
       <Icon className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
       <div>
         <p className="text-sm font-medium text-muted-foreground">{label}</p>
-        <p className="font-semibold">{value}</p>
+        <p className="font-semibold whitespace-pre-wrap">{value}</p>
       </div>
     </div>
   );
@@ -55,8 +74,10 @@ export default function DoctorProfilePage() {
     return doc(firestore, 'doctors', user.uid)
   }, [user, firestore])
 
-  const { data: userProfile, isLoading } = useDoc(userDocRef);
-  const { data: publicProfile } = useDoc(doctorPublicProfileRef);
+  const { data: userProfile, isLoading: isUserLoading } = useDoc(userDocRef);
+  const { data: publicProfile, isLoading: isPublicLoading } = useDoc(doctorPublicProfileRef);
+
+  const isLoading = isUserLoading || isPublicLoading;
 
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
@@ -68,8 +89,26 @@ export default function DoctorProfilePage() {
         firstName: userProfile.firstName || '',
         lastName: userProfile.lastName || '',
         phoneNumber: userProfile.phoneNumber || '',
-        specialty: publicProfile.specialty || 'General Physician',
-        clinic: publicProfile.clinic || 'Swasthya General Hospital',
+        languagesKnown: (userProfile.languagesKnown || []).join(', '),
+        biography: publicProfile.biography || '',
+
+        specialty: publicProfile.specialty || '',
+        qualifications: publicProfile.qualifications || '',
+        licenseNumber: publicProfile.licenseNumber || '',
+        yearsOfExperience: publicProfile.yearsOfExperience || undefined,
+        designation: publicProfile.designation || '',
+        clinic: publicProfile.clinic || '',
+        
+        treatmentsAndProcedures: publicProfile.treatmentsAndProcedures || '',
+        conditionsHandled: publicProfile.conditionsHandled || '',
+        teleconsultation: publicProfile.teleconsultation || false,
+
+        workingHours: publicProfile.availability?.workingHours || '',
+        availableDays: publicProfile.availability?.availableDays || '',
+        appointmentDuration: publicProfile.availability?.appointmentDuration || undefined,
+
+        clinicFee: publicProfile.pricing?.clinicFee || undefined,
+        onlineFee: publicProfile.pricing?.onlineFee || undefined,
       });
     }
   }, [userProfile, publicProfile, form, isEditing]);
@@ -81,6 +120,7 @@ export default function DoctorProfilePage() {
         firstName: values.firstName,
         lastName: values.lastName,
         phoneNumber: values.phoneNumber,
+        languagesKnown: values.languagesKnown?.split(',').map(lang => lang.trim()).filter(Boolean),
     };
     
     const publicProfileUpdate = {
@@ -88,6 +128,24 @@ export default function DoctorProfilePage() {
         lastName: values.lastName,
         specialty: values.specialty,
         clinic: values.clinic,
+        biography: values.biography,
+        qualifications: values.qualifications,
+        licenseNumber: values.licenseNumber,
+        yearsOfExperience: values.yearsOfExperience,
+        designation: values.designation,
+        treatmentsAndProcedures: values.treatmentsAndProcedures,
+        conditionsHandled: values.conditionsHandled,
+        teleconsultation: values.teleconsultation,
+        languagesKnown: values.languagesKnown?.split(',').map(lang => lang.trim()).filter(Boolean),
+        availability: {
+            workingHours: values.workingHours,
+            availableDays: values.availableDays,
+            appointmentDuration: values.appointmentDuration,
+        },
+        pricing: {
+            clinicFee: values.clinicFee,
+            onlineFee: values.onlineFee,
+        }
     }
 
     updateDocumentNonBlocking(userDocRef, privateProfileUpdate);
@@ -128,7 +186,7 @@ export default function DoctorProfilePage() {
   );
 
   return (
-    <div className="container mx-auto max-w-4xl px-6 py-12">
+    <div className="container mx-auto max-w-5xl px-6 py-12">
         <div className="text-center mb-12">
             <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl">
                 Doctor Profile
@@ -161,37 +219,122 @@ export default function DoctorProfilePage() {
                         </Button>
                     </div>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Professional Details</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          {isEditing ? (
-                             <Form {...form}>
-                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                     <FormField control={form.control} name="firstName" render={({ field }) => (<FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                     <FormField control={form.control} name="lastName" render={({ field }) => (<FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                     <FormField control={form.control} name="phoneNumber" render={({ field }) => (<FormItem><FormLabel>Contact Number</FormLabel><FormControl><Input type="tel" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                     <FormField control={form.control} name="specialty" render={({ field }) => (<FormItem><FormLabel>Specialty</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                      <FormField control={form.control} name="clinic" render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Primary Clinic/Hospital</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                  </div>
-                                  <div className="flex justify-end">
-                                      <Button type="submit"><Save className="mr-2 h-4 w-4" />Save Changes</Button>
-                                  </div>
-                                </form>
-                              </Form>
-                          ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                              <ProfileDetail icon={UserIcon} label="Full Name" value={`Dr. ${userProfile.firstName} ${userProfile.lastName}`} />
-                              <ProfileDetail icon={BriefcaseMedical} label="Specialty" value={publicProfile?.specialty || 'General Physician'} />
-                              <ProfileDetail icon={AtSign} label="Email Address" value={user?.email} />
-                              <ProfileDetail icon={Phone} label="Contact Number" value={userProfile.phoneNumber} />
-                              <ProfileDetail icon={Building} label="Primary Clinic/Hospital" value={publicProfile?.clinic || 'Swasthya General Hospital'} />
-                            </div>
-                          )}
-                        </CardContent>
-                    </Card>
+                    {isEditing ? (
+                        <Form {...form}>
+                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                                <Card>
+                                    <CardHeader><CardTitle className="flex items-center gap-2"><UserIcon/> Basic Information</CardTitle></CardHeader>
+                                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
+                                        <FormField control={form.control} name="firstName" render={({ field }) => (<FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                        <FormField control={form.control} name="lastName" render={({ field }) => (<FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                        <FormField control={form.control} name="phoneNumber" render={({ field }) => (<FormItem><FormLabel>Contact Number</FormLabel><FormControl><Input type="tel" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                        <FormField control={form.control} name="languagesKnown" render={({ field }) => (<FormItem><FormLabel>Languages Known (comma-separated)</FormLabel><FormControl><Input placeholder="e.g. English, Hindi, Marathi" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                        <FormField control={form.control} name="biography" render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Biography / About</FormLabel><FormControl><Textarea placeholder="A brief introduction about yourself..." {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    </CardContent>
+                                </Card>
+
+                                 <Card>
+                                    <CardHeader><CardTitle className="flex items-center gap-2"><BriefcaseMedical/> Professional Details</CardTitle></CardHeader>
+                                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
+                                         <FormField control={form.control} name="specialty" render={({ field }) => (<FormItem><FormLabel>Specialization</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                         <FormField control={form.control} name="designation" render={({ field }) => (<FormItem><FormLabel>Designation</FormLabel><FormControl><Input placeholder="e.g. Senior Consultant" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                         <FormField control={form.control} name="qualifications" render={({ field }) => (<FormItem><FormLabel>Qualifications</FormLabel><FormControl><Input placeholder="e.g. MBBS, MD" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                         <FormField control={form.control} name="yearsOfExperience" render={({ field }) => (<FormItem><FormLabel>Years of Experience</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                         <FormField control={form.control} name="licenseNumber" render={({ field }) => (<FormItem><FormLabel>Medical License Number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                         <FormField control={form.control} name="clinic" render={({ field }) => (<FormItem><FormLabel>Primary Clinic/Hospital</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    </CardContent>
+                                </Card>
+
+                                <Card>
+                                    <CardHeader><CardTitle className="flex items-center gap-2"><Stethoscope/> Expertise & Services</CardTitle></CardHeader>
+                                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
+                                         <FormField control={form.control} name="conditionsHandled" render={({ field }) => (<FormItem><FormLabel>Conditions Handled (comma-separated)</FormLabel><FormControl><Textarea placeholder="e.g. Diabetes, Hypertension" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                         <FormField control={form.control} name="treatmentsAndProcedures" render={({ field }) => (<FormItem><FormLabel>Treatments & Procedures (comma-separated)</FormLabel><FormControl><Textarea placeholder="e.g. ECG, Nebulization" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    </CardContent>
+                                </Card>
+                                
+                                <Card>
+                                    <CardHeader><CardTitle className="flex items-center gap-2"><Calendar/> Scheduling & Availability</CardTitle></CardHeader>
+                                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
+                                         <FormField control={form.control} name="availableDays" render={({ field }) => (<FormItem><FormLabel>Available Days</FormLabel><FormControl><Input placeholder="e.g. Mon - Fri" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                         <FormField control={form.control} name="workingHours" render={({ field }) => (<FormItem><FormLabel>Working Hours</FormLabel><FormControl><Input placeholder="e.g. 9 AM - 5 PM" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                         <FormField control={form.control} name="appointmentDuration" render={({ field }) => (<FormItem><FormLabel>Appointment Duration (mins)</FormLabel><FormControl><Input type="number" placeholder="15" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    </CardContent>
+                                </Card>
+
+                                <Card>
+                                    <CardHeader><CardTitle className="flex items-center gap-2"><Wallet/> Pricing</CardTitle></CardHeader>
+                                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
+                                         <FormField control={form.control} name="clinicFee" render={({ field }) => (<FormItem><FormLabel>In-Clinic Consultation Fee (Rs.)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                         <FormField control={form.control} name="onlineFee" render={({ field }) => (<FormItem><FormLabel>Online Consultation Fee (Rs.)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    </CardContent>
+                                </Card>
+                                
+                                <div className="flex justify-end">
+                                    <Button type="submit"><Save className="mr-2 h-4 w-4" />Save Changes</Button>
+                                </div>
+                            </form>
+                        </Form>
+                    ) : (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                          <div className="space-y-8">
+                            <Card>
+                                <CardHeader><CardTitle className="flex items-center gap-2"><UserIcon/> Basic Information</CardTitle></CardHeader>
+                                <CardContent className="space-y-6 pt-6">
+                                  <ProfileDetail icon={UserIcon} label="Full Name" value={`Dr. ${userProfile.firstName} ${userProfile.lastName}`} />
+                                  <ProfileDetail icon={AtSign} label="Email Address" value={user?.email} />
+                                  <ProfileDetail icon={Phone} label="Contact Number" value={userProfile.phoneNumber} />
+                                  <ProfileDetail icon={Languages} label="Languages" value={(userProfile.languagesKnown || []).join(', ')} />
+                                </CardContent>
+                            </Card>
+
+                             <Card>
+                                <CardHeader><CardTitle className="flex items-center gap-2"><BookText/> About</CardTitle></CardHeader>
+                                <CardContent className="pt-6">
+                                   <p className="text-muted-foreground">{publicProfile?.biography || 'No biography provided.'}</p>
+                                </CardContent>
+                            </Card>
+
+                            <Card>
+                                <CardHeader><CardTitle className="flex items-center gap-2"><Stethoscope/> Expertise & Services</CardTitle></CardHeader>
+                                <CardContent className="space-y-6 pt-6">
+                                   <ProfileDetail icon={Stethoscope} label="Conditions Handled" value={publicProfile?.conditionsHandled} />
+                                   <ProfileDetail icon={Stethoscope} label="Treatments & Procedures" value={publicProfile?.treatmentsAndProcedures} />
+                                   <ProfileDetail icon={Video} label="Teleconsultation" value={publicProfile?.teleconsultation ? 'Available' : 'Not Available'} />
+                                </CardContent>
+                            </Card>
+                          </div>
+
+                          <div className="space-y-8">
+                              <Card>
+                                <CardHeader><CardTitle className="flex items-center gap-2"><BriefcaseMedical/> Professional Details</CardTitle></CardHeader>
+                                <CardContent className="space-y-6 pt-6">
+                                  <ProfileDetail icon={BriefcaseMedical} label="Specialty" value={publicProfile?.specialty} />
+                                  <ProfileDetail icon={GraduationCap} label="Qualifications" value={publicProfile?.qualifications} />
+                                  <ProfileDetail icon={FileBadge} label="Medical License Number" value={publicProfile?.licenseNumber} />
+                                  <ProfileDetail icon={Calendar} label="Years of Experience" value={publicProfile?.yearsOfExperience ? `${publicProfile.yearsOfExperience} years` : null} />
+                                  <ProfileDetail icon={UserIcon} label="Designation" value={publicProfile?.designation} />
+                                  <ProfileDetail icon={Building} label="Primary Clinic/Hospital" value={publicProfile?.clinic} />
+                                </CardContent>
+                            </Card>
+                             <Card>
+                                <CardHeader><CardTitle className="flex items-center gap-2"><Calendar/> Availability</CardTitle></CardHeader>
+                                <CardContent className="space-y-6 pt-6">
+                                  <ProfileDetail icon={Calendar} label="Available Days" value={publicProfile?.availability?.availableDays} />
+                                  <ProfileDetail icon={Clock} label="Working Hours" value={publicProfile?.availability?.workingHours} />
+                                  <ProfileDetail icon={Clock} label="Appointment Duration" value={publicProfile?.availability?.appointmentDuration ? `${publicProfile.availability.appointmentDuration} minutes` : null} />
+                                </CardContent>
+                            </Card>
+                             <Card>
+                                <CardHeader><CardTitle className="flex items-center gap-2"><Wallet/> Pricing</CardTitle></CardHeader>
+                                <CardContent className="space-y-6 pt-6">
+                                   <ProfileDetail icon={Wallet} label="In-Clinic Fee" value={publicProfile?.pricing?.clinicFee ? `Rs. ${publicProfile.pricing.clinicFee}` : null} />
+                                   <ProfileDetail icon={Wallet} label="Online Fee" value={publicProfile?.pricing?.onlineFee ? `Rs. ${publicProfile.pricing.onlineFee}`: null} />
+                                </CardContent>
+                            </Card>
+                          </div>
+                        </div>
+                    )}
                 </div>
             ) : (
                  <Card className="text-center p-8">
