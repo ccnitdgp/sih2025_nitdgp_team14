@@ -135,8 +135,14 @@ service cloud.firestore {
     // =====================================================================
 
     match /doctors/{doctorId} {
-        allow get, list: if isSignedIn();
+        allow get: if isSignedIn();
         allow write: if false; // Secure by default, only backend/admin should write
+    }
+    
+    // This rule allows any authenticated user to list the documents in the /doctors collection.
+    // It is separate from the /doctors/{doctorId} rule which governs access to individual documents.
+    match /doctors {
+      allow list: if isSignedIn();
     }
 
     match /vaccinationDrives/{vaccinationDriveId} {
