@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { LogOut, Settings, LayoutDashboard, Menu, FileText, UserPlus, User, CalendarPlus, Receipt, Bot, BookUser } from "lucide-react";
+import { LogOut, Settings, LayoutDashboard, Menu, FileText, UserPlus, User, CalendarPlus, Receipt, Bot, BookUser, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,6 +39,7 @@ const generalNavLinks = [
 
 const patientNavLinks = [
     { href: "/patient-dashboard", label: "Dashboard", i18n_key: "dashboard_link" },
+    { href: "/patient-dashboard#health-assistant", label: "Health Assistant", i18n_key: "health_assistant_link" },
     { href: "/appointments", label: "Book Appointment", i18n_key: "book_appointment_link" },
     { href: "/billing", label: "Pay Bill", i18n_key: "pay_bill_link" },
     { href: "/records", label: "Records", i18n_key: "records_link" },

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -229,7 +230,7 @@ export default function PatientDashboardPage() {
                       </Link>
                   </div>
             
-                  <Card className="shadow-sm border-t-4 border-primary">
+                  <Card id="health-assistant" className="shadow-sm border-t-4 border-primary">
                       <CardHeader>
                           <div className="flex items-center gap-3">
                             <Sparkles className="h-6 w-6 text-primary" />
