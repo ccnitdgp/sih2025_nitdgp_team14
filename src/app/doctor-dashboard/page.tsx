@@ -4,21 +4,22 @@
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { doc, collection } from 'firebase/firestore';
+import { doc, collection, query, where } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Calendar, Users, FileText, BriefcaseMedical } from 'lucide-react';
 import Link from 'next/link';
 import { WeeklyActivityChart } from '@/components/doctor/weekly-activity-chart';
 import { doctorUpcomingAppointments } from '@/lib/data';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const StatCard = ({ title, value, icon: Icon }) => (
+const StatCard = ({ title, value, icon: Icon, isLoading }) => (
   <Card>
     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
       <CardTitle className="text-sm font-medium">{title}</CardTitle>
       <Icon className="h-4 w-4 text-muted-foreground" />
     </CardHeader>
     <CardContent>
-      <div className="text-2xl font-bold">{value}</div>
+      {isLoading ? <Skeleton className="h-8 w-12 mt-1" /> : <div className="text-2xl font-bold">{value}</div>}
     </CardContent>
   </Card>
 );
@@ -32,14 +33,26 @@ export default function DoctorDashboardPage() {
     return doc(firestore, 'users', user.uid);
   }, [user, firestore]);
 
-  const { data: userProfile } = useDoc(userDocRef);
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc(userDocRef);
 
   const patientsCollectionRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
     return collection(firestore, `users/${user.uid}/patients`);
   }, [user, firestore]);
 
-  const { data: patients } = useCollection(patientsCollectionRef);
+  const { data: patients, isLoading: arePatientsLoading } = useCollection(patientsCollectionRef);
+  
+  const appointmentsQuery = useMemoFirebase(() => {
+    if (!user || !firestore || !userProfile || userProfile.role !== 'doctor') {
+      return null;
+    }
+    return query(
+        collection(firestore, 'appointments'), 
+        where('doctorId', '==', user.uid)
+    );
+  }, [user, firestore, userProfile]);
+
+  const { data: appointments, isLoading: areAppointmentsLoading } = useCollection(appointmentsQuery);
 
   const totalPatients = patients?.length || 0;
   const todayAppointments = doctorUpcomingAppointments.filter(appt => new Date(appt.date).toDateString() === new Date().toDateString()).length;
@@ -73,9 +86,9 @@ export default function DoctorDashboardPage() {
           </div>
           
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-             <StatCard title="Today's Appointments" value={todayAppointments} icon={Calendar} />
-             <StatCard title="Total Patients" value={totalPatients} icon={Users} />
-             <StatCard title="Prescriptions Written" value="0" icon={FileText} />
+             <StatCard title="Today's Appointments" value={todayAppointments} icon={Calendar} isLoading={isProfileLoading} />
+             <StatCard title="Total Patients" value={totalPatients} icon={Users} isLoading={arePatientsLoading} />
+             <StatCard title="Prescriptions Written" value="0" icon={FileText} isLoading={false} />
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
@@ -85,7 +98,7 @@ export default function DoctorDashboardPage() {
                 <CardDescription>A look at your appointment numbers for the past 7 days.</CardDescription>
               </CardHeader>
               <CardContent className="pl-2">
-                <WeeklyActivityChart />
+                <WeeklyActivityChart appointments={appointments} isLoading={areAppointmentsLoading || isProfileLoading} />
               </CardContent>
             </Card>
             <Card className="col-span-1 lg:col-span-3">
