@@ -2,6 +2,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -20,7 +23,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { useToast } from '@/hooks/use-toast';
 import { dummyPdfContent } from '@/lib/dummy-pdf';
 import Link from 'next/link';
-
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 
 const languageFiles = { hi, bn, ta, te, mr };
 
@@ -29,6 +33,14 @@ const categoryIcons = {
   Pharmacy: <Pill className="h-6 w-6 text-primary" />,
   Consultation: <Stethoscope className="h-6 w-6 text-primary" />,
 };
+
+const paymentSchema = z.object({
+  cardName: z.string().min(1, 'Name on card is required.'),
+  cardNumber: z.string().regex(/^\d{16}$/, 'Card number must be 16 digits.'),
+  expiryDate: z.string().regex(/^(0[1-9]|1[0-2])\/\d{2}$/, 'Expiry date must be in MM/YY format.'),
+  cvc: z.string().regex(/^\d{3}$/, 'CVC must be 3 digits.'),
+});
+
 
 export default function BillingPage() {
   const [bills, setBills] = useState<Bill[]>(billingHistory);
@@ -39,6 +51,16 @@ export default function BillingPage() {
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('outstanding');
   const { toast } = useToast();
+
+  const form = useForm<z.infer<typeof paymentSchema>>({
+    resolver: zodResolver(paymentSchema),
+    defaultValues: {
+        cardName: '',
+        cardNumber: '',
+        expiryDate: '',
+        cvc: '',
+    },
+  });
 
   const userDocRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
@@ -59,11 +81,15 @@ export default function BillingPage() {
 
   const handlePayNow = (bill: Bill) => {
     setSelectedBill(bill);
+    form.reset();
     setIsPaymentDialogOpen(true);
   };
   
-  const handleConfirmPayment = () => {
+  const handleConfirmPayment = (values: z.infer<typeof paymentSchema>) => {
     if (!selectedBill) return;
+
+    // Simulate payment processing
+    console.log("Processing payment for:", values);
 
     setBills(currentBills =>
       currentBills.map(b =>
@@ -210,23 +236,84 @@ export default function BillingPage() {
         </Tabs>
       </div>
 
-       <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-            <DialogContent>
+        <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+            <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Confirm Payment</DialogTitle>
+                    <DialogTitle>Complete Your Payment</DialogTitle>
                     <DialogDescription>
-                        You are about to pay {t('currency_symbol', 'Rs.')}{selectedBill?.amount.toLocaleString('en-IN')} for "{selectedBill?.title}".
+                        Paying {t('currency_symbol', 'Rs.')}{selectedBill?.amount.toLocaleString('en-IN')} for "{selectedBill?.title}".
                     </DialogDescription>
                 </DialogHeader>
-                <div className="py-4">
-                    This is a simulated payment gateway. In a real application, you would be redirected to a payment processor.
-                </div>
-                <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsPaymentDialogOpen(false)}>Cancel</Button>
-                    <Button onClick={handleConfirmPayment}>Confirm Payment</Button>
-                </DialogFooter>
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(handleConfirmPayment)} className="space-y-4">
+                        <FormField
+                            control={form.control}
+                            name="cardName"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Name on Card</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="John Doe" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="cardNumber"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Card Number</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="0000 0000 0000 0000" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <div className="grid grid-cols-2 gap-4">
+                             <FormField
+                                control={form.control}
+                                name="expiryDate"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Expiry Date</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="MM/YY" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={form.control}
+                                name="cvc"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>CVC</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="123" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+                         <DialogFooter className="pt-4">
+                            <Button type="button" variant="outline" onClick={() => setIsPaymentDialogOpen(false)}>Cancel</Button>
+                            <Button type="submit">
+                                <CreditCard className="mr-2 h-4 w-4" />
+                                Pay {t('currency_symbol', 'Rs.')}{selectedBill?.amount.toLocaleString('en-IN')}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </Form>
             </DialogContent>
         </Dialog>
     </div>
   );
 }
+
+    
