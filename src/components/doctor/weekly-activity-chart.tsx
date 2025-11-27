@@ -1,23 +1,17 @@
 
 "use client"
 
-import { TrendingUp } from "lucide-react"
+import { useMemo } from "react"
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
+import { useCollection, useFirestore, useMemoFirebase, useUser } from "@/firebase"
+import { collection, query, where } from "firebase/firestore"
+import { startOfWeek, endOfWeek, eachDayOfInterval, format, isSameDay } from 'date-fns';
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import { weeklyActivity } from "@/lib/data"
 
 const chartConfig = {
   appointments: {
@@ -26,17 +20,38 @@ const chartConfig = {
   },
 }
 
-const chartData = [
-  { day: "Sunday", appointments: 0 },
-  { day: "Monday", appointments: 0 },
-  { day: "Tuesday", appointments: 0 },
-  { day: "Wednesday", appointments: 0 },
-  { day: "Thursday", appointments: 0 },
-  { day: "Friday", appointments: 0 },
-  { day: "Saturday", appointments: 0 },
-]
-
 export function WeeklyActivityChart() {
+  const { user } = useUser();
+  const firestore = useFirestore();
+
+  const appointmentsQuery = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    
+    return query(
+        collection(firestore, 'appointments'), 
+        where('doctorId', '==', user.uid)
+    );
+  }, [user, firestore]);
+
+  const { data: appointments } = useCollection(appointmentsQuery);
+
+  const chartData = useMemo(() => {
+    const now = new Date();
+    const weekStart = startOfWeek(now, { weekStartsOn: 1 }); // Monday
+    const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
+    const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
+
+    const dailyCounts = weekDays.map(day => {
+        const count = appointments?.filter(appt => isSameDay(new Date(appt.date), day)).length || 0;
+        return {
+            day: format(day, 'EEEE'),
+            appointments: count,
+        };
+    });
+
+    return dailyCounts;
+  }, [appointments]);
+
   return (
       <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
         <BarChart accessibilityLayer data={chartData}>
@@ -57,3 +72,4 @@ export function WeeklyActivityChart() {
       </ChartContainer>
   )
 }
+

@@ -305,14 +305,3 @@ export const recentUploads = [
     { id: 1, fileName: 'cbc_report_august.pdf', patientName: 'Amit Kumar', type: 'Lab Report', date: '2024-08-20' },
     { id: 2, fileName: 'chest_xray.dcm', patientName: 'Sunita Devi', type: 'Scan', date: '2024-08-19' },
 ];
-
-
-export const weeklyActivity = [
-  { day: "Sunday", appointments: 5 },
-  { day: "Monday", appointments: 8 },
-  { day: "Tuesday", appointments: 12 },
-  { day: "Wednesday", appointments: 10 },
-  { day: "Thursday", appointments: 15 },
-  { day: "Friday", appointments: 7 },
-  { day: "Saturday", appointments: 9 },
-];
