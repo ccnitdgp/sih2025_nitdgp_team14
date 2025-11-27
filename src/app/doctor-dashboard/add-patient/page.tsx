@@ -10,6 +10,7 @@ import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { doc, collection } from 'firebase/firestore';
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
+import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -69,17 +70,36 @@ export default function AddPatientPage() {
   });
 
   async function onSubmit(values: z.infer<typeof addPatientSchema>) {
-    if (!doctorUser || !firestore) {
+    if (!doctorUser || !firestore || !auth) {
         toast({ variant: "destructive", title: "Authentication Error", description: "You must be logged in to add a patient."});
         return;
     }
 
     setIsLoading(true);
 
-    try {
-      // Generate a new ID for the patient user document.
-      const newPatientId = doc(collection(firestore, 'users')).id;
+    const originalDoctorUser = auth.currentUser;
 
+    try {
+      // 1. Create the new patient's authentication account
+      const patientUserCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      const newPatientUser = patientUserCredential.user;
+      const newPatientId = newPatientUser.uid;
+
+      // After creating the new user, Firebase automatically signs them in.
+      // We need to sign them out and sign the doctor back in.
+      if (originalDoctorUser) {
+        await signOut(auth); // Sign out the newly created patient
+        // The onAuthStateChanged listener in FirebaseProvider will handle re-authenticating the doctor.
+        // We'll wait a moment for the state to settle.
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      
+      const currentDoctor = auth.currentUser;
+      if (!currentDoctor || currentDoctor.uid !== doctorUser.uid) {
+         throw new Error("Doctor authentication lost during patient creation. Please try again.");
+      }
+
+      // 2. Create the patient's user profile document in Firestore
       const userProfile = {
         id: newPatientId,
         firstName: values.firstName,
@@ -97,11 +117,10 @@ export default function AddPatientPage() {
         doctorId: doctorUser.uid,
       };
 
-      // 1. Create the patient's user document in Firestore.
       const userDocRef = doc(firestore, 'users', newPatientId);
       setDocumentNonBlocking(userDocRef, userProfile, { merge: true });
 
-      // 2. Add a link to this patient in the doctor's own patient list.
+      // 3. Add a link to this patient in the doctor's own patient list.
       const doctorPatientsColRef = collection(firestore, 'users', doctorUser.uid, 'patients');
       const patientLinkDoc = {
         patientId: newPatientId,
@@ -114,18 +133,42 @@ export default function AddPatientPage() {
       
       toast({
         title: "Patient Added Successfully",
-        description: `${values.firstName} ${values.lastName} has been added. They will need to sign up with this email to access their dashboard.`,
+        description: `${values.firstName} ${values.lastName} can now log in with the provided credentials.`,
       });
 
-      router.push('/doctor-dashboard');
+      router.push('/doctor-dashboard/patients');
 
     } catch (error: any) {
+      // Handle known auth errors
+      let errorMessage = "An unexpected error occurred while creating the patient account.";
+      if (error.code === 'auth/email-already-in-use') {
+          errorMessage = "This email is already in use by another account. Please use a different email.";
+          form.setError('email', { type: 'manual', message: errorMessage });
+      } else if (error.code === 'auth/weak-password') {
+          errorMessage = "The password is too weak. It must be at least 6 characters long.";
+          form.setError('password', { type: 'manual', message: errorMessage });
+      }
+
       toast({
         variant: "destructive",
         title: "Failed to Add Patient",
-        description: "An unexpected error occurred while creating the patient profile.",
+        description: errorMessage,
       });
       console.error("Add patient error:", error);
+
+      // If we failed, ensure the doctor is still logged in.
+       if (!auth.currentUser || auth.currentUser.uid !== originalDoctorUser?.uid) {
+           console.error("Doctor session was lost. A manual refresh might be required.");
+           // This state is complex to recover from automatically without a full page reload or re-login prompt.
+           // For now, we alert the user.
+            toast({
+                variant: "destructive",
+                title: "Session Alert",
+                description: "Your session was interrupted. Please refresh the page and try again.",
+                duration: 10000,
+            });
+       }
+
     } finally {
         setIsLoading(false);
     }
@@ -197,7 +240,7 @@ export default function AddPatientPage() {
                                     <Input type="password" placeholder="••••••••" {...field} />
                                 </FormControl>
                                 <FormMessage />
-                                <FormDescription>The patient will be prompted to change this upon first login.</FormDescription>
+                                <FormDescription>The patient can use this password to log in. They can change it later.</FormDescription>
                                 </FormItem>
                             )}
                         />
@@ -301,3 +344,5 @@ export default function AddPatientPage() {
     </div>
   )
 }
+
+    
