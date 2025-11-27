@@ -18,8 +18,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Calendar } from '@/components/ui/calendar';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 import { format, addDays, startOfDay } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { upcomingAppointments, pastAppointments, appointments as allAppointments } from '@/lib/data';
@@ -30,6 +28,9 @@ import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
 import te from '@/lib/locales/te.json';
 import mr from '@/lib/locales/mr.json';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 
 const languageFiles = { hi, bn, ta, te, mr };
 
@@ -248,62 +249,58 @@ const FindDoctors = ({ t }) => {
             </div>
         </div>
         <Dialog open={!!selectedDoctor} onOpenChange={(isOpen) => !isOpen && handleCloseDialog()}>
-            <DialogContent className="sm:max-w-2xl">
+            <DialogContent className="sm:max-w-md">
             <DialogHeader>
                 <DialogTitle>{t('book_appointment_with_title', 'Book Appointment with')} {selectedDoctor?.name}</DialogTitle>
                 <DialogDescription>
                 {t('select_slot_desc', 'Select an available date and time slot below.')}
                 </DialogDescription>
             </DialogHeader>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
-                <div className="flex justify-center items-start">
-                <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={(date) => {
-                    setSelectedDate(date);
-                    setSelectedTime(undefined);
-                    }}
-                    disabled={(date) => {
-                      if (date < startOfDay(new Date())) {
-                          return true;
-                      }
-                      if (!selectedDoctor) {
-                          return true;
-                      }
-                      const availableSlots = getAvailableTimesForDate(selectedDoctor, date);
-                      return availableSlots.length === 0;
-                    }}
-                    initialFocus
-                    month={selectedDate}
-                    onMonthChange={setSelectedDate}
-                />
-                </div>
-                <div className="space-y-4">
-                <h4 className="font-semibold text-center md:text-left">{t('available_time_slots_title', 'Available Time Slots')}</h4>
-                {selectedDate ? (
-                    availableTimesForSelectedDate.length > 0 ? (
-                    <RadioGroup 
-                        value={selectedTime}
-                        onValueChange={setSelectedTime}
-                        className="grid grid-cols-2 gap-2"
-                    >
+            <div className="space-y-4 py-4">
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button
+                            variant={"outline"}
+                            className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !selectedDate && "text-muted-foreground"
+                            )}
+                        >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                        <Calendar
+                            mode="single"
+                            selected={selectedDate}
+                            onSelect={(date) => {
+                                setSelectedDate(date);
+                                setSelectedTime(undefined);
+                            }}
+                             disabled={(date) => {
+                                if (date < startOfDay(new Date())) return true;
+                                if (!selectedDoctor) return true;
+                                return getAvailableTimesForDate(selectedDoctor, date).length === 0;
+                            }}
+                            initialFocus
+                        />
+                    </PopoverContent>
+                </Popover>
+
+                <Select onValueChange={setSelectedTime} value={selectedTime} disabled={!selectedDate || availableTimesForSelectedDate.length === 0}>
+                    <SelectTrigger>
+                        <SelectValue placeholder={t('select_date_prompt', 'Pick a time slot')} />
+                    </SelectTrigger>
+                    <SelectContent>
                         {availableTimesForSelectedDate.map(time => (
-                        <div key={time} className="flex items-center">
-                            <RadioGroupItem value={time} id={time} className="peer sr-only" />
-                            <Label htmlFor={time} className="flex items-center justify-center gap-2 rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground cursor-pointer w-full peer-data-[state=checked]:border-primary [&:has(.peer[data-state=checked])]:border-primary">
-                            <Clock className="h-4 w-4"/> {time}
-                            </Label>
-                        </div>
+                            <SelectItem key={time} value={time}>{time}</SelectItem>
                         ))}
-                    </RadioGroup>
-                    ) : (
-                    <p className="text-sm text-muted-foreground text-center md:text-left">{t('no_slots_available_text', 'No slots available on this date.')}</p>
-                    )
-                ) : (
-                    <p className="text-sm text-muted-foreground text-center md:text-left">{t('select_date_prompt', 'Please select a date to see available times.')}</p>
-                )}
-                </div>
+                    </SelectContent>
+                </Select>
+                 <p className="text-xs text-muted-foreground">
+                    A confirmation will be sent to your registered email address. The clinic will contact you if any changes are needed.
+                </p>
             </div>
             <DialogFooter className="sm:justify-between">
                 <Button variant="outline" onClick={handleCloseDialog}>{t('cancel_button', 'Cancel')}</Button>
@@ -448,5 +445,3 @@ export default function AppointmentsPage() {
     </div>
   );
 }
-
-    
