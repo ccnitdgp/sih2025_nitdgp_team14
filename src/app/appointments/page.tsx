@@ -67,7 +67,6 @@ const FindDoctors = ({ t }) => {
 
   const doctorsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    // Query the public /doctors collection instead of /users
     return collection(firestore, 'doctors');
   }, [firestore]);
 
@@ -318,12 +317,7 @@ const FindDoctors = ({ t }) => {
 }
 
 const MyAppointments = ({ t }) => {
-    const {data: upcomingAppointmentsData, isLoading} = useCollection(useMemoFirebase(() => {
-        if (!allAppointments) return null;
-        const upcoming = allAppointments.filter(appt => new Date(appt.date) >= new Date());
-        return upcoming.length > 0 ? query(collection(useFirestore(), 'users')) : null; // A bit of a hack to get a query
-    }, [allAppointments]));
-    const upcomingAppointments = allAppointments.filter(appt => new Date(appt.date) >= new Date());
+    const upcomingAppointments = allAppointments.filter(appt => new Date(appt.date) >= startOfDay(new Date()));
 
     return (
         <Card>
@@ -367,7 +361,7 @@ const MyAppointments = ({ t }) => {
 }
 
 const HistoryTab = ({ t }) => {
-     const pastAppointments = allAppointments.filter(appt => new Date(appt.date) < new Date());
+     const pastAppointments = allAppointments.filter(appt => new Date(appt.date) < startOfDay(new Date()));
     return (
          <Card>
             <CardHeader>
@@ -466,5 +460,3 @@ export default function AppointmentsPage() {
     </div>
   );
 }
-
-    
