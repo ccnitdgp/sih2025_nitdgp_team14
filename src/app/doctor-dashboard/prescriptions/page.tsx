@@ -81,14 +81,30 @@ export default function DoctorPrescriptionsPage() {
     },
   });
 
-  const patientsCollectionRef = useMemoFirebase(() => {
+  const appointmentsQuery = useMemoFirebase(() => {
     if (!doctorUser || !firestore) return null;
-    return collection(firestore, `users/${doctorUser.uid}/patients`);
+    return query(
+      collection(firestore, 'appointments'),
+      where('doctorId', '==', doctorUser.uid)
+    );
   }, [doctorUser, firestore]);
 
-  const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsCollectionRef);
+  const { data: appointments, isLoading: isLoadingAppointments } = useCollection(appointmentsQuery);
 
-  // This query will fetch all prescriptions added by the current doctor across all patients
+  const uniquePatients = useMemo(() => {
+    if (!appointments) return [];
+    const patientMap = new Map();
+    appointments.forEach(appt => {
+        if (!patientMap.has(appt.patientId)) {
+            patientMap.set(appt.patientId, {
+                id: appt.patientId,
+                name: appt.patientName,
+            });
+        }
+    });
+    return Array.from(patientMap.values());
+  }, [appointments]);
+
   const issuedPrescriptionsQuery = useMemoFirebase(() => {
     if (!doctorUser || !firestore) return null;
     return query(
@@ -107,7 +123,7 @@ export default function DoctorPrescriptionsPage() {
     setIsSubmitting(true);
     
     const patientHealthRecordsRef = collection(firestore, 'users', values.patientId, 'healthRecords');
-    const selectedPatient = patients?.find(p => p.patientId === values.patientId);
+    const selectedPatient = uniquePatients?.find(p => p.id === values.patientId);
 
     const prescriptionData = {
         recordType: 'prescription',
@@ -120,8 +136,8 @@ export default function DoctorPrescriptionsPage() {
             status: 'Active',
         },
         patientInfo: {
-            id: selectedPatient?.patientId,
-            name: `${selectedPatient?.firstName} ${selectedPatient?.lastName}`
+            id: selectedPatient?.id,
+            name: selectedPatient?.name
         },
         dateCreated: serverTimestamp(),
         userId: values.patientId, // The patient's ID
@@ -167,16 +183,16 @@ export default function DoctorPrescriptionsPage() {
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>{t('patient_label', 'Patient')}</FormLabel>
-                                        <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingPatients}>
+                                        <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingAppointments}>
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder={isLoadingPatients ? t('loading_patients', 'Loading patients...') : t('select_patient', 'Select a patient')} />
+                                                    <SelectValue placeholder={isLoadingAppointments ? t('loading_patients', 'Loading patients...') : t('select_patient', 'Select a patient')} />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {patients?.map(p => (
-                                                    <SelectItem key={p.patientId} value={p.patientId}>
-                                                        {p.firstName} {p.lastName}
+                                                {uniquePatients?.map(p => (
+                                                    <SelectItem key={p.id} value={p.id}>
+                                                        {p.name}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
