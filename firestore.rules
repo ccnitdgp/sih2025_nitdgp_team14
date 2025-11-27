@@ -124,9 +124,8 @@ service cloud.firestore {
     // ============================================================
 
     match /doctors/{doctorId} {
-
-      // Anybody (even not signed in) can see and list doctors.
-      allow get, list: if true;
+      // Anybody (even not signed in) can read individual doctor profiles.
+      allow get: if true;
 
       // Doctor creates/updates their own public profile, or admin.
       allow create, update: if isSignedIn()
@@ -138,12 +137,15 @@ service cloud.firestore {
       // Only admin can delete.
       allow delete: if isAdmin();
     }
+    
+    // This rule allows anybody to list the entire /doctors collection.
+    match /doctors {
+        allow list: if true;
+    }
 
 
     // ============================================================
     // /appointments/{appointmentId}  (top-level)
-    // You should create docs like:
-    // { id, patientId, doctorId, scheduledAt, status, ... }
     // ============================================================
 
     match /appointments/{appointmentId} {
