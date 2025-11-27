@@ -177,81 +177,96 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
 
   async function onSignupSubmit(values: z.infer<typeof signupSchema>) {
     try {
-      const userCredential = await initiateEmailSignUp(auth, values.email, values.password);
-      if (userCredential && userCredential.user) {
-        const user = userCredential.user;
-  
-        // Base user profile data
+        const usersRef = collection(firestore, 'users');
+        const q = query(usersRef, where("email", "==", values.email));
+        const querySnapshot = await getDocs(q);
+
         let userProfileData = {
-          id: user.uid,
-          firstName: values.firstName,
-          lastName: values.lastName,
-          role: values.role,
-          email: user.email,
-          dateOfBirth: values.dateOfBirth,
-          gender: values.gender,
-          phoneNumber: values.phoneNumber,
-          address: {
-            fullAddress: values.fullAddress,
-            cityStateCountry: values.cityStateCountry,
-            pinCode: values.pinCode,
-          },
-        };
-  
-        // Add patient-specific or doctor-specific fields
-        if (values.role === 'patient') {
-          Object.assign(userProfileData, {
-            doctorId: HARDCODED_DOCTOR_ID,
-            bloodGroup: values.bloodGroup,
-            emergencyContact: {
-              name: values.emergencyContactName,
-              phone: values.emergencyContactPhone,
-              relation: values.emergencyContactRelation,
+            id: '', // Will be set later
+            firstName: values.firstName,
+            lastName: values.lastName,
+            role: values.role,
+            email: values.email,
+            dateOfBirth: values.dateOfBirth,
+            gender: values.gender,
+            phoneNumber: values.phoneNumber,
+            address: {
+                fullAddress: values.fullAddress,
+                cityStateCountry: values.cityStateCountry,
+                pinCode: values.pinCode,
             },
-          });
+        };
+
+        if (values.role === 'patient') {
+            Object.assign(userProfileData, {
+                doctorId: HARDCODED_DOCTOR_ID,
+                bloodGroup: values.bloodGroup,
+                emergencyContact: {
+                    name: values.emergencyContactName,
+                    phone: values.emergencyContactPhone,
+                    relation: values.emergencyContactRelation,
+                },
+            });
         }
-  
-        // Set the user's private profile
-        const userDocRef = doc(firestore, 'users', user.uid);
-        setDocumentNonBlocking(userDocRef, userProfileData, { merge: true });
-  
-        // If the user is a doctor, create their public profile
-        if (values.role === 'doctor') {
-          const publicDoctorProfile = {
-            id: user.uid,
-            firstName: values.firstName,
-            lastName: values.lastName,
-            specialty: "General Physician", // Placeholder, could be part of signup form
-            cityStateCountry: values.cityStateCountry,
-          };
-          const doctorDocRef = doc(firestore, 'doctors', user.uid);
-          setDocumentNonBlocking(doctorDocRef, publicDoctorProfile, {});
+
+        if (!querySnapshot.empty) {
+            // Email exists, this user was likely pre-registered by a doctor.
+            // We'll update their record with a new auth UID.
+            const userCredential = await initiateEmailSignUp(auth, values.email, values.password);
+            const user = userCredential.user;
+            
+            const batch = writeBatch(firestore);
+
+            // Delete the old, un-owned document
+            const oldDocRef = querySnapshot.docs[0].ref;
+            batch.delete(oldDocRef);
+
+            // Create a new document with the correct UID
+            const newDocRef = doc(firestore, 'users', user.uid);
+            userProfileData.id = user.uid; // Set the correct ID
+            batch.set(newDocRef, userProfileData);
+
+            await batch.commit();
+
+        } else {
+            // This is a brand new user.
+            const userCredential = await initiateEmailSignUp(auth, values.email, values.password);
+            const user = userCredential.user;
+            
+            userProfileData.id = user.uid; // Set the correct ID
+            const newUserDocRef = doc(firestore, 'users', user.uid);
+            setDocumentNonBlocking(newUserDocRef, userProfileData, {});
+            
+             // If the user is a doctor, create their public profile
+            if (values.role === 'doctor') {
+                const publicDoctorProfile = {
+                    id: user.uid,
+                    firstName: values.firstName,
+                    lastName: values.lastName,
+                    specialty: "General Physician", // Placeholder
+                    cityStateCountry: values.cityStateCountry,
+                };
+                const doctorDocRef = doc(firestore, 'doctors', user.uid);
+                setDocumentNonBlocking(doctorDocRef, publicDoctorProfile, {});
+            }
         }
-  
-        // If the user is a patient, link them to their doctor
-        if (values.role === 'patient' && userProfileData.doctorId) {
-          const doctorPatientsColRef = collection(firestore, 'users', userProfileData.doctorId, 'patients');
-          const patientLinkDocRef = doc(doctorPatientsColRef, user.uid);
-          const patientLinkDoc = {
-            patientId: user.uid,
-            firstName: values.firstName,
-            lastName: values.lastName,
-            email: values.email
-          };
-          setDocumentNonBlocking(patientLinkDocRef, patientLinkDoc, {});
-        }
-      }
-      setOpen(false);
-      onOpenChange?.(false);
-      router.push('/login-redirect');
+        
+        setOpen(false);
+        onOpenChange?.(false);
+        router.push('/login-redirect');
+        
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Sign up failed",
-        description: error.message,
-      });
+        let errorMessage = error.message;
+        if (error.code === 'auth/email-already-in-use') {
+            errorMessage = "An account with this email already exists. Please log in or use a different email.";
+        }
+        toast({
+            variant: "destructive",
+            title: "Sign up failed",
+            description: errorMessage,
+        });
     }
-  }
+}
   
   const handleForgotPassword = async () => {
     const email = loginForm.getValues("email");

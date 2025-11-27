@@ -318,7 +318,7 @@
           "schema": {
             "$ref": "#/backend/entities/UserProfile"
           },
-          "description": "Stores user profile information. Path-based ownership ensures only the authenticated user can access their profile.",
+          "description": "Stores private user profile information for both patients and doctors. Path-based ownership ensures only the authenticated user can access their profile.",
           "params": [
             {
               "name": "userId",
@@ -332,8 +332,8 @@
         "definition": {
             "entityName": "DoctorProfile",
             "schema": { "$ref": "#/backend/entities/DoctorProfile" },
-            "description": "Stores public information about doctors.",
-            "params": [{ "name": "doctorId", "description": "The UID of the doctor." }]
+            "description": "A public collection storing information about doctors that is safe for any user to read (e.g., for finding a doctor).",
+            "params": [{ "name": "doctorId", "description": "The UID of the doctor, which should match their UID in the /users collection." }]
         }
       },
       {
@@ -341,7 +341,7 @@
         "definition": {
           "entityName": "PatientLink",
           "schema": { "$ref": "#/backend/entities/PatientLink" },
-          "description": "Stores a link to a patient associated with a doctor.",
+          "description": "A subcollection within a doctor's user document that links them to their patients. This is used for authorization checks.",
           "params": [
             { "name": "doctorId", "description": "The UID of the doctor." },
             { "name": "patientId", "description": "The UID of the patient." }
@@ -355,7 +355,7 @@
           "schema": {
             "$ref": "#/backend/entities/HealthRecord"
           },
-          "description": "Stores user's health records. Path-based ownership ensures only the authenticated user can access their health records.",
+          "description": "Stores user's health records. Path-based ownership ensures only the authenticated user or their assigned doctor can access them.",
           "params": [
             {
               "name": "userId",
@@ -375,7 +375,7 @@
           "schema": {
             "$ref": "#/backend/entities/VaccinationDrive"
           },
-          "description": "Stores information about vaccination drives.",
+          "description": "Stores information about vaccination drives. This is a public collection.",
           "params": [
             {
               "name": "vaccinationDriveId",
@@ -391,7 +391,7 @@
           "schema": {
             "$ref": "#/backend/entities/HealthCamp"
           },
-          "description": "Stores information about health camps.",
+          "description": "Stores information about health camps. This is a public collection.",
           "params": [
             {
               "name": "healthCampId",
@@ -421,7 +421,7 @@
         }
       }
     ],
-    "reasoning": "The Firestore data structure is designed to support the Swasthya application's core features, including user authentication, vaccination drive information, health camp details, medical notifications, user health records, and multilingual support. The structure prioritizes authorization independence, clarity, and scalability.\\n\\n**Authorization Independence and QAPs:**\\n\\n*   **UserProfile:** User profiles are stored under `/users/{userId}`, providing path-based ownership for private user data. This eliminates the need for complex rules involving `get()` calls, as access control is directly tied to the user's ID.\\n*   **HealthRecord:** Health records are stored under `/users/{userId}/healthRecords/{healthRecordId}`, establishing a clear ownership hierarchy. Authorization rules can efficiently verify that only the authenticated user can access their own health records. This supports QAPs because listing health records for a specific user is straightforward and secure without filtering based on document content.\\n*   **VaccinationDrive and HealthCamp:** Vaccination drives and health camps are stored in root-level collections (`/vaccinationDrives` and `/healthCamps`). This segregation simplifies data management and allows for different security rules to be applied to public events versus private user data.\\n*   **MedicalNotification:** Medical notifications are stored under `/users/{userId}/notifications/{notificationId}`. The `userId` field ensures that only the intended user can access the notifications, supporting QAPs by allowing secure and efficient listing of notifications for a specific user without complex filtering.\\n\\nThis design adheres to the core principles by avoiding hierarchical authorization dependencies (`get()`), making authorization intent explicit, using path-based ownership for private data, and enabling secure `list` operations by segregating data based on access needs."
+    "reasoning": "The Firestore data structure has been redesigned for clarity and security. The core change is the introduction of a public `/doctors` collection, which is separate from the private `/users` collection. The `/doctors` collection stores only non-sensitive information necessary for patients to find and view doctor profiles. The `/users` collection holds all private data for both patients and doctors, strictly secured by user UID. This separation prevents permission errors when listing doctors and adheres to security best practices by not exposing the entire user base."
   }
 }
 

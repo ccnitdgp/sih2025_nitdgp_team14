@@ -67,6 +67,7 @@ const FindDoctors = ({ t }) => {
 
   const doctorsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
+    // Query the public /doctors collection instead of /users
     return collection(firestore, 'doctors');
   }, [firestore]);
 
