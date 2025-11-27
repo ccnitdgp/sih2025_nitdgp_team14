@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Activity, Pill, Stethoscope, FileDown, CreditCard, DollarSign } from 'lucide-react';
 import { billingHistory, type Bill } from '@/lib/data';
@@ -17,6 +16,9 @@ import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
 import te from '@/lib/locales/te.json';
 import mr from '@/lib/locales/mr.json';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { dummyPdfContent } from '@/lib/dummy-pdf';
 
 const languageFiles = { hi, bn, ta, te, mr };
 
@@ -31,6 +33,9 @@ export default function BillingPage() {
   const { user } = useUser();
   const firestore = useFirestore();
   const [translations, setTranslations] = useState({});
+  const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const { toast } = useToast();
 
   const userDocRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
@@ -48,6 +53,39 @@ export default function BillingPage() {
   }, [userProfile]);
 
   const t = (key: string, fallback: string) => translations[key] || fallback;
+
+  const handlePayNow = (bill: Bill) => {
+    setSelectedBill(bill);
+    setIsPaymentDialogOpen(true);
+  };
+  
+  const handleConfirmPayment = () => {
+    if (!selectedBill) return;
+
+    setBills(currentBills =>
+      currentBills.map(b =>
+        b.id === selectedBill.id ? { ...b, status: 'Paid' } : b
+      )
+    );
+    
+    toast({
+      title: "Payment Successful",
+      description: `Payment of ${t('currency_symbol', 'Rs.')} ${selectedBill.amount} for "${selectedBill.title}" was successful.`
+    });
+
+    setIsPaymentDialogOpen(false);
+    setSelectedBill(null);
+  };
+
+  const handleDownloadInvoice = (bill: Bill) => {
+    const link = document.createElement('a');
+    link.href = dummyPdfContent;
+    link.download = `invoice-${bill.id}-${bill.title.replace(/\s+/g, '-')}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
 
   const outstandingBills = bills.filter((bill) => bill.status === 'Due');
   const paidBills = bills.filter((bill) => bill.status === 'Paid');
@@ -111,10 +149,10 @@ export default function BillingPage() {
                             <Badge variant="destructive">{t('bill_status_due', bill.status)}</Badge>
                          </div>
                          <div className="flex items-center gap-2 mt-2">
-                            <Button variant="ghost" size="sm">
+                            <Button variant="ghost" size="sm" onClick={() => handleDownloadInvoice(bill)}>
                                 <FileDown className="mr-2 h-4 w-4"/> {t('download_invoice_button', 'Download Invoice')}
                             </Button>
-                            <Button>
+                            <Button onClick={() => handlePayNow(bill)}>
                                 <DollarSign className="mr-2 h-4 w-4"/> {t('pay_now_button', 'Pay Now')}
                             </Button>
                          </div>
@@ -145,7 +183,7 @@ export default function BillingPage() {
                             <Badge variant="secondary">{t('bill_status_paid', bill.status)}</Badge>
                          </div>
                          <div className="flex items-center gap-2 mt-2">
-                            <Button variant="ghost" size="sm">
+                            <Button variant="ghost" size="sm" onClick={() => handleDownloadInvoice(bill)}>
                                 <FileDown className="mr-2 h-4 w-4"/> {t('download_invoice_button', 'Download Invoice')}
                             </Button>
                          </div>
@@ -161,6 +199,26 @@ export default function BillingPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+       <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Confirm Payment</DialogTitle>
+                    <DialogDescription>
+                        You are about to pay {t('currency_symbol', 'Rs.')}{selectedBill?.amount.toLocaleString('en-IN')} for "{selectedBill?.title}".
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                    This is a simulated payment gateway. In a real application, you would be redirected to a payment processor.
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsPaymentDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={handleConfirmPayment}>Confirm Payment</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </div>
   );
 }
+
+    
