@@ -39,7 +39,9 @@ const addPatientSchema = z.object({
   phoneNumber: z.string().min(10, { message: "Phone number must be at least 10 digits." }),
   email: z.string().email({ message: "Invalid email address." }),
   fullAddress: z.string().min(1, { message: "Address is required." }),
-  cityStateCountry: z.string().min(1, { message: "City/State/Country is required." }),
+  city: z.string().min(1, "City is required."),
+  state: z.string().min(1, "State is required."),
+  country: z.string().min(1, "Country is required."),
   pinCode: z.string().min(1, { message: "Pin Code is required." }),
 });
 
@@ -68,7 +70,9 @@ export default function AddPatientPage() {
       phoneNumber: "",
       email: "",
       fullAddress: "",
-      cityStateCountry: "",
+      city: "",
+      state: "",
+      country: "",
       pinCode: "",
     },
   });
@@ -84,12 +88,12 @@ export default function AddPatientPage() {
     try {
       // Create a new patient profile document with a new unique ID
       const newPatientDocRef = doc(collection(firestore, 'users'));
-      const newPatientId = newPatientDocRef.id;
-      const patientId = generatePatientId();
+      const newPatientFirebaseId = newPatientDocRef.id;
+      const customPatientId = generatePatientId();
 
       const userProfile = {
-        id: newPatientId,
-        patientId: patientId,
+        id: newPatientFirebaseId,
+        patientId: customPatientId,
         firstName: values.firstName,
         lastName: values.lastName,
         role: "patient",
@@ -99,7 +103,9 @@ export default function AddPatientPage() {
         phoneNumber: values.phoneNumber,
         address: {
             fullAddress: values.fullAddress,
-            cityStateCountry: values.cityStateCountry,
+            city: values.city,
+            state: values.state,
+            country: values.country,
             pinCode: values.pinCode,
         },
         doctorId: doctorUser.uid,
@@ -111,12 +117,14 @@ export default function AddPatientPage() {
       // 2. Add a link to this patient in the doctor's own patient list.
       const doctorPatientsColRef = collection(firestore, 'users', doctorUser.uid, 'patients');
       const patientLinkDoc = {
-        patientId: newPatientId,
+        patientId: newPatientFirebaseId, // The internal firebase UID
+        customPatientId: customPatientId, // The user-facing PT- ID
         firstName: values.firstName,
         lastName: values.lastName,
         email: values.email
       };
-      const patientDocInDoctorList = doc(doctorPatientsColRef, newPatientId);
+      // Use the internal firebase UID as the doc ID for the link for consistency.
+      const patientDocInDoctorList = doc(doctorPatientsColRef, newPatientFirebaseId);
       setDocumentNonBlocking(patientDocInDoctorList, patientLinkDoc, {});
       
       toast({
@@ -276,10 +284,14 @@ export default function AddPatientPage() {
                         <div className="space-y-2">
                              <FormLabel>Address</FormLabel>
                              <FormField control={form.control} name="fullAddress" render={({ field }) => (<FormItem><FormControl><Input placeholder="Full Address" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                             <div className="grid grid-cols-2 gap-4">
-                                <FormField control={form.control} name="cityStateCountry" render={({ field }) => (<FormItem><FormControl><Input placeholder="City / State / Country" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <FormField control={form.control} name="city" render={({ field }) => (<FormItem><FormControl><Input placeholder="City" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                <FormField control={form.control} name="state" render={({ field }) => (<FormItem><FormControl><Input placeholder="State" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                              </div>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <FormField control={form.control} name="country" render={({ field }) => (<FormItem><FormControl><Input placeholder="Country" {...field} /></FormControl><FormMessage /></FormItem>)} />
                                 <FormField control={form.control} name="pinCode" render={({ field }) => (<FormItem><FormControl><Input placeholder="Pin Code" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                             </div>
+                              </div>
                         </div>
                         <div className="flex justify-end gap-2">
                              <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
@@ -294,3 +306,5 @@ export default function AddPatientPage() {
     </div>
   )
 }
+
+    

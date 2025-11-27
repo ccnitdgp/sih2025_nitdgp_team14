@@ -27,7 +27,8 @@ export default function DoctorPatientsPage() {
 
   const filteredPatients = patients?.filter(patient =>
     `${patient.firstName} ${patient.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    patient.email.toLowerCase().includes(searchTerm.toLowerCase())
+    patient.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    patient.customPatientId?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const PatientSkeleton = () => (
@@ -41,8 +42,8 @@ export default function DoctorPatientsPage() {
                 </div>
             </div>
         </TableCell>
-        <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-        <TableCell><Skeleton className="h-9 w-24" /></TableCell>
+        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+        <TableCell className="text-right"><Skeleton className="h-9 w-28 ml-auto" /></TableCell>
     </TableRow>
   )
 
@@ -65,7 +66,7 @@ export default function DoctorPatientsPage() {
                 <div className="mb-6 max-w-sm relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input 
-                        placeholder="Search by name or email..." 
+                        placeholder="Search by name, email, or ID..." 
                         className="pl-10"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -90,7 +91,7 @@ export default function DoctorPatientsPage() {
                                 </>
                             ) : filteredPatients && filteredPatients.length > 0 ? (
                                 filteredPatients.map((patient) => (
-                                    <TableRow key={patient.id}>
+                                    <TableRow key={patient.patientId}>
                                     <TableCell>
                                         <div className="flex items-center gap-3">
                                             <Avatar>
@@ -103,7 +104,7 @@ export default function DoctorPatientsPage() {
                                             </div>
                                         </div>
                                     </TableCell>
-                                    <TableCell className="font-mono text-muted-foreground">{patient.patientId.substring(0, 8).toUpperCase()}</TableCell>
+                                    <TableCell className="font-mono text-muted-foreground">{patient.customPatientId}</TableCell>
                                     <TableCell className="text-right">
                                         <Button variant="outline" asChild>
                                             <Link href={`/doctor-dashboard/patient/${patient.patientId}`}>
@@ -128,3 +129,5 @@ export default function DoctorPatientsPage() {
     </div>
   );
 }
+
+    

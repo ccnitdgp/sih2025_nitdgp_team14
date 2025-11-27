@@ -119,7 +119,7 @@ export default function DoctorAppointmentsPage() {
     }
     
     const patientDisplayName = patientProfile ? `${patientProfile.firstName} ${patientProfile.lastName}` : appointment.patientName;
-    const patientDisplayId = patientProfile?.patientId || appointment.patientId.substring(0,8).toUpperCase();
+    const patientDisplayId = patientProfile?.patientId;
 
     return (
       <Card>
@@ -337,3 +337,5 @@ export default function DoctorAppointmentsPage() {
     </div>
   );
 }
+
+    
