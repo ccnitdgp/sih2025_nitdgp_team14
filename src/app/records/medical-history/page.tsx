@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { History, PlusCircle, Volume2 } from 'lucide-react';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, addDocumentNonBlocking } from '@/firebase';
-import { collection, addDoc, serverTimestamp, doc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, query, where } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -44,12 +44,12 @@ export default function MedicalHistoryPage() {
 
     const t = (key: string, fallback: string) => translations[key] || fallback;
 
-    const healthRecordsRef = useMemoFirebase(() => {
+    const healthRecordsQuery = useMemoFirebase(() => {
         if (!user || !firestore) return null;
-        return collection(firestore, `users/${user.uid}/healthRecords`);
+        return query(collection(firestore, `users/${user.uid}/healthRecords`), where('recordType', '==', 'medicalHistory'));
     }, [user, firestore]);
     
-    const { data: medicalHistory, isLoading } = useCollection(healthRecordsRef);
+    const { data: medicalHistory, isLoading } = useCollection(healthRecordsQuery);
 
     const handleTextToSpeech = (text: string) => {
         if ('speechSynthesis' in window) {
@@ -65,14 +65,16 @@ export default function MedicalHistoryPage() {
     };
     
     const handleAddItem = () => {
-        if (!newHistoryItem.trim() || !healthRecordsRef) return;
+        if (!newHistoryItem.trim() || !user) return;
         
         setIsAdding(true);
+        const healthRecordsRef = collection(firestore, `users/${user.uid}/healthRecords`);
         const data = {
             recordType: 'medicalHistory',
             details: newHistoryItem,
             dateCreated: serverTimestamp(),
             userId: user?.uid,
+            addedBy: user?.uid, // Note: This is patient-added, not doctor-added.
         };
         
         addDocumentNonBlocking(healthRecordsRef, data);
@@ -109,13 +111,18 @@ export default function MedicalHistoryPage() {
       <CardContent className="space-y-4">
         {isLoading ? <SkeletonLoader /> : medicalHistory && medicalHistory.length > 0 ? (
           medicalHistory
-            .filter(item => item.recordType === 'medicalHistory')
+            .sort((a, b) => b.dateCreated?.toMillis() - a.dateCreated?.toMillis())
             .map((item) => (
             <div
                 key={item.id}
                 className="flex items-center justify-between rounded-lg border bg-background p-4"
             >
-                <p>- {item.details}</p>
+                <div className='flex-1'>
+                    <p>{item.details}</p>
+                     <p className="text-xs text-muted-foreground mt-1">
+                        Recorded on: {item.dateCreated ? new Date(item.dateCreated.seconds * 1000).toLocaleDateString() : 'N/A'}
+                     </p>
+                </div>
                 <Button variant="ghost" size="icon" onClick={() => handleTextToSpeech(item.details)}>
                 <Volume2 className="h-5 w-5 text-muted-foreground" />
                 </Button>

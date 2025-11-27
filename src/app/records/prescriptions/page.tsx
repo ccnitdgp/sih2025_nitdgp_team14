@@ -12,7 +12,7 @@ import { BookUser, FileDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, doc } from 'firebase/firestore';
+import { collection, doc, query, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useState, useEffect } from 'react';
 import hi from '@/lib/locales/hi.json';
@@ -45,12 +45,15 @@ export default function PrescriptionsPage() {
 
   const t = (key: string, fallback: string) => translations[key] || fallback;
 
-  const prescriptionsRef = useMemoFirebase(() => {
+  const prescriptionsQuery = useMemoFirebase(() => {
       if (!user || !firestore) return null;
-      return collection(firestore, `users/${user.uid}/healthRecords`);
+      return query(
+        collection(firestore, `users/${user.uid}/healthRecords`),
+        where('recordType', '==', 'prescription')
+      );
   }, [user, firestore]);
   
-  const { data: prescriptions, isLoading } = useCollection(prescriptionsRef);
+  const { data: prescriptions, isLoading } = useCollection(prescriptionsQuery);
 
   const SkeletonLoader = () => (
     <div className="space-y-4">
@@ -83,7 +86,7 @@ export default function PrescriptionsPage() {
       <CardContent className="space-y-4">
         {isLoading ? <SkeletonLoader /> : prescriptions && prescriptions.length > 0 ? (
           prescriptions
-            .filter(item => item.recordType === 'prescription')
+            .sort((a, b) => b.dateCreated?.toMillis() - a.dateCreated?.toMillis())
             .map((item) => (
             <Card key={item.id} className="p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                 <div className="flex-1">
