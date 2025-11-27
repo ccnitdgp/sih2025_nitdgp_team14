@@ -91,7 +91,6 @@ const generateTimeSlots = (workingHours?: string, duration?: number): string[] =
     const endTime = parseTime(endTimeStr);
 
     if (!startTime || !endTime || endTime <= startTime) {
-         console.error("Invalid working hours format or range:", workingHours);
         return [];
     }
 
@@ -605,3 +604,5 @@ export default function AppointmentsPage() {
     </div>
   );
 }
+
+    
