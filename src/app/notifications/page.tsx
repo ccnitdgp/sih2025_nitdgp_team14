@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -112,37 +113,43 @@ export default function NotificationsPage() {
         <CardDescription>{t('total_notifications_desc', `You have ${personalNotifications.length} total notifications.`)}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {personalNotifications.map((notification) => {
-          const isCurrent = playback.notificationId === notification.id;
-          const isLoading = isCurrent && playback.isLoading;
-          const isPlaying = isCurrent && playback.isPlaying;
+        {personalNotifications.length > 0 ? (
+          personalNotifications.map((notification) => {
+            const isCurrent = playback.notificationId === notification.id;
+            const isLoading = isCurrent && playback.isLoading;
+            const isPlaying = isCurrent && playback.isPlaying;
 
-          return (
-            <div
-              key={notification.id}
-              className="flex items-center justify-between rounded-lg border bg-background p-4"
-            >
-              <div className="flex items-center gap-4">
-                <div className="p-2 bg-muted rounded-md">
-                  <Calendar className="h-5 w-5 text-muted-foreground" />
+            return (
+              <div
+                key={notification.id}
+                className="flex items-center justify-between rounded-lg border bg-background p-4"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="p-2 bg-muted rounded-md">
+                    <Calendar className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p>{notification.message}</p>
+                    <p className="text-sm text-muted-foreground">{notification.time}</p>
+                  </div>
                 </div>
-                <div>
-                  <p>{notification.message}</p>
-                  <p className="text-sm text-muted-foreground">{notification.time}</p>
-                </div>
+                <Button variant="ghost" size="icon" onClick={() => handleTextToSpeech(notification)} disabled={isLoading}>
+                  {isLoading ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : isPlaying ? (
+                    <Play className="h-5 w-5 text-primary fill-primary" />
+                  ) : (
+                    <Volume2 className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </Button>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => handleTextToSpeech(notification)} disabled={isLoading}>
-                 {isLoading ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : isPlaying ? (
-                  <Play className="h-5 w-5 text-primary fill-primary" />
-                ) : (
-                  <Volume2 className="h-5 w-5 text-muted-foreground" />
-                )}
-              </Button>
-            </div>
-          )
-        })}
+            )
+          })
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">
+            <p>No notifications to display.</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

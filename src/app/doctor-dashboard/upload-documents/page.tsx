@@ -181,18 +181,22 @@ export default function UploadDocumentsPage() {
           <CardDescription>A list of the most recently uploaded documents.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {recentUploads.map((upload) => (
-            <div key={upload.id} className="flex items-center justify-between rounded-lg border p-4">
-              <div className="flex items-center gap-3">
-                <FileText className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="font-medium">{upload.fileName}</p>
-                  <p className="text-sm text-muted-foreground">For {upload.patientName} - {upload.type}</p>
+          {recentUploads.length > 0 ? (
+            recentUploads.map((upload) => (
+              <div key={upload.id} className="flex items-center justify-between rounded-lg border p-4">
+                <div className="flex items-center gap-3">
+                  <FileText className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="font-medium">{upload.fileName}</p>
+                    <p className="text-sm text-muted-foreground">For {upload.patientName} - {upload.type}</p>
+                  </div>
                 </div>
+                <p className="text-sm text-muted-foreground">{upload.date}</p>
               </div>
-              <p className="text-sm text-muted-foreground">{upload.date}</p>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p className="text-center text-muted-foreground py-4">No documents uploaded recently.</p>
+          )}
         </CardContent>
       </Card>
     </div>

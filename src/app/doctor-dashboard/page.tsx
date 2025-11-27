@@ -42,6 +42,7 @@ export default function DoctorDashboardPage() {
   const { data: patients } = useCollection(patientsCollectionRef);
 
   const totalPatients = patients?.length || 0;
+  const todayAppointments = doctorUpcomingAppointments.filter(appt => new Date(appt.date).toDateString() === new Date().toDateString()).length;
 
   return (
     <div className="bg-muted/40 min-h-screen">
@@ -72,9 +73,9 @@ export default function DoctorDashboardPage() {
           </div>
           
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-             <StatCard title="Today's Appointments" value={doctorUpcomingAppointments.length} icon={Calendar} />
+             <StatCard title="Today's Appointments" value={todayAppointments} icon={Calendar} />
              <StatCard title="Total Patients" value={totalPatients} icon={Users} />
-             <StatCard title="Prescriptions Written" value="4" icon={FileText} />
+             <StatCard title="Prescriptions Written" value="0" icon={FileText} />
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">

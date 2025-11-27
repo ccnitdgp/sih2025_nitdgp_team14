@@ -1,7 +1,7 @@
 
 'use client';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { visitingCamps } from "@/lib/data";
 import { MapPin, CalendarDays, ArrowRight, Stethoscope } from "lucide-react";
 import Link from "next/link";
@@ -56,40 +56,47 @@ export function VisitingCampsSection() {
                 </Link>
             </Button>
         </div>
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {visitingCamps.slice(0,3).map((camp) => (
-            <Card key={camp.id} className="flex flex-col transition-shadow hover:shadow-xl">
-              <CardHeader>
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-primary/10 rounded-full">
-                    <Stethoscope className="h-6 w-6 text-primary" />
+        {visitingCamps.length > 0 ? (
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {visitingCamps.slice(0,3).map((camp) => (
+              <Card key={camp.id} className="flex flex-col transition-shadow hover:shadow-xl">
+                <CardHeader>
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-primary/10 rounded-full">
+                      <Stethoscope className="h-6 w-6 text-primary" />
+                    </div>
+                    <CardTitle>{camp.name}</CardTitle>
                   </div>
-                  <CardTitle>{camp.name}</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="flex-grow space-y-4">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <MapPin className="h-4 w-4" />
-                  <span>{camp.location}</span>
-                </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <CalendarDays className="h-4 w-4" />
-                  <span>{camp.date}</span>
-                </div>
-              </CardContent>
-              <CardFooter>
-                 <Button asChild variant="secondary" className="w-full">
-                    <Link href="/camps">
-                      {t('learn_more_button', 'Learn More')}
-                    </Link>
-                  </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
+                </CardHeader>
+                <CardContent className="flex-grow space-y-4">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <MapPin className="h-4 w-4" />
+                    <span>{camp.location}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <CalendarDays className="h-4 w-4" />
+                    <span>{camp.date}</span>
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button asChild variant="secondary" className="w-full">
+                      <Link href="/camps">
+                        {t('learn_more_button', 'Learn More')}
+                      </Link>
+                    </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle>No Health Camps</CardTitle>
+              <CardDescription>There are no upcoming health camps scheduled at this time.</CardDescription>
+            </CardHeader>
+          </Card>
+        )}
       </div>
     </section>
   );
 }
-
-    

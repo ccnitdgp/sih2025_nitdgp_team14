@@ -26,10 +26,20 @@ const chartConfig = {
   },
 }
 
+const chartData = [
+  { day: "Sunday", appointments: 0 },
+  { day: "Monday", appointments: 0 },
+  { day: "Tuesday", appointments: 0 },
+  { day: "Wednesday", appointments: 0 },
+  { day: "Thursday", appointments: 0 },
+  { day: "Friday", appointments: 0 },
+  { day: "Saturday", appointments: 0 },
+]
+
 export function WeeklyActivityChart() {
   return (
       <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
-        <BarChart accessibilityLayer data={weeklyActivity}>
+        <BarChart accessibilityLayer data={chartData}>
           <CartesianGrid vertical={false} />
           <XAxis
             dataKey="day"

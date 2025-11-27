@@ -80,36 +80,43 @@ export function VaccinationDriveSection() {
                 </Link>
             </Button>
         </div>
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {vaccinationDrives.slice(0, 3).map((drive) => (
-            <Card key={drive.id} className="flex flex-col transition-shadow hover:shadow-xl">
-              <CardHeader>
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-primary/10 rounded-full">
-                    <Syringe className="h-6 w-6 text-primary" />
+        {vaccinationDrives.length > 0 ? (
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {vaccinationDrives.slice(0, 3).map((drive) => (
+              <Card key={drive.id} className="flex flex-col transition-shadow hover:shadow-xl">
+                <CardHeader>
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-primary/10 rounded-full">
+                      <Syringe className="h-6 w-6 text-primary" />
+                    </div>
+                    <CardTitle>{drive.name}</CardTitle>
                   </div>
-                  <CardTitle>{drive.name}</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="flex-grow space-y-4">
-                 <div className="flex items-center gap-2 text-muted-foreground">
-                  <MapPin className="h-4 w-4" />
-                  <span>{drive.location}</span>
-                </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <CalendarDays className="h-4 w-4" />
-                  <span>{drive.date}</span>
-                </div>
-              </CardContent>
-              <CardFooter>
-                 <RegisterButton driveId={drive.id} />
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
+                </CardHeader>
+                <CardContent className="flex-grow space-y-4">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <MapPin className="h-4 w-4" />
+                    <span>{drive.location}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <CalendarDays className="h-4 w-4" />
+                    <span>{drive.date}</span>
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <RegisterButton driveId={drive.id} />
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle>No Vaccination Drives</CardTitle>
+              <CardDescription>There are no upcoming vaccination drives scheduled at this time.</CardDescription>
+            </CardHeader>
+          </Card>
+        )}
       </div>
     </section>
   );
 }
-
-    

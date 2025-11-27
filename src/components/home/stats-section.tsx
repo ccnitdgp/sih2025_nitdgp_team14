@@ -11,8 +11,31 @@ import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
 import te from '@/lib/locales/te.json';
 import mr from '@/lib/locales/mr.json';
+import { HeartPulse, Stethoscope, Syringe } from 'lucide-react';
 
 const languageFiles = { hi, bn, ta, te, mr };
+
+const staticStats = [
+  {
+    id: 1,
+    name: 'stat_vaccination_drives',
+    value: '0+',
+    icon: Syringe,
+  },
+  {
+    id: 2,
+    name: 'stat_health_camps',
+    value: '0+',
+    icon: Stethoscope,
+  },
+  {
+    id: 3,
+    name: 'stat_records_secured',
+    value: '0+',
+    icon: HeartPulse,
+  },
+];
+
 
 export function StatsSection() {
   const { user } = useUser();
@@ -36,11 +59,13 @@ export function StatsSection() {
 
   const t = (key: string, fallback: string) => translations[key] || fallback;
 
+  const displayStats = stats.length > 0 ? stats : staticStats;
+
   return (
     <section className="py-12 sm:py-24">
       <div className="container mx-auto max-w-7xl px-6">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-          {stats.map((stat) => (
+          {displayStats.map((stat) => (
             <Card key={stat.id} className="text-center transition-all duration-300 hover:scale-105 hover:shadow-xl border-t-4 border-primary">
               <CardHeader className="flex flex-col items-center gap-4 pb-2">
                 <div className="p-4 bg-primary/10 rounded-full">
@@ -58,5 +83,3 @@ export function StatsSection() {
     </section>
   );
 }
-
-    

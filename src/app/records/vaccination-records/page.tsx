@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -55,26 +56,30 @@ export default function VaccinationRecordsPage() {
             {t('vaccination_records_page_desc', 'Your history of vaccinations and immunizations.')}
             </CardDescription>
         </div>
-        <Button>
+        <Button disabled>
             <PlusCircle className="mr-2 h-4 w-4"/>
             {t('add_record_button', 'Add Record')}
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
-        {vaccinationRecords.map((record) => (
-            <Card key={record.id} className="p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                <div className="flex-1">
-                    <h3 className="font-semibold text-lg">{record.vaccine}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        {t('dose_text', 'Dose')} {record.dose} - {t('administered_on_text', 'Administered on')} {record.date} {t('at_text', 'at')} {record.location}
-                    </p>
-                </div>
-                <Button variant="outline" size="sm">
-                    <FileDown className="mr-2 h-4 w-4"/>
-                    {t('download_certificate_button', 'Download Certificate')}
-                </Button>
-            </Card>
-        ))}
+        {vaccinationRecords.length > 0 ? (
+          vaccinationRecords.map((record) => (
+              <Card key={record.id} className="p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                  <div className="flex-1">
+                      <h3 className="font-semibold text-lg">{record.vaccine}</h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                          {t('dose_text', 'Dose')} {record.dose} - {t('administered_on_text', 'Administered on')} {record.date} {t('at_text', 'at')} {record.location}
+                      </p>
+                  </div>
+                  <Button variant="outline" size="sm" disabled>
+                      <FileDown className="mr-2 h-4 w-4"/>
+                      {t('download_certificate_button', 'Download Certificate')}
+                  </Button>
+              </Card>
+          ))
+        ) : (
+          <p className="text-muted-foreground text-center py-4">No vaccination records found.</p>
+        )}
       </CardContent>
     </Card>
   );
