@@ -12,7 +12,7 @@
  *
  * Key Security Decisions:
  * - User Enumeration is explicitly disallowed by disabling list access on the top-level `/users` collection.
- * - Public data collections (`vaccinationDrives`, `healthCamps`) are read-only for all users.
+ * - Public data collections (`vaccinationDrives`, `healthCamps`, `doctors`) are read-only for all users.
  * - All write operations on user-owned data require the user to be authenticated and their UID to match
  *   the `userId` in the document path.
  * - Doctors can read patient data (`/users/{patientId}`) ONLY IF a corresponding document exists in their
@@ -156,5 +156,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
