@@ -117,12 +117,15 @@ export default function DoctorAppointmentsPage() {
         </Card>
       );
     }
+    
+    const patientDisplayName = patientProfile ? `${patientProfile.firstName} ${patientProfile.lastName}` : appointment.patientName;
+    const patientDisplayId = patientProfile?.patientId || appointment.patientId.substring(0,8).toUpperCase();
 
     return (
       <Card>
         <CardHeader>
           <CardTitle>Appointment Details</CardTitle>
-          <CardDescription>For {appointment.patientName}</CardDescription>
+          <CardDescription>For {patientDisplayName}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="p-4 border rounded-lg">
@@ -151,11 +154,11 @@ export default function DoctorAppointmentsPage() {
             <h3 className="font-semibold mb-2">Patient Information</h3>
             <div className="p-4 border rounded-lg flex items-center gap-4">
                <Avatar className="h-14 w-14">
-                <AvatarImage src={`https://picsum.photos/seed/${appointment.patientId}/200`} alt={appointment.patientName} />
-                <AvatarFallback>{appointment.patientName?.charAt(0)}</AvatarFallback>
+                <AvatarImage src={`https://picsum.photos/seed/${appointment.patientId}/200`} alt={patientDisplayName} />
+                <AvatarFallback>{patientDisplayName?.charAt(0)}</AvatarFallback>
               </Avatar>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1 w-full">
-                <div className="flex items-center gap-2 text-sm"><User className="h-4 w-4 text-muted-foreground" /> {appointment.patientName}</div>
+                <div className="flex items-center gap-2 text-sm"><User className="h-4 w-4 text-muted-foreground" /> {patientDisplayName}</div>
                  <div className="flex items-center gap-2 text-sm">
                     <Calendar className="h-4 w-4 text-muted-foreground" /> 
                     {isPatientLoading ? '...' : `${getAge(patientProfile?.dateOfBirth)} years old`}
@@ -164,7 +167,7 @@ export default function DoctorAppointmentsPage() {
                     {appointment.type === 'Virtual' ? <Video className="h-4 w-4 text-muted-foreground"/> : <Building className="h-4 w-4 text-muted-foreground" />} 
                     {appointment.type}
                 </div>
-                <div className="flex items-center gap-2 text-sm"><FileText className="h-4 w-4 text-muted-foreground" /> ID: {patientProfile?.patientId || appointment.patientId.substring(0,8).toUpperCase()}</div>
+                <div className="flex items-center gap-2 text-sm"><FileText className="h-4 w-4 text-muted-foreground" /> ID: {patientDisplayId}</div>
               </div>
             </div>
           </div>
