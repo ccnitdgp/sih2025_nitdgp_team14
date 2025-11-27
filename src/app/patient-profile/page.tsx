@@ -31,7 +31,9 @@ const profileSchema = z.object({
   bloodGroup: z.string().optional(),
   phoneNumber: z.string().min(10, "Phone number must be at least 10 digits."),
   fullAddress: z.string().min(1, "Full address is required."),
-  cityStateCountry: z.string().min(1, "City/State/Country is required."),
+  city: z.string().min(1, "City is required."),
+  state: z.string().min(1, "State is required."),
+  country: z.string().min(1, "Country is required."),
   pinCode: z.string().min(1, "Pin Code is required."),
   emergencyContactName: z.string().optional(),
   emergencyContactPhone: z.string().optional(),
@@ -85,7 +87,9 @@ export default function PatientProfilePage() {
         bloodGroup: userProfile.bloodGroup || '',
         phoneNumber: userProfile.phoneNumber || '',
         fullAddress: userProfile.address?.fullAddress || '',
-        cityStateCountry: userProfile.address?.cityStateCountry || '',
+        city: userProfile.address?.city || '',
+        state: userProfile.address?.state || '',
+        country: userProfile.address?.country || '',
         pinCode: userProfile.address?.pinCode || '',
         emergencyContactName: userProfile.emergencyContact?.name || '',
         emergencyContactPhone: userProfile.emergencyContact?.phone || '',
@@ -132,7 +136,9 @@ export default function PatientProfilePage() {
         phoneNumber: values.phoneNumber,
         address: {
             fullAddress: values.fullAddress,
-            cityStateCountry: values.cityStateCountry,
+            city: values.city,
+            state: values.state,
+            country: values.country,
             pinCode: values.pinCode,
         },
         emergencyContact: {
@@ -247,8 +253,12 @@ export default function PatientProfilePage() {
                                   <FormLabel>Address & Location</FormLabel>
                                   <div className="space-y-4 mt-2">
                                       <FormField control={form.control} name="fullAddress" render={({ field }) => (<FormItem><FormControl><Input placeholder="Full Address" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                      <div className="grid grid-cols-2 gap-4">
-                                        <FormField control={form.control} name="cityStateCountry" render={({ field }) => (<FormItem><FormControl><Input placeholder="City / State / Country" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <FormField control={form.control} name="city" render={({ field }) => (<FormItem><FormControl><Input placeholder="City" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                        <FormField control={form.control} name="state" render={({ field }) => (<FormItem><FormControl><Input placeholder="State" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                      </div>
+                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <FormField control={form.control} name="country" render={({ field }) => (<FormItem><FormControl><Input placeholder="Country" {...field} /></FormControl><FormMessage /></FormItem>)} />
                                         <FormField control={form.control} name="pinCode" render={({ field }) => (<FormItem><FormControl><Input placeholder="Pin Code" {...field} /></FormControl><FormMessage /></FormItem>)} />
                                       </div>
                                   </div>
@@ -300,7 +310,7 @@ export default function PatientProfilePage() {
                             <CardContent className="space-y-6">
                                 <ProfileDetail icon={Phone} label="Phone Number" value={userProfile.phoneNumber || 'N/A'} />
                                 <ProfileDetail icon={AtSign} label="Email Address" value={user?.email} />
-                                <ProfileDetail icon={Home} label="Full Address" value={`${userProfile.address?.fullAddress || ''}, ${userProfile.address?.cityStateCountry || ''} - ${userProfile.address?.pinCode || ''}`.replace(/^, | - $/g, '') || 'N/A'} />
+                                <ProfileDetail icon={Home} label="Full Address" value={`${userProfile.address?.fullAddress || ''}, ${userProfile.address?.city || ''}, ${userProfile.address?.state || ''}, ${userProfile.address?.country || ''} - ${userProfile.address?.pinCode || ''}`.replace(/, , /g, ', ').replace(/^, |, $/g, '').replace(/ - $/g, '') || 'N/A'} />
                                 {userProfile.emergencyContact?.name && (
                                     <div className="flex items-start gap-4">
                                         <Users className="h-5 w-5 text-destructive mt-1 flex-shrink-0" />

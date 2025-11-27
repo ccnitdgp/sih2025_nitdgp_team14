@@ -60,7 +60,9 @@ const signupSchema = z.object({
   gender: z.string().optional(),
   bloodGroup: z.string().optional(),
   fullAddress: z.string().min(1, { message: "Full address is required." }),
-  cityStateCountry: z.string().min(1, { message: "City/State/Country is required." }),
+  city: z.string().min(1, { message: "City is required." }),
+  state: z.string().min(1, { message: "State is required." }),
+  country: z.string().min(1, { message: "Country is required." }),
   pinCode: z.string().min(1, { message: "Pin Code is required." }),
   emergencyContactName: z.string().optional(),
   emergencyContactPhone: z.string().optional(),
@@ -155,7 +157,9 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
       password: "",
       confirmPassword: "",
       fullAddress: "",
-      cityStateCountry: "",
+      city: "",
+      state: "",
+      country: "",
       pinCode: "",
       bloodGroup: undefined,
       emergencyContactName: "",
@@ -201,7 +205,9 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
             phoneNumber: values.phoneNumber,
             address: {
                 fullAddress: values.fullAddress,
-                cityStateCountry: values.cityStateCountry,
+                city: values.city,
+                state: values.state,
+                country: values.country,
                 pinCode: values.pinCode,
             },
         };
@@ -257,7 +263,9 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
                     firstName: values.firstName,
                     lastName: values.lastName,
                     specialty: "General Physician", // Placeholder
-                    cityStateCountry: values.cityStateCountry,
+                    city: values.city,
+                    state: values.state,
+                    country: values.country,
                 };
                 const doctorDocRef = doc(firestore, 'doctors', user.uid);
                 setDocumentNonBlocking(doctorDocRef, publicDoctorProfile, {});
@@ -612,8 +620,12 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
                      <div className="space-y-2">
                         <FormLabel>Address</FormLabel>
                         <FormField control={signupForm.control} name="fullAddress" render={({ field }) => (<FormItem><FormControl><Input placeholder="Full Address" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                        <div className="grid grid-cols-2 gap-4">
-                            <FormField control={signupForm.control} name="cityStateCountry" render={({ field }) => (<FormItem><FormControl><Input placeholder="City / State / Country" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <FormField control={signupForm.control} name="city" render={({ field }) => (<FormItem><FormControl><Input placeholder="City" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={signupForm.control} name="state" render={({ field }) => (<FormItem><FormControl><Input placeholder="State" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                        </div>
+                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <FormField control={signupForm.control} name="country" render={({ field }) => (<FormItem><FormControl><Input placeholder="Country" {...field} /></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={signupForm.control} name="pinCode" render={({ field }) => (<FormItem><FormControl><Input placeholder="Pin Code" {...field} /></FormControl><FormMessage /></FormItem>)} />
                         </div>
                     </div>
@@ -737,3 +749,5 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
     </Dialog>
   );
 }
+
+    

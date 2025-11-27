@@ -121,7 +121,7 @@ export function PatientProfileTab({ patientId, patientProfile, isLoading }) {
             <CardContent className="space-y-6">
                 <ProfileDetail icon={Phone} label="Phone Number" value={patientProfile.phoneNumber || 'N/A'} />
                 <ProfileDetail icon={AtSign} label="Email Address" value={patientProfile.email} />
-                <ProfileDetail icon={Home} label="Full Address" value={`${patientProfile.address?.fullAddress || ''}, ${patientProfile.address?.cityStateCountry || ''} - ${patientProfile.address?.pinCode || ''}`.replace(/^, | - $/g, '') || 'N/A'} />
+                <ProfileDetail icon={Home} label="Full Address" value={`${patientProfile.address?.fullAddress || ''}, ${patientProfile.address?.city || ''}, ${patientProfile.address?.state || ''}, ${patientProfile.address?.country || ''} - ${patientProfile.address?.pinCode || ''}`.replace(/, , /g, ', ').replace(/^, |, $/g, '').replace(/ - $/g, '') || 'N/A'} />
                 {patientProfile.emergencyContact?.name && (
                     <div className="flex items-start gap-4">
                         <Users className="h-5 w-5 text-destructive mt-1 flex-shrink-0" />

@@ -78,7 +78,7 @@ const FindDoctors = ({ t }) => {
       id: doc.id,
       name: `Dr. ${doc.firstName} ${doc.lastName}`,
       specialty: doc.specialty || 'General Physician',
-      location: doc.cityStateCountry || 'Not specified',
+      location: `${doc.city || ''}, ${doc.state || ''}`.replace(/^, |, $/g, ''),
       rating: 4.8, // Placeholder
       reviews: 0, // Placeholder
       avatar: `https://picsum.photos/seed/${doc.id}/200`,
@@ -460,3 +460,5 @@ export default function AppointmentsPage() {
     </div>
   );
 }
+
+    
