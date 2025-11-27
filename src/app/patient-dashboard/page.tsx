@@ -399,34 +399,11 @@ export default function PatientDashboardPage() {
                     </Button>
                 </CardContent>
             </Card>
-
-             <div className="lg:col-span-2">
-                <Card className="shadow-sm">
-                  <CardHeader>
-                    <CardTitle>{t('my_documents_card_title', 'My Documents')}</CardTitle>
-                    <CardDescription>{t('my_documents_card_desc', 'Manage your insurance and vaccination files.')}</CardDescription>
-                  </CardHeader>
-                   <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Link href="#" className="flex items-center gap-3 p-4 rounded-lg border hover:bg-muted">
-                        <FileText className="h-6 w-6 text-primary"/>
-                        <div>
-                            <h4 className="font-semibold">{t('insurance_policy_doc', 'Insurance Policy')}</h4>
-                            <p className="text-sm text-muted-foreground">{t('insurance_policy_doc_desc', 'View and download your policy.')}</p>
-                        </div>
-                      </Link>
-                      <Link href="/records/vaccination-records" className="flex items-center gap-3 p-4 rounded-lg border hover:bg-muted">
-                        <FileText className="h-6 w-6 text-primary"/>
-                        <div>
-                            <h4 className="font-semibold">{t('vaccination_cert_doc', 'Vaccination Certificate')}</h4>
-                            <p className="text-sm text-muted-foreground">{t('vaccination_cert_doc_desc', 'Access your COVID-19 certificate.')}</p>
-                        </div>
-                      </Link>
-                   </CardContent>
-                </Card>
-            </div>
           </div>
         </div>
       </div>
     </div>
   );
 }
+
+    
