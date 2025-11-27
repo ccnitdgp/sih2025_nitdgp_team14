@@ -61,7 +61,7 @@ const generateTimeSlots = (workingHours?: string, duration?: number): string[] =
     if (!workingHours || !duration) return [];
     
     const slots: string[] = [];
-    const parts = workingHours.split('-').map(s => s.trim());
+    const parts = workingHours.split('-').map(s => s.trim().toLowerCase());
     if (parts.length !== 2) return [];
 
     const [startTimeStr, endTimeStr] = parts;
@@ -69,6 +69,13 @@ const generateTimeSlots = (workingHours?: string, duration?: number): string[] =
     try {
         let currentTime = parse(startTimeStr, 'h a', new Date());
         const endTime = parse(endTimeStr, 'h a', new Date());
+
+        // Handle cases like 9am - 5pm. If start is PM and end is AM, it's an overnight shift which we don't support.
+        // If end time is before start time (e.g. 5pm - 9am), it's invalid for a single day.
+        if (endTime <= currentTime) {
+            console.error("Invalid working hours: End time must be after start time.", workingHours);
+            return [];
+        }
 
         while (currentTime < endTime) {
             slots.push(format(currentTime, 'hh:mm a'));
@@ -107,9 +114,19 @@ const parseAvailableDays = (daysString?: string): number[] => {
             const startDay = dayMap[startDayStr];
             const endDay = dayMap[endDayStr];
 
-            if (startDay !== undefined && endDay !== undefined && startDay <= endDay) {
-                for (let dayIndex = startDay; dayIndex <= endDay; dayIndex++) {
-                    availableDays.add(dayIndex);
+            if (startDay !== undefined && endDay !== undefined) {
+                // Handle ranges that wrap around the week, e.g., Sat - Mon
+                if (startDay <= endDay) {
+                    for (let dayIndex = startDay; dayIndex <= endDay; dayIndex++) {
+                        availableDays.add(dayIndex);
+                    }
+                } else { // e.g. Sat - Tue
+                    for (let dayIndex = startDay; dayIndex <= 6; dayIndex++) {
+                        availableDays.add(dayIndex);
+                    }
+                    for (let dayIndex = 0; dayIndex <= endDay; dayIndex++) {
+                        availableDays.add(dayIndex);
+                    }
                 }
             }
         } else if (rangeParts.length === 1) {

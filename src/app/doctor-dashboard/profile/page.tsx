@@ -256,7 +256,7 @@ export default function DoctorProfilePage() {
                                 <Card>
                                     <CardHeader><CardTitle className="flex items-center gap-2"><Calendar/> Scheduling & Availability</CardTitle></CardHeader>
                                     <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
-                                         <FormField control={form.control} name="availableDays" render={({ field }) => (<FormItem><FormLabel>Available Days</FormLabel><FormControl><Input placeholder="e.g. Mon - Fri" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                         <FormField control={form.control} name="availableDays" render={({ field }) => (<FormItem><FormLabel>Available Days</FormLabel><FormControl><Input placeholder="e.g. Mon - Fri, Sun" {...field} /></FormControl><FormMessage /></FormItem>)} />
                                          <FormField control={form.control} name="workingHours" render={({ field }) => (<FormItem><FormLabel>Working Hours</FormLabel><FormControl><Input placeholder="e.g. 9 AM - 5 PM" {...field} /></FormControl><FormMessage /></FormItem>)} />
                                          <FormField control={form.control} name="appointmentDuration" render={({ field }) => (<FormItem><FormLabel>Appointment Duration (mins)</FormLabel><FormControl><Input type="number" placeholder="15" {...field} /></FormControl><FormMessage /></FormItem>)} />
                                     </CardContent>
