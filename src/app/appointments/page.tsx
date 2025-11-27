@@ -20,7 +20,7 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { format, addDays } from 'date-fns';
+import { format, addDays, startOfDay } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { upcomingAppointments, pastAppointments, appointments as allAppointments } from '@/lib/data';
 import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
@@ -265,9 +265,10 @@ const FindDoctors = ({ t }) => {
                     setSelectedTime(undefined);
                     }}
                     disabled={(date) => {
-                      const today = new Date();
-                      today.setHours(0, 0, 0, 0);
-                      if (date < today || !selectedDoctor) {
+                      if (date < startOfDay(new Date())) {
+                          return true;
+                      }
+                      if (!selectedDoctor) {
                           return true;
                       }
                       const availableSlots = getAvailableTimesForDate(selectedDoctor, date);
