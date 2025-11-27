@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, Clock, User, FileText, CheckCircle, Pencil, Receipt, Building } from 'lucide-react';
+import { Calendar, Clock, User, FileText, CheckCircle, Pencil, Receipt, Building, Video } from 'lucide-react';
 import { doctorUpcomingAppointments, doctorPastAppointments, type DoctorAppointment } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
@@ -19,6 +19,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
 
 
 const billSchema = z.object({
@@ -84,7 +85,7 @@ export default function DoctorAppointmentsPage() {
                 <Calendar className="h-5 w-5 text-primary" />
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Date</p>
-                  <p className="font-semibold">{appointment.date}</p>
+                  <p className="font-semibold">{new Date(appointment.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -124,6 +125,11 @@ export default function DoctorAppointmentsPage() {
           </div>
 
           <div className="flex flex-wrap gap-2 pt-4 border-t">
+             {appointment.type === 'Virtual' && (
+              <Button asChild>
+                <Link href="https://meet.google.com" target="_blank"><Video className="mr-2 h-4 w-4"/>Join Video Call</Link>
+              </Button>
+            )}
             <Button><CheckCircle />Mark as Complete</Button>
             <Button variant="outline" onClick={handleWritePrescription}><Pencil />Write Prescription</Button>
             <Button variant="outline" onClick={() => setIsBillDialogOpen(true)}><Receipt />Generate Bill</Button>
@@ -276,3 +282,5 @@ export default function DoctorAppointmentsPage() {
     </div>
   );
 }
+
+    

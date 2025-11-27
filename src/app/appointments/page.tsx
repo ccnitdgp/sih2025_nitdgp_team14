@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Lightbulb, Sparkles, MapPin, Calendar as CalendarIcon, Star, Clock, Search, ClipboardList, History } from 'lucide-react';
+import { Lightbulb, Sparkles, MapPin, Calendar as CalendarIcon, Star, Clock, Search, ClipboardList, History, Video } from 'lucide-react';
 import { getSpecialistSuggestion, type SymptomCheckerOutput } from '@/ai/flows/symptom-checker-flow';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
@@ -31,6 +31,8 @@ import mr from '@/lib/locales/mr.json';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
+
 
 const languageFiles = { hi, bn, ta, te, mr };
 
@@ -137,10 +139,17 @@ const FindDoctors = ({ t }) => {
         patientId: user.uid,
         date: format(selectedDate, 'yyyy-MM-dd'),
         time: selectedTime,
+        type: 'In-Person', // Defaulting to In-Person for new bookings
+        doctorName: selectedDoctor.name,
+        specialty: selectedDoctor.specialty,
+        location: selectedDoctor.location,
+        avatar: selectedDoctor.avatar,
     };
     
     // Update the shared state
     setBookedAppointments([...bookedAppointments, newAppointment]);
+    upcomingAppointments.push(newAppointment as any);
+
 
     toast({
       title: t('appointment_booked_title', 'Appointment Booked!'),
@@ -339,6 +348,11 @@ const MyAppointments = ({ t }) => {
                             </div>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-2 self-start sm:self-center">
+                            {appt.type === 'Virtual' && (
+                              <Button asChild>
+                                <Link href="https://meet.google.com" target="_blank"><Video className="mr-2 h-4 w-4" />Join Call</Link>
+                              </Button>
+                            )}
                             <Button variant="outline">{t('reschedule_button', 'Reschedule')}</Button>
                             <Button variant="destructive">{t('cancel_button', 'Cancel')}</Button>
                         </div>
@@ -376,6 +390,9 @@ const HistoryTab = ({ t }) => {
                             </div>
                         </div>
                         <div className="flex gap-2 self-start sm:self-center">
+                             {appt.type === 'Virtual' && (
+                              <Button disabled>Call Ended</Button>
+                            )}
                             <Button>{t('book_again_button', 'Book Again')}</Button>
                             <Button variant="outline">{t('view_details_button', 'View Details')}</Button>
                         </div>
@@ -445,3 +462,5 @@ export default function AppointmentsPage() {
     </div>
   );
 }
+
+    
