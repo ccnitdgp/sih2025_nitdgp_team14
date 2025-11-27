@@ -27,7 +27,7 @@ const ProfileSkeleton = () => (
         <CardTitle>Personal Information</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-        {[...Array(5)].map((_, i) => (
+        {[...Array(4)].map((_, i) => (
             <div key={i} className="flex items-center gap-4">
             <Skeleton className="h-6 w-6 rounded-full" />
             <div className='w-full space-y-2'>
@@ -40,10 +40,10 @@ const ProfileSkeleton = () => (
     </Card>
     <Card>
         <CardHeader>
-        <CardTitle>Contact Details</CardTitle>
+        <CardTitle>Contact & Address</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-            {[...Array(4)].map((_, i) => (
+            {[...Array(5)].map((_, i) => (
             <div key={i} className="flex items-center gap-4">
                 <Skeleton className="h-6 w-6 rounded-full" />
                 <div className='w-full space-y-2'>

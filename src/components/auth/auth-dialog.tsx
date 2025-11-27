@@ -9,7 +9,7 @@ import { CalendarIcon, Eye, EyeOff, User, Stethoscope } from "lucide-react";
 import { useAuth } from "@/firebase";
 import { initiateEmailSignIn, initiateEmailSignUp, sendPasswordReset } from "@/firebase/non-blocking-login";
 import { setDocumentNonBlocking, addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { doc, collection } from 'firebase/firestore';
+import { doc, collection, query, where, getDocs, writeBatch } from 'firebase/firestore';
 import { useFirestore } from "@/firebase";
 import { format } from "date-fns";
 
@@ -177,62 +177,100 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
 
   async function onSignupSubmit(values: z.infer<typeof signupSchema>) {
     try {
-      const userCredential = await initiateEmailSignUp(auth, values.email, values.password);
-      if (userCredential && userCredential.user) {
-        const user = userCredential.user;
-        const userProfile: any = {
-          id: user.uid,
-          firstName: values.firstName,
-          lastName: values.lastName,
-          role: values.role,
-          email: user.email,
-          dateOfBirth: values.dateOfBirth,
-          gender: values.gender,
-          phoneNumber: values.phoneNumber,
-          address: {
-            fullAddress: values.fullAddress,
-            cityStateCountry: values.cityStateCountry,
-            pinCode: values.pinCode,
-          },
-        };
-        
-        if (values.role === 'patient') {
-          userProfile.doctorId = HARDCODED_DOCTOR_ID;
-          userProfile.bloodGroup = values.bloodGroup;
-          userProfile.emergencyContact = {
-            name: values.emergencyContactName,
-            phone: values.emergencyContactPhone,
-            relation: values.emergencyContactRelation,
-          };
-        }
+        const userCredential = await initiateEmailSignUp(auth, values.email, values.password);
+        if (userCredential && userCredential.user) {
+            const user = userCredential.user;
 
-        const userDocRef = doc(firestore, 'users', user.uid);
-        setDocumentNonBlocking(userDocRef, userProfile, { merge: true });
+            // Check if a pre-existing profile exists for this email
+            const usersRef = collection(firestore, "users");
+            const q = query(usersRef, where("email", "==", values.email), where("role", "==", values.role));
+            const querySnapshot = await getDocs(q);
 
-        // If a patient signs up, add them to the doctor's patient list
-        if (userProfile.role === 'patient' && userProfile.doctorId) {
-          const doctorPatientsColRef = collection(firestore, 'users', userProfile.doctorId, 'patients');
-          const patientLinkDoc = {
-            patientId: user.uid,
-            firstName: values.firstName,
-            lastName: values.lastName,
-            email: values.email
-          };
-          const patientDocInDoctorList = doc(doctorPatientsColRef, user.uid);
-          setDocumentNonBlocking(patientDocInDoctorList, patientLinkDoc, {});
+            let userDocRef;
+            let userProfileData: any;
+
+            if (!querySnapshot.empty) {
+                // A profile already exists, link this new auth account to it.
+                const existingDoc = querySnapshot.docs[0];
+                userDocRef = existingDoc.ref;
+                userProfileData = {
+                    ...existingDoc.data(),
+                    // Overwrite details from sign-up form
+                    firstName: values.firstName,
+                    lastName: values.lastName,
+                    dateOfBirth: values.dateOfBirth,
+                    gender: values.gender,
+                    phoneNumber: values.phoneNumber,
+                    address: {
+                      fullAddress: values.fullAddress,
+                      cityStateCountry: values.cityStateCountry,
+                      pinCode: values.pinCode,
+                    },
+                    // Crucially, update the ID to the new auth user's ID
+                    id: user.uid, 
+                };
+
+                // Because we are changing the document ID, we must delete the old one and create a new one.
+                const batch = writeBatch(firestore);
+                batch.delete(existingDoc.ref);
+                const newDocRefWithAuthId = doc(firestore, 'users', user.uid);
+                batch.set(newDocRefWithAuthId, userProfileData);
+                await batch.commit();
+
+            } else {
+                // No pre-existing profile, create a new one from scratch.
+                userDocRef = doc(firestore, 'users', user.uid);
+                userProfileData = {
+                    id: user.uid,
+                    firstName: values.firstName,
+                    lastName: values.lastName,
+                    role: values.role,
+                    email: user.email,
+                    dateOfBirth: values.dateOfBirth,
+                    gender: values.gender,
+                    phoneNumber: values.phoneNumber,
+                     address: {
+                      fullAddress: values.fullAddress,
+                      cityStateCountry: values.cityStateCountry,
+                      pinCode: values.pinCode,
+                    },
+                };
+                 if (values.role === 'patient') {
+                    userProfileData.doctorId = HARDCODED_DOCTOR_ID;
+                    userProfileData.bloodGroup = values.bloodGroup;
+                    userProfileData.emergencyContact = {
+                        name: values.emergencyContactName,
+                        phone: values.emergencyContactPhone,
+                        relation: values.emergencyContactRelation,
+                    };
+                }
+                setDocumentNonBlocking(userDocRef, userProfileData, { merge: true });
+            }
+
+            // If a patient signs up, ensure they are in the doctor's patient list
+            if (userProfileData.role === 'patient' && userProfileData.doctorId) {
+                const doctorPatientsColRef = collection(firestore, 'users', userProfileData.doctorId, 'patients');
+                const patientLinkDocRef = doc(doctorPatientsColRef, user.uid);
+                const patientLinkDoc = {
+                    patientId: user.uid,
+                    firstName: values.firstName,
+                    lastName: values.lastName,
+                    email: values.email
+                };
+                setDocumentNonBlocking(patientLinkDocRef, patientLinkDoc, {});
+            }
         }
-      }
-      setOpen(false);
-      onOpenChange?.(false);
-      router.push('/login-redirect');
+        setOpen(false);
+        onOpenChange?.(false);
+        router.push('/login-redirect');
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Sign up failed",
-        description: error.message,
-      });
+        toast({
+            variant: "destructive",
+            title: "Sign up failed",
+            description: error.message,
+        });
     }
-  }
+}
   
   const handleSignUp = async (values: z.infer<typeof signupSchema>) => {
     try {
