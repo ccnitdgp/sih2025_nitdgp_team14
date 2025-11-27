@@ -21,7 +21,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Calendar } from '@/components/ui/calendar';
-import { format, addDays, startOfDay, parse, addMinutes, isWithinInterval, set } from 'date-fns';
+import { format, addDays, startOfDay, parse, addMinutes, isWithinInterval, set, getDay } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUser, useDoc, useFirestore, useMemoFirebase, useCollection, addDocumentNonBlocking } from '@/firebase';
 import { doc, collection, query, where } from 'firebase/firestore';
@@ -61,9 +61,10 @@ const generateTimeSlots = (workingHours?: string, duration?: number): string[] =
     if (!workingHours || !duration) return [];
     
     const slots: string[] = [];
-    const [startTimeStr, endTimeStr] = workingHours.split('-').map(s => s.trim());
-    
-    if (!startTimeStr || !endTimeStr) return [];
+    const parts = workingHours.split('-').map(s => s.trim());
+    if (parts.length !== 2) return [];
+
+    const [startTimeStr, endTimeStr] = parts;
     
     try {
         let currentTime = parse(startTimeStr, 'h a', new Date());
@@ -80,6 +81,58 @@ const generateTimeSlots = (workingHours?: string, duration?: number): string[] =
 
     return slots;
 }
+
+const parseAvailableDays = (daysString?: string): number[] => {
+    if (!daysString) return [];
+
+    const dayMap = {
+        sun: 0, sunday: 0,
+        mon: 1, monday: 1,
+        tue: 2, tuesday: 2,
+        wed: 3, wednesday: 3,
+        thu: 4, thursday: 4,
+        fri: 5, friday: 5,
+        sat: 6, saturday: 6,
+    };
+
+    const availableDays = new Set<number>();
+    const parts = daysString.toLowerCase().split(/,|-/).map(s => s.trim());
+
+    for (let i = 0; i < parts.length; i++) {
+        const part = parts[i];
+        if (dayMap[part] !== undefined) {
+             if (i < parts.length - 1 && daysString.includes('-') && dayMap[parts[i+1]] !== undefined) {
+                // Handle range
+                const startDay = dayMap[part];
+                const endDay = dayMap[parts[i+1]];
+                for (let dayIndex = startDay; dayIndex <= endDay; dayIndex++) {
+                    availableDays.add(dayIndex);
+                }
+                i++; // Skip the next part as it was part of a range
+            } else {
+                availableDays.add(dayMap[part]);
+            }
+        }
+    }
+    
+    // Handle single day ranges like "Monday to Friday"
+    if (availableDays.size === 0 && daysString.includes('to')) {
+        const rangeParts = daysString.toLowerCase().split('to').map(s => s.trim());
+        if (rangeParts.length === 2) {
+             const startDay = dayMap[rangeParts[0]];
+             const endDay = dayMap[rangeParts[1]];
+             if(startDay !== undefined && endDay !== undefined) {
+                for (let dayIndex = startDay; dayIndex <= endDay; dayIndex++) {
+                    availableDays.add(dayIndex);
+                }
+             }
+        }
+    }
+
+
+    return Array.from(availableDays);
+}
+
 
 const FindDoctors = ({ t }) => {
   const [symptoms, setSymptoms] = useState('');
@@ -109,15 +162,15 @@ const FindDoctors = ({ t }) => {
   const doctors = useMemo(() => {
     if (!doctorsData) return [];
     return doctorsData.map(doc => {
-      const availableSlots = {};
-      const availableDays = doc.availability?.availableDays?.toLowerCase().split(',').map(s => s.trim()) || [];
+      const availableSlots: Record<string, string[]> = {};
+      const workingDays = parseAvailableDays(doc.availability?.availableDays);
       const slots = generateTimeSlots(doc.availability?.workingHours, doc.availability?.appointmentDuration);
 
-      for (let i = 0; i < 30; i++) { // Generate for next 30 days
+      for (let i = 0; i < 30; i++) {
         const date = addDays(startOfDay(new Date()), i);
-        const dayOfWeek = format(date, 'eee').toLowerCase();
+        const dayOfWeek = getDay(date); // 0 (Sun) to 6 (Sat)
         
-        if (availableDays.includes(dayOfWeek)) {
+        if (workingDays.includes(dayOfWeek)) {
             const dateString = format(date, 'yyyy-MM-dd');
             availableSlots[dateString] = slots;
         }
@@ -530,5 +583,3 @@ export default function AppointmentsPage() {
     </div>
   );
 }
-
-    
