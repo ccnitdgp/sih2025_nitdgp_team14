@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -19,9 +19,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { useUser, useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking, useDoc } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking, useDoc, addDocumentNonBlocking } from '@/firebase';
 import { collection, query, where, doc } from 'firebase/firestore';
-import { differenceInYears } from 'date-fns';
+import { differenceInYears, parseISO } from 'date-fns';
 
 
 const billSchema = z.object({
@@ -46,8 +46,20 @@ export default function DoctorAppointmentsPage() {
 
   const { data: appointments, isLoading: isLoadingAppointments } = useCollection(appointmentsQuery);
   
-  const upcomingAppointments = appointments?.filter(a => a.status === 'Scheduled');
-  const pastAppointments = appointments?.filter(a => a.status !== 'Scheduled');
+  const upcomingAppointments = useMemo(() => {
+    if (!appointments) return [];
+    return appointments
+      .filter(a => new Date(a.date) >= new Date())
+      .sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }, [appointments]);
+
+  const pastAppointments = useMemo(() => {
+    if (!appointments) return [];
+    return appointments
+      .filter(a => new Date(a.date) < new Date())
+      .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [appointments]);
+
 
   useEffect(() => {
     if (!selectedAppointment && upcomingAppointments && upcomingAppointments.length > 0) {
@@ -72,7 +84,19 @@ export default function DoctorAppointmentsPage() {
   };
   
   const handleGenerateBill = (values: z.infer<typeof billSchema>) => {
-    console.log('Bill Generated:', values);
+    if (!selectedAppointment?.patientId || !firestore) return;
+    
+    const billsRef = collection(firestore, 'users', selectedAppointment.patientId, 'bills');
+    const billData = {
+      title: values.description,
+      category: values.category,
+      amount: values.amount,
+      date: new Date().toISOString().split('T')[0],
+      status: 'Due',
+    };
+    
+    addDocumentNonBlocking(billsRef, billData);
+
     toast({
       title: 'Bill Generated',
       description: `A bill for Rs. ${values.amount} has been generated for ${selectedAppointment?.patientName}.`,
