@@ -15,7 +15,7 @@
         "state": { "type": "string" },
         "country": { "type": "string" }
       },
-      "required": ["id", "firstName", "lastName", "specialty"]
+      "required": ["id", "firstName", "lastName", "specialty", "city", "state", "country"]
     },
     "PatientLink": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -157,6 +157,16 @@
                 "bloodSugar": { "type": "number", "description": "Most recent blood sugar level in mg/dL." },
                 "pulseRate": { "type": "number", "description": "Most recent resting pulse rate in bpm." }
             }
+        },
+        "medicalDetails": {
+          "type": "object",
+          "description": "Static medical details about the user.",
+          "properties": {
+            "disabilities": { "type": "string", "description": "Any physical or mental disabilities." },
+            "familyMedicalHistory": { "type": "string", "description": "Known medical conditions in the user's family." },
+            "knownAllergies": { "type": "string", "description": "All known drug, food, or environmental allergies." },
+            "existingMedicalConditions": { "type": "string", "description": "Ongoing medical conditions like Diabetes, BP, etc." }
+          }
         }
       },
       "required": [

@@ -22,39 +22,59 @@ const ProfileDetail = ({ icon: Icon, label, value, description }) => {
 };
 
 const ProfileSkeleton = () => (
-    <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-    <Card>
-        <CardHeader>
-        <CardTitle>Personal Information</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-        {[...Array(4)].map((_, i) => (
-            <div key={i} className="flex items-center gap-4">
-            <Skeleton className="h-6 w-6 rounded-full" />
-            <div className='w-full space-y-2'>
-                <Skeleton className="h-4 w-1/3" />
-                <Skeleton className="h-5 w-2/3" />
-            </div>
-            </div>
-        ))}
-        </CardContent>
-    </Card>
-    <Card>
-        <CardHeader>
-        <CardTitle>Contact & Address</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-            {[...Array(5)].map((_, i) => (
-            <div key={i} className="flex items-center gap-4">
-                <Skeleton className="h-6 w-6 rounded-full" />
-                <div className='w-full space-y-2'>
-                <Skeleton className="h-4 w-1/3" />
-                <Skeleton className="h-5 w-2/3" />
-                </div>
-            </div>
-        ))}
-        </CardContent>
-    </Card>
+    <div className="grid grid-cols-1 gap-8 md:grid-cols-7">
+        <div className='md:col-span-4 space-y-8'>
+            <Card>
+                <CardHeader>
+                <CardTitle>Personal Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                {[...Array(4)].map((_, i) => (
+                    <div key={i} className="flex items-center gap-4">
+                    <Skeleton className="h-6 w-6 rounded-full" />
+                    <div className='w-full space-y-2'>
+                        <Skeleton className="h-4 w-1/3" />
+                        <Skeleton className="h-5 w-2/3" />
+                    </div>
+                    </div>
+                ))}
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader>
+                <CardTitle>Contact & Address</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    {[...Array(3)].map((_, i) => (
+                    <div key={i} className="flex items-center gap-4">
+                        <Skeleton className="h-6 w-6 rounded-full" />
+                        <div className='w-full space-y-2'>
+                        <Skeleton className="h-4 w-1/3" />
+                        <Skeleton className="h-5 w-2/3" />
+                        </div>
+                    </div>
+                ))}
+                </CardContent>
+            </Card>
+        </div>
+        <div className="md:col-span-3 space-y-8">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Health Metrics</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    {[...Array(5)].map((_, i) => (
+                        <div key={i} className="flex items-center gap-4">
+                            <Skeleton className="h-6 w-6 rounded-full" />
+                            <div className='w-full space-y-2'>
+                            <Skeleton className="h-4 w-1/3" />
+                            <Skeleton className="h-5 w-2/3" />
+                            </div>
+                        </div>
+                    ))}
+                </CardContent>
+            </Card>
+        </div>
     </div>
 );
 
@@ -99,6 +119,8 @@ export function PatientProfileTab({ patientId, patientProfile, isLoading }) {
     )
   }
 
+  const { medicalDetails } = patientProfile;
+
   return (
      <div className="grid grid-cols-1 gap-8 md:grid-cols-7">
         <div className='md:col-span-4 space-y-8'>
@@ -108,10 +130,20 @@ export function PatientProfileTab({ patientId, patientProfile, isLoading }) {
             </CardHeader>
             <CardContent className="space-y-6">
                 <ProfileDetail icon={UserIcon} label="Full Name" value={`${patientProfile.firstName} ${patientProfile.lastName}`} />
-                <ProfileDetail icon={Cake} label="Date of Birth" value={patientProfile.dateOfBirth?.toDate ? `${patientProfile.dateOfBirth.toDate().toLocaleDateString()} (${getAge(patientProfile.dateOfBirth)} years old)` : 'Not Provided'} />
+                <ProfileDetail icon={Cake} label="Age" value={getAge(patientProfile.dateOfBirth) ? `${getAge(patientProfile.dateOfBirth)} years old` : 'Not Provided'} />
                 <ProfileDetail icon={Users} label="Gender" value={patientProfile.gender || 'N/A'} />
                 <ProfileDetail icon={Droplet} label="Blood Group" value={patientProfile.bloodGroup || 'N/A'} />
             </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader><CardTitle>Key Medical Details</CardTitle></CardHeader>
+                <CardContent className="space-y-6">
+                    <ProfileDetail icon={HeartPulse} label="Existing Conditions" value={medicalDetails?.existingMedicalConditions || 'None reported'} />
+                    <ProfileDetail icon={HeartPulse} label="Known Allergies" value={medicalDetails?.knownAllergies || 'None reported'} />
+                    <ProfileDetail icon={HeartPulse} label="Family Medical History" value={medicalDetails?.familyMedicalHistory || 'None reported'} />
+                    <ProfileDetail icon={HeartPulse} label="Disabilities" value={medicalDetails?.disabilities || 'None reported'} />
+                </CardContent>
             </Card>
 
             <Card>

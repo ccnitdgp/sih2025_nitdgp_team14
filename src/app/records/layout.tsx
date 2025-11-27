@@ -9,6 +9,7 @@ import {
   FlaskConical,
   History,
   ShieldCheck,
+  HeartPulse,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -56,6 +57,11 @@ export default function RecordsLayout({ children }: RecordsLayoutProps) {
       title: t('medical_history_link', 'Medical History'),
       href: '/records/medical-history',
       icon: History,
+    },
+    {
+      title: t('medical_details_link', 'Medical Details'),
+      href: '/records/medical-details',
+      icon: HeartPulse,
     },
     {
       title: t('prescriptions_link', 'Prescriptions'),
@@ -121,3 +127,5 @@ export default function RecordsLayout({ children }: RecordsLayoutProps) {
     </div>
   );
 }
+
+    
