@@ -85,8 +85,9 @@ export default function VaccinationPage() {
         </div>
         <div className="space-y-8">
             {vaccinationDrives.map((drive) => {
-              const driveName = t(drive.name_key, drive.name_key);
-              const driveDetails = t(drive.details_key, drive.details_key);
+              const driveName = t(drive.name_key, drive.name);
+              const driveDetails = t(drive.details_key, drive.details);
+              const driveLocation = t(drive.location_key, drive.location);
 
               return (
               <Card key={drive.id} className="w-full transition-shadow hover:shadow-lg">
@@ -104,7 +105,7 @@ export default function VaccinationPage() {
                           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
                             <div className="flex items-center gap-2">
                               <MapPin className="h-4 w-4" />
-                              <span>{t(drive.location_key, drive.location_key)}</span>
+                              <span>{driveLocation}</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <Calendar className="h-4 w-4" />

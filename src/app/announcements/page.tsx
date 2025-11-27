@@ -63,7 +63,7 @@ export default function AnnouncementsPage() {
                     <div className="flex items-start w-full gap-4">
                       <notification.Icon className={cn("h-6 w-6 mt-1", notification.color)} />
                       <div className="flex-1 space-y-2">
-                        <h3 className="font-semibold text-lg text-left">{t(notification.title_key, notification.title_key)}</h3>
+                        <h3 className="font-semibold text-lg text-left">{t(notification.title_key, notification.title)}</h3>
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
                           <Badge variant="outline" className={cn("border-none text-xs font-bold", notification.color, notification.bgColor)}>
                             {t(notification.i18n_category_key, notification.category)}
@@ -79,7 +79,7 @@ export default function AnnouncementsPage() {
                   </AccordionTrigger>
                   <AccordionContent className="px-6 pb-6">
                     <div className="pl-10">
-                      <p className="text-muted-foreground">{t(notification.details_key, notification.details_key)}</p>
+                      <p className="text-muted-foreground">{t(notification.details_key, notification.details)}</p>
                     </div>
                   </AccordionContent>
                   </AccordionItem>

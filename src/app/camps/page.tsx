@@ -60,8 +60,9 @@ export default function CampsPage() {
         </div>
         <div className="space-y-8">
           {visitingCamps.map((camp) => {
-            const campName = t(camp.name_key, camp.name_key);
-            const campDetails = t(camp.details_key, camp.details_key);
+            const campName = t(camp.name_key, camp.name);
+            const campDetails = t(camp.details_key, camp.details);
+            const campLocation = t(camp.location_key, camp.location);
 
             return (
             <Card key={camp.id} className="w-full transition-shadow hover:shadow-lg">
@@ -79,7 +80,7 @@ export default function CampsPage() {
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
                           <div className="flex items-center gap-2">
                             <MapPin className="h-4 w-4" />
-                            <span>{t(camp.location_key, camp.location_key)}</span>
+                            <span>{campLocation}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4" />

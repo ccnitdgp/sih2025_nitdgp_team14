@@ -44,34 +44,46 @@ export const stats: Stat[] = [
 export const vaccinationDrives = [
   {
     id: 1,
+    name: "COVID-19 Booster Dose Drive",
     name_key: 'vaccination_drive_1_name',
+    location: "Community Hall, Near Labour Chowk",
     location_key: 'vaccination_drive_1_location',
     date: 'August 20, 2024',
     time: '9:00 AM - 5:00 PM',
+    details: "Free COVID-19 booster shots (Covishield & Covaxin) available for all eligible individuals. Please bring your previous vaccination certificate and Aadhar card for registration.",
     details_key: 'vaccination_drive_1_details'
   },
   {
     id: 2,
+    name: "Children's Immunization Camp (Polio & MMR)",
     name_key: 'vaccination_drive_2_name',
+    location: "Anganwadi Center, Near Site 5",
     location_key: 'vaccination_drive_2_location',
     date: 'August 25, 2024',
     time: '10:00 AM - 4:00 PM',
+    details: "Free Polio and MMR vaccines for children under 5. Please bring the child's birth certificate and immunization card.",
     details_key: 'vaccination_drive_2_details'
   },
   {
     id: 3,
+    name: "Tetanus & Diphtheria (Td) Vaccination for Adults",
     name_key: 'vaccination_drive_3_name',
+    location: "Sector 18 Community Center",
     location_key: 'vaccination_drive_3_location',
     date: 'September 5, 2024',
     time: '11:00 AM - 3:00 PM',
+    details: "Td vaccine for adults. Recommended for everyone, especially those with recent injuries. No prior registration required.",
     details_key: 'vaccination_drive_3_details'
   },
   {
     id: 4,
+    name: "Hepatitis B Vaccination Drive",
     name_key: 'vaccination_drive_4_name',
+    location: "Govt. Primary School, Phase 3",
     location_key: 'vaccination_drive_4_location',
     date: 'September 12, 2024',
     time: '9:00 AM - 4:00 PM',
+    details: "First and second doses of Hepatitis B vaccine available. Open for all age groups.",
     details_key: 'vaccination_drive_4_details'
   }
 ];
@@ -79,34 +91,46 @@ export const vaccinationDrives = [
 export const visitingCamps = [
   {
     id: 1,
+    name: "General Health Check-up Camp",
     name_key: 'health_camp_1_name',
+    location: "Community Hall, Near Labour Chowk",
     location_key: 'health_camp_1_location',
     date: 'August 15, 2024',
     time: '8:00 AM - 2:00 PM',
+    details: "Free general health check-ups, including blood pressure monitoring, blood sugar tests, and a consultation with a general physician. Basic medicines will be provided free of cost.",
     details_key: 'health_camp_1_details'
   },
   {
     id: 2,
+    name: "Eye Care & Vision Screening",
     name_key: 'health_camp_2_name',
+    location: "Sector 18 Community Center",
     location_key: 'health_camp_2_location',
     date: 'August 22, 2024',
     time: '9:00 AM - 1:00 PM',
+    details: "Comprehensive eye examinations, vision tests, and distribution of free eyeglasses for those in need. Minor eye ailments will also be treated.",
     details_key: 'health_camp_2_details'
   },
   {
     id: 3,
+    name: "Dental Health Camp",
     name_key: 'health_camp_3_name',
+    location: "Govt. Primary School, Phase 3",
     location_key: 'health_camp_3_location',
     date: 'September 1, 2024',
     time: '10:00 AM - 5:00 PM',
+    details: "Free dental check-ups, cleaning, and basic treatments. Consultations on oral hygiene will also be available.",
     details_key: 'health_camp_3_details'
   },
   {
     id: 4,
+    name: "Women's Health & Awareness Camp",
     name_key: 'health_camp_4_name',
+    location: "Anganwadi Center, Near Site 5",
     location_key: 'health_camp_4_location',
     date: 'September 10, 2024',
     time: '10:00 AM - 4:00 PM',
+    details: "Specialized health check-ups for women, including screenings and consultations. Awareness sessions on various health issues.",
     details_key: 'health_camp_4_details'
   }
 ];
@@ -217,9 +241,11 @@ export const vaccinationRecords = [
 
 export type MedicalNotification = {
   id: number;
+  title: string;
   title_key: string;
   category: 'WEATHER ADVISORY' | 'DISEASE PREVENTION' | 'PUBLIC HEALTH' | 'VACCINATION';
   date: string;
+  details: string;
   details_key: string;
   Icon: LucideIcon;
   color: string;
@@ -231,10 +257,12 @@ export type MedicalNotification = {
 export const medicalNotifications: MedicalNotification[] = [
   {
     id: 1,
+    title: 'Heatwave Alert & Precautionary Measures',
     title_key: 'announcement_1_title',
     category: 'WEATHER ADVISORY',
     i18n_category_key: 'weather_advisory',
     date: 'August 10, 2024',
+    details: 'High temperatures are expected over the next few days. Stay hydrated, avoid direct sun exposure between 11 AM and 4 PM, and wear light clothing. Ensure the elderly and children are well-protected. Seek medical help if you experience dizziness or nausea.',
     details_key: 'announcement_1_details',
     Icon: TriangleAlert,
     color: 'text-yellow-600',
@@ -243,10 +271,12 @@ export const medicalNotifications: MedicalNotification[] = [
   },
   {
     id: 2,
+    title: 'Dengue & Malaria Prevention Advisory',
     title_key: 'announcement_2_title',
     category: 'DISEASE PREVENTION',
     i18n_category_key: 'disease_prevention',
     date: 'August 5, 2024',
+    details: "With the monsoon season, it's crucial to prevent mosquito breeding. Do not let water stagnate in coolers, pots, or tires. Use mosquito repellents and nets. See a doctor immediately if you develop a high fever with body aches.",
     details_key: 'announcement_2_details',
     Icon: ShieldCheck,
     color: 'text-blue-600',
@@ -255,10 +285,12 @@ export const medicalNotifications: MedicalNotification[] = [
   },
   {
     id: 3,
+    title: 'Public Health Notice: Contaminated Water Supply',
     title_key: 'announcement_3_title',
     category: 'PUBLIC HEALTH',
     i18n_category_key: 'public_health',
     date: 'August 1, 2024',
+    details: 'A recent report indicates potential contamination of the water supply in Sector 15. Residents are advised to boil water before drinking or use a reliable water purifier. The local authorities are working to resolve the issue.',
     details_key: 'announcement_3_details',
     Icon: Info,
     color: 'text-red-600',
@@ -267,10 +299,12 @@ export const medicalNotifications: MedicalNotification[] = [
   },
   {
     id: 4,
+    title: 'Flu Vaccination Campaign',
     title_key: 'announcement_4_title',
     category: 'VACCINATION',
     i18n_category_key: 'vaccination',
     date: 'July 28, 2024',
+    details: 'A free flu vaccination drive is being organized next week. Getting vaccinated is the best way to protect yourself and others from the flu. Details about locations and times will be announced shortly.',
     details_key: 'announcement_4_details',
     Icon: CheckCircle,
     color: 'text-green-600',
