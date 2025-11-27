@@ -57,8 +57,9 @@ type Doctor = {
 };
 
 const parseTime = (timeStr: string): Date | null => {
+    if (!timeStr) return null;
     const time = timeStr.toLowerCase().trim();
-    const match = time.match(/(\d{1,2}):?(\d{2})?\s?(am|pm)/);
+    const match = time.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)/);
     if (!match) return null;
 
     let [_, hour, minute, ampm] = match;
@@ -68,7 +69,7 @@ const parseTime = (timeStr: string): Date | null => {
     if (ampm === 'pm' && hourNum < 12) {
         hourNum += 12;
     }
-    if (ampm === 'am' && hourNum === 12) { // Midnight case
+    if (ampm === 'am' && hourNum === 12) { // Midnight case: 12am is 00:00
         hourNum = 0;
     }
 
@@ -85,11 +86,9 @@ const generateTimeSlots = (workingHours?: string, duration?: number): string[] =
     const parts = workingHours.split('-').map(s => s.trim());
     if (parts.length !== 2) return [];
 
-    const [startTimeStr, endTimeStr] = parts;
+    const startTime = parseTime(parts[0]);
+    const endTime = parseTime(parts[1]);
     
-    const startTime = parseTime(startTimeStr);
-    const endTime = parseTime(endTimeStr);
-
     if (!startTime || !endTime || endTime <= startTime) {
         return [];
     }
@@ -122,19 +121,18 @@ const parseAvailableDays = (daysString?: string): number[] => {
     for (const segment of daySegments) {
         const rangeParts = segment.split(/-|to/).map(p => p.trim());
         if (rangeParts.length === 2) {
-            const startDayStr = rangeParts[0];
-            const endDayStr = rangeParts[1];
+            const startDayStr = rangeParts[0].substring(0, 3);
+            const endDayStr = rangeParts[1].substring(0, 3);
 
             const startDay = dayMap[startDayStr];
             const endDay = dayMap[endDayStr];
 
             if (startDay !== undefined && endDay !== undefined) {
-                // Handle ranges that wrap around the week, e.g., Sat - Mon
                 if (startDay <= endDay) {
                     for (let dayIndex = startDay; dayIndex <= endDay; dayIndex++) {
                         availableDays.add(dayIndex);
                     }
-                } else { // e.g. Sat - Tue
+                } else { // Handle ranges like Sat - Tue
                     for (let dayIndex = startDay; dayIndex <= 6; dayIndex++) {
                         availableDays.add(dayIndex);
                     }
@@ -144,7 +142,8 @@ const parseAvailableDays = (daysString?: string): number[] => {
                 }
             }
         } else if (rangeParts.length === 1) {
-            const day = dayMap[rangeParts[0]];
+            const dayStr = rangeParts[0].substring(0, 3);
+            const day = dayMap[dayStr];
             if (day !== undefined) {
                 availableDays.add(day);
             }
