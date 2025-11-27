@@ -2,6 +2,9 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -99,11 +102,17 @@ const FindDoctors = ({ t }) => {
       const slots = generateTimeSlots(doc.availability?.workingHours, doc.availability?.appointmentDuration);
       const availableSlots = {};
       
-      // Generate slots for the next 7 days as a placeholder for real availability logic
+      const availableDays = doc.availability?.availableDays?.toLowerCase().split(',').map(s => s.trim()) || [];
+      const dayMap = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
+
       for (let i = 0; i < 7; i++) {
         const date = addDays(startOfDay(new Date()), i);
-        const dateString = format(date, 'yyyy-MM-dd');
-        availableSlots[dateString] = slots;
+        const dayOfWeek = format(date, 'eee').toLowerCase();
+        
+        if (availableDays.includes(dayOfWeek)) {
+            const dateString = format(date, 'yyyy-MM-dd');
+            availableSlots[dateString] = slots;
+        }
       }
       
       return {
@@ -495,5 +504,3 @@ export default function AppointmentsPage() {
     </div>
   );
 }
-
-    

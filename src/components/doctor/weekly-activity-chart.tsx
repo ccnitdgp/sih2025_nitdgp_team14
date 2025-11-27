@@ -41,7 +41,7 @@ export function WeeklyActivityChart() {
     const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
     const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
 
-    const dailyCounts = weekDays.map(day => {
+    return weekDays.map(day => {
         const count = appointments?.filter(appt => isSameDay(new Date(appt.date), day)).length || 0;
         return {
             day: format(day, 'EEEE'),
@@ -49,7 +49,6 @@ export function WeeklyActivityChart() {
         };
     });
 
-    return dailyCounts;
   }, [appointments]);
 
   return (
@@ -72,4 +71,3 @@ export function WeeklyActivityChart() {
       </ChartContainer>
   )
 }
-
