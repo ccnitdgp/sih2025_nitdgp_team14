@@ -1,4 +1,3 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -26,4 +25,175 @@ service cloud.firestore {
     }
 
     function isPatient() { return hasRole("patient"); }
-    function isDoctor()  { return hasR
+    function isDoctor()  { return hasRole("doctor"); }
+    function isAdmin()   { return hasRole("admin"); }
+
+    // Is the current doctor linked to this patient via PatientLink?
+    function isAssignedDoctorForUser(userId) {
+      return isDoctor()
+        && exists(
+          /databases/$(database)/documents/users/$(request.auth.uid)/patients/$(userId)
+        );
+    }
+
+    // ============================================================
+    // /users/{userId}  (UserProfile - private)
+    // ============================================================
+
+    match /users/{userId} {
+
+      // Create own profile: id field must match auth.uid & path.
+      allow create: if isSignedIn()
+        && request.auth.uid == userId
+        && request.resource.data.id == userId;
+
+      // User reads/updates their own profile.
+      allow get, update: if isOwner(userId);
+
+      // Only admins can list or delete user profiles.
+      allow list, delete: if isAdmin();
+
+
+      // ----------------------------------------------
+      // /users/{userId}/healthRecords/{healthRecordId}
+      // ----------------------------------------------
+      match /healthRecords/{healthRecordId} {
+
+        // For new docs, userId field must match path.
+        function newRecordUserMatchesPath() {
+          return request.resource.data.userId == userId;
+        }
+
+        // For existing docs, userId field must match path.
+        function existingRecordUserMatchesPath() {
+          return resource.data.userId == userId;
+        }
+
+        // Create: patient themself, assigned doctor, or admin.
+        allow create: if isSignedIn()
+          && newRecordUserMatchesPath()
+          && (
+            isOwner(userId) ||
+            isAssignedDoctorForUser(userId) ||
+            isAdmin()
+          );
+
+        // Read/list/update/delete:
+        // - patient owner
+        // - assigned doctor (via PatientLink)
+        // - admin
+        allow get, list, update, delete: if isSignedIn()
+          && existingRecordUserMatchesPath()
+          && (
+            isOwner(userId) ||
+            isAssignedDoctorForUser(userId) ||
+            isAdmin()
+          );
+      }
+
+
+      // ----------------------------------------------
+      // /users/{userId}/notifications/{notificationId}
+      // ----------------------------------------------
+      match /notifications/{notificationId} {
+
+        // Only the owner (or admin) can manage their notifications.
+        allow create, get, list, update, delete: if isSignedIn()
+          && (isOwner(userId) || isAdmin());
+      }
+
+
+      // ----------------------------------------------
+      // /users/{doctorId}/patients/{patientId} (PatientLink)
+      // ----------------------------------------------
+      match /patients/{patientId} {
+
+        // Only the doctor who owns this /users/{doctorId} doc
+        // or an admin can manage these links.
+        allow create, get, list, update, delete: if isSignedIn()
+          && (
+            (isOwner(userId) && isDoctor()) ||
+            isAdmin()
+          );
+      }
+    }
+
+
+    // ============================================================
+    // /doctors/{doctorId}  (DoctorProfile - public)
+    // ============================================================
+
+    match /doctors/{doctorId} {
+
+      // Anybody (even not signed in) can see and list doctors.
+      allow get, list: if true;
+
+      // Doctor creates/updates their own public profile, or admin.
+      allow create, update: if isSignedIn()
+        && (
+          (request.auth.uid == doctorId && isDoctor()) ||
+          isAdmin()
+        );
+
+      // Only admin can delete.
+      allow delete: if isAdmin();
+    }
+
+
+    // ============================================================
+    // /appointments/{appointmentId}  (top-level)
+    // You should create docs like:
+    // { id, patientId, doctorId, scheduledAt, status, ... }
+    // ============================================================
+
+    match /appointments/{appointmentId} {
+
+      // Helper: who is allowed to create this appointment?
+      function canCreateAppointment() {
+        let patientId = request.resource.data.patientId;
+        let doctorId  = request.resource.data.doctorId;
+
+        return
+          // patient booking for themselves
+          (isPatient() && patientId == request.auth.uid)
+          ||
+          // doctor creating for a linked patient
+          (isDoctor()
+            && doctorId == request.auth.uid
+            && exists(
+              /databases/$(database)/documents/users/$(doctorId)/patients/$(patientId)
+            ))
+          ||
+          // admin can do anything
+          isAdmin();
+      }
+
+      allow create: if isSignedIn() && canCreateAppointment();
+
+      // Read/list/update: patient, doctor involved, or admin.
+      allow get, list, update: if isSignedIn() && (
+        resource.data.patientId == request.auth.uid ||
+        resource.data.doctorId  == request.auth.uid ||
+        isAdmin()
+      );
+
+      // Only admin can delete appointments.
+      allow delete: if isAdmin();
+    }
+
+
+    // ============================================================
+    // Public event collections
+    // ============================================================
+
+    match /vaccinationDrives/{vaccinationDriveId} {
+      allow get, list: if true;          // public read
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /healthCamps/{healthCampId} {
+      allow get, list: if true;          // public read
+      allow create, update, delete: if isAdmin();
+    }
+  }
+}
