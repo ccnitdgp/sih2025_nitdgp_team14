@@ -5,7 +5,7 @@ import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocki
 import { doc } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AtSign, Cake, Droplet, Phone, User as UserIcon, Users, Home, Pencil, X, Camera, MapPin, Locate, ArrowLeft } from 'lucide-react';
+import { AtSign, Cake, Droplet, Phone, User as UserIcon, Users, Home, Pencil, X, MapPin, Locate, ArrowLeft, HeartPulse, TrendingUp, Sparkles, Scale, Activity, Droplets } from 'lucide-react';
 import { differenceInYears, format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -36,10 +36,15 @@ const profileSchema = z.object({
   emergencyContactName: z.string().optional(),
   emergencyContactPhone: z.string().optional(),
   emergencyContactRelation: z.string().optional(),
+  height: z.coerce.number().optional(),
+  weight: z.coerce.number().optional(),
+  bloodPressure: z.string().optional(),
+  bloodSugar: z.coerce.number().optional(),
+  pulseRate: z.coerce.number().optional(),
 });
 
 
-const ProfileDetail = ({ icon: Icon, label, value }) => {
+const ProfileDetail = ({ icon: Icon, label, value, description }) => {
   if (!value) return null;
   return (
     <div className="flex items-start gap-4">
@@ -47,6 +52,7 @@ const ProfileDetail = ({ icon: Icon, label, value }) => {
       <div>
         <p className="text-sm font-medium text-muted-foreground">{label}</p>
         <p className="font-semibold">{value}</p>
+        {description && <p className="text-xs text-muted-foreground">{description}</p>}
       </div>
     </div>
   );
@@ -57,10 +63,7 @@ export default function PatientProfilePage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-
+  
   const userDocRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
     return doc(firestore, 'users', user.uid);
@@ -87,9 +90,14 @@ export default function PatientProfilePage() {
         emergencyContactName: userProfile.emergencyContact?.name || '',
         emergencyContactPhone: userProfile.emergencyContact?.phone || '',
         emergencyContactRelation: userProfile.emergencyContact?.relation || '',
+        height: userProfile.healthMetrics?.height || undefined,
+        weight: userProfile.healthMetrics?.weight || undefined,
+        bloodPressure: userProfile.healthMetrics?.bloodPressure || '',
+        bloodSugar: userProfile.healthMetrics?.bloodSugar || undefined,
+        pulseRate: userProfile.healthMetrics?.pulseRate || undefined,
       });
     }
-  }, [userProfile, form]);
+  }, [userProfile, form, isEditing]);
   
   const getAge = (dob) => {
     if (!dob) return null;
@@ -101,23 +109,16 @@ export default function PatientProfilePage() {
     }
   };
 
-  const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result as string);
-        // In a real app, you would upload the file to Firebase Storage here
-        // and then update the user's photoURL.
-        toast({
-          title: "Photo Updated",
-          description: "Your new profile photo is ready to be saved.",
-        });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
+  const calculateBmi = () => {
+      const height = userProfile?.healthMetrics?.height;
+      const weight = userProfile?.healthMetrics?.weight;
+      if (height && weight) {
+          const heightInMeters = height / 100;
+          const bmi = weight / (heightInMeters * heightInMeters);
+          return bmi.toFixed(1);
+      }
+      return null;
+  }
 
   const onSubmit = (values: z.infer<typeof profileSchema>) => {
     if (!userDocRef) return;
@@ -138,12 +139,16 @@ export default function PatientProfilePage() {
             name: values.emergencyContactName,
             phone: values.emergencyContactPhone,
             relation: values.emergencyContactRelation
+        },
+        healthMetrics: {
+            height: values.height,
+            weight: values.weight,
+            bloodPressure: values.bloodPressure,
+            bloodSugar: values.bloodSugar,
+            pulseRate: values.pulseRate,
         }
     };
     
-    // Here you would also handle the uploaded photo URL if it exists
-    // if (photoPreview) { updatedData.photoURL = uploadedPhotoUrl; }
-
     updateDocumentNonBlocking(userDocRef, updatedData);
     toast({ title: 'Profile Updated', description: 'Your changes have been saved successfully.' });
     setIsEditing(false);
@@ -202,27 +207,15 @@ export default function PatientProfilePage() {
                     <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
                          <div className="relative">
                             <Avatar className="h-32 w-32 border-4 border-primary">
-                                <AvatarImage src={photoPreview || user?.photoURL || `https://picsum.photos/seed/${user?.uid}/200`} data-ai-hint="profile photo" />
+                                <AvatarImage src={user?.photoURL || `https://picsum.photos/seed/${user?.uid}/200`} data-ai-hint="profile photo" />
                                 <AvatarFallback className="text-5xl">
                                     {userProfile?.firstName?.charAt(0).toUpperCase() ?? user?.email?.charAt(0).toUpperCase()}
                                 </AvatarFallback>
                             </Avatar>
-                             {isEditing && (
-                                <>
-                                    <input
-                                        type="file"
-                                        ref={fileInputRef}
-                                        className="hidden"
-                                        accept="image/*"
-                                        onChange={handlePhotoChange}
-                                    />
-                                </>
-                            )}
                         </div>
                         <div className="space-y-1">
                             <h2 className="text-3xl font-bold">{userProfile.firstName} {userProfile.lastName}</h2>
                             <p className="text-muted-foreground">{user?.email}</p>
-                            {userProfile.dateOfBirth && <p className="text-muted-foreground">{getAge(userProfile.dateOfBirth)} years old</p>}
                         </div>
                     </div>
                     <Button onClick={() => setIsEditing(!isEditing)} variant={isEditing ? 'destructive' : 'outline'}>
@@ -235,38 +228,54 @@ export default function PatientProfilePage() {
                     <CardHeader><CardTitle>Edit Your Profile</CardTitle></CardHeader>
                     <CardContent>
                       <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <FormField control={form.control} name="firstName" render={({ field }) => (<FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                            <FormField control={form.control} name="lastName" render={({ field }) => (<FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                           </div>
-                           <FormField control={form.control} name="dateOfBirth" render={({ field }) => (<FormItem className="flex flex-col"><FormLabel>Date of Birth</FormLabel><Popover><PopoverTrigger asChild><FormControl><Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>{field.value ? format(field.value, "PPP") : (<span>Pick a date</span>)}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" captionLayout="dropdown-buttons" fromYear={1900} toYear={new Date().getFullYear()} selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus /></PopoverContent></Popover><FormMessage /></FormItem>)} />
-                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                          <Card>
+                            <CardHeader><CardTitle>Personal & Contact Information</CardTitle></CardHeader>
+                            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
+                              <FormField control={form.control} name="firstName" render={({ field }) => (<FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                              <FormField control={form.control} name="lastName" render={({ field }) => (<FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                              <FormField control={form.control} name="dateOfBirth" render={({ field }) => (<FormItem className="flex flex-col"><FormLabel>Date of Birth</FormLabel><Popover><PopoverTrigger asChild><FormControl><Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>{field.value ? format(field.value, "PPP") : (<span>Pick a date</span>)}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" captionLayout="dropdown-buttons" fromYear={1900} toYear={new Date().getFullYear()} selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus /></PopoverContent></Popover><FormMessage /></FormItem>)} />
                               <FormField control={form.control} name="gender" render={({ field }) => (<FormItem><FormLabel>Gender</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger></FormControl><SelectContent><SelectItem value="Male">Male</SelectItem><SelectItem value="Female">Female</SelectItem><SelectItem value="Other">Other</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
-                              <FormField control={form.control} name="bloodGroup" render={({ field }) => (<FormItem><FormLabel>Blood Group</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger></FormControl><SelectContent><SelectItem value="A+">A+</SelectItem><SelectItem value="A-">A-</SelectItem><SelectItem value="B+">B+</SelectItem><SelectItem value="B-">B-</SelectItem><SelectItem value="AB+">AB+</SelectItem><SelectItem value="AB-">AB-</SelectItem><SelectItem value="O+">O+</SelectItem><SelectItem value="O-">O-</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
-                           </div>
-                           <FormField control={form.control} name="phoneNumber" render={({ field }) => (<FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input type="tel" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                           
-                           <div>
-                            <FormLabel>Address & Location</FormLabel>
-                            <div className="space-y-4 mt-2">
-                                <FormField control={form.control} name="fullAddress" render={({ field }) => (<FormItem><FormControl><Input placeholder="Full Address" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                <div className="grid grid-cols-2 gap-4">
-                                  <FormField control={form.control} name="cityStateCountry" render={({ field }) => (<FormItem><FormControl><Input placeholder="City / State / Country" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                  <FormField control={form.control} name="pinCode" render={({ field }) => (<FormItem><FormControl><Input placeholder="Pin Code" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                              <FormField control={form.control} name="phoneNumber" render={({ field }) => (<FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input type="tel" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            </CardContent>
+                          </Card>
+                          
+                           <Card>
+                             <CardHeader><CardTitle>Address & Emergency Contact</CardTitle></CardHeader>
+                             <CardContent className="pt-6 space-y-6">
+                                <div>
+                                  <FormLabel>Address & Location</FormLabel>
+                                  <div className="space-y-4 mt-2">
+                                      <FormField control={form.control} name="fullAddress" render={({ field }) => (<FormItem><FormControl><Input placeholder="Full Address" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                      <div className="grid grid-cols-2 gap-4">
+                                        <FormField control={form.control} name="cityStateCountry" render={({ field }) => (<FormItem><FormControl><Input placeholder="City / State / Country" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                        <FormField control={form.control} name="pinCode" render={({ field }) => (<FormItem><FormControl><Input placeholder="Pin Code" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                      </div>
+                                  </div>
                                 </div>
-                                <Button variant="outline" type="button" disabled><Locate className="mr-2" /> Geo-location (optional)</Button>
-                            </div>
-                           </div>
+                                <div>
+                                  <FormLabel>Emergency Contact</FormLabel>
+                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
+                                      <FormField control={form.control} name="emergencyContactName" render={({ field }) => (<FormItem><FormControl><Input placeholder="Name" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                      <FormField control={form.control} name="emergencyContactPhone" render={({ field }) => (<FormItem><FormControl><Input type="tel" placeholder="Phone" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                      <FormField control={form.control} name="emergencyContactRelation" render={({ field }) => (<FormItem><FormControl><Input placeholder="Relation" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                  </div>
+                                </div>
+                             </CardContent>
+                           </Card>
 
-                           <div>
-                            <FormLabel>Emergency Contact</FormLabel>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
-                                <FormField control={form.control} name="emergencyContactName" render={({ field }) => (<FormItem><FormControl><Input placeholder="Name" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                <FormField control={form.control} name="emergencyContactPhone" render={({ field }) => (<FormItem><FormControl><Input type="tel" placeholder="Phone" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                <FormField control={form.control} name="emergencyContactRelation" render={({ field }) => (<FormItem><FormControl><Input placeholder="Relation" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                            </div>
-                           </div>
+                            <Card>
+                                <CardHeader><CardTitle>Health Metrics</CardTitle></CardHeader>
+                                <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <FormField control={form.control} name="height" render={({ field }) => (<FormItem><FormLabel>Height (cm)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    <FormField control={form.control} name="weight" render={({ field }) => (<FormItem><FormLabel>Weight (kg)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    <FormField control={form.control} name="bloodPressure" render={({ field }) => (<FormItem><FormLabel>Blood Pressure</FormLabel><FormControl><Input placeholder="e.g., 120/80" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    <FormField control={form.control} name="bloodSugar" render={({ field }) => (<FormItem><FormLabel>Blood Sugar (mg/dL)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    <FormField control={form.control} name="pulseRate" render={({ field }) => (<FormItem><FormLabel>Pulse Rate (bpm)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    <FormField control={form.control} name="bloodGroup" render={({ field }) => (<FormItem><FormLabel>Blood Group</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger></FormControl><SelectContent><SelectItem value="A+">A+</SelectItem><SelectItem value="A-">A-</SelectItem><SelectItem value="B+">B+</SelectItem><SelectItem value="B-">B-</SelectItem><SelectItem value="AB+">AB+</SelectItem><SelectItem value="AB-">AB-</SelectItem><SelectItem value="O+">O+</SelectItem><SelectItem value="O-">O-</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
+                                </CardContent>
+                            </Card>
+
                            <div className="flex justify-end pt-4">
                             <Button type="submit">Save Changes</Button>
                            </div>
@@ -275,38 +284,56 @@ export default function PatientProfilePage() {
                     </CardContent>
                   </Card>
                 ) : (
-                  <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-                      <Card>
-                        <CardHeader><CardTitle>Personal Information</CardTitle></CardHeader>
-                        <CardContent className="space-y-6">
-                            <ProfileDetail icon={UserIcon} label="Full Name" value={`${userProfile.firstName} ${userProfile.lastName}`} />
-                            <ProfileDetail icon={Cake} label="Date of Birth" value={userProfile.dateOfBirth?.toDate ? userProfile.dateOfBirth.toDate().toLocaleDateString() : 'Not Provided'} />
-                            <ProfileDetail icon={Users} label="Gender" value={userProfile.gender} />
-                            <ProfileDetail icon={Droplet} label="Blood Group" value={userProfile.bloodGroup} />
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardHeader><CardTitle>Contact Details</CardTitle></CardHeader>
-                        <CardContent className="space-y-6">
-                            <ProfileDetail icon={Phone} label="Phone Number" value={userProfile.phoneNumber} />
-                            <ProfileDetail icon={AtSign} label="Email Address" value={user?.email} />
-                            <ProfileDetail icon={Home} label="Full Address" value={userProfile.address?.fullAddress} />
-                            <ProfileDetail icon={MapPin} label="City / State / Country" value={userProfile.address?.cityStateCountry} />
-                            <ProfileDetail icon={MapPin} label="Pin Code" value={userProfile.address?.pinCode} />
-                            <ProfileDetail icon={Locate} label="Geo-location" value={userProfile.address?.geolocation ? 'Set' : 'Not Set'} />
-                             {userProfile.emergencyContact?.name && (
-                                <div className="flex items-start gap-4">
-                                    <Users className="h-5 w-5 text-destructive mt-1 flex-shrink-0" />
-                                    <div>
-                                        <p className="text-sm font-medium text-muted-foreground">Emergency Contact</p>
-                                        <p className="font-semibold">{userProfile.emergencyContact.name} ({userProfile.emergencyContact.relation})</p>
-                                        <p className="text-sm font-semibold">{userProfile.emergencyContact.phone}</p>
+                  <div className="grid grid-cols-1 gap-8 md:grid-cols-7">
+                      <div className="md:col-span-4 space-y-8">
+                        <Card>
+                            <CardHeader><CardTitle>Personal Information</CardTitle></CardHeader>
+                            <CardContent className="space-y-6">
+                                <ProfileDetail icon={UserIcon} label="Full Name" value={`${userProfile.firstName} ${userProfile.lastName}`} />
+                                <ProfileDetail icon={Cake} label="Date of Birth" value={userProfile.dateOfBirth?.toDate ? `${userProfile.dateOfBirth.toDate().toLocaleDateString()} (${getAge(userProfile.dateOfBirth)} years old)` : 'Not Provided'} />
+                                <ProfileDetail icon={Users} label="Gender" value={userProfile.gender} />
+                                <ProfileDetail icon={Droplet} label="Blood Group" value={userProfile.bloodGroup} />
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader><CardTitle>Contact Details</CardTitle></CardHeader>
+                            <CardContent className="space-y-6">
+                                <ProfileDetail icon={Phone} label="Phone Number" value={userProfile.phoneNumber} />
+                                <ProfileDetail icon={AtSign} label="Email Address" value={user?.email} />
+                                <ProfileDetail icon={Home} label="Full Address" value={`${userProfile.address?.fullAddress}, ${userProfile.address?.cityStateCountry} - ${userProfile.address?.pinCode}`} />
+                                {userProfile.emergencyContact?.name && (
+                                    <div className="flex items-start gap-4">
+                                        <Users className="h-5 w-5 text-destructive mt-1 flex-shrink-0" />
+                                        <div>
+                                            <p className="text-sm font-medium text-muted-foreground">Emergency Contact</p>
+                                            <p className="font-semibold">{userProfile.emergencyContact.name} ({userProfile.emergencyContact.relation})</p>
+                                            <p className="text-sm font-semibold">{userProfile.emergencyContact.phone}</p>
+                                        </div>
                                     </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                      </div>
+
+                      <div className="md:col-span-3">
+                        <Card>
+                            <CardHeader>
+                                <div className='flex justify-between items-center'>
+                                    <CardTitle>Health Metrics</CardTitle>
+                                    <Button variant="ghost" size="sm" disabled><Sparkles className='mr-2'/> Analyze</Button>
                                 </div>
-                            )}
-                        </CardContent>
-                      </Card>
+                                <CardDescription>Your latest recorded health metrics.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-6">
+                                <ProfileDetail icon={Scale} label="Height / Weight" value={`${userProfile.healthMetrics?.height || 'N/A'} cm / ${userProfile.healthMetrics?.weight || 'N/A'} kg`} />
+                                <ProfileDetail icon={TrendingUp} label="Body Mass Index (BMI)" value={calculateBmi()} />
+                                <ProfileDetail icon={Activity} label="Blood Pressure" value={userProfile.healthMetrics?.bloodPressure} description="Last reading" />
+                                <ProfileDetail icon={Droplets} label="Blood Sugar" value={userProfile.healthMetrics?.bloodSugar ? `${userProfile.healthMetrics.bloodSugar} mg/dL` : null} description="Fasting" />
+                                <ProfileDetail icon={HeartPulse} label="Pulse Rate" value={userProfile.healthMetrics?.pulseRate ? `${userProfile.healthMetrics.pulseRate} bpm` : null} description="Resting" />
+                            </CardContent>
+                        </Card>
+                      </div>
+
                   </div>
                 )}
               </>

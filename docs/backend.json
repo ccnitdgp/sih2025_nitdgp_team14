@@ -142,6 +142,17 @@
                 "sms": {"type": "boolean"},
                 "push": {"type": "boolean"}
             }
+        },
+        "healthMetrics": {
+            "type": "object",
+            "description": "User's key health metrics.",
+            "properties": {
+                "height": { "type": "number", "description": "Height in centimeters." },
+                "weight": { "type": "number", "description": "Weight in kilograms." },
+                "bloodPressure": { "type": "string", "description": "Most recent blood pressure reading (e.g., '120/80')." },
+                "bloodSugar": { "type": "number", "description": "Most recent blood sugar level in mg/dL." },
+                "pulseRate": { "type": "number", "description": "Most recent resting pulse rate in bpm." }
+            }
         }
       },
       "required": [
@@ -424,5 +435,3 @@
     "reasoning": "The Firestore data structure has been redesigned for clarity and security. The core change is the introduction of a public `/doctors` collection, which is separate from the private `/users` collection. The `/doctors` collection stores only non-sensitive information necessary for patients to find and view doctor profiles. The `/users` collection holds all private data for both patients and doctors, strictly secured by user UID. This separation prevents permission errors when listing doctors and adheres to security best practices by not exposing the entire user base."
   }
 }
-
-    

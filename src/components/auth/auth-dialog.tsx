@@ -75,6 +75,8 @@ const signupSchema = z.object({
     .regex(/[^A-Za-z0-9]/, { message: "Password must contain at least one special character." }),
   confirmPassword: z.string(),
   doctorId: z.string().optional(),
+  height: z.coerce.number().optional(),
+  weight: z.coerce.number().optional(),
 }).superRefine((data, ctx) => {
     if (data.password !== data.confirmPassword) {
         ctx.addIssue({
@@ -160,6 +162,8 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
       emergencyContactPhone: "",
       emergencyContactRelation: "",
       doctorId: HARDCODED_DOCTOR_ID,
+      height: undefined,
+      weight: undefined,
     },
   });
 
@@ -186,7 +190,7 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
         const q = query(usersRef, where("email", "==", values.email));
         const querySnapshot = await getDocs(q);
 
-        let userProfileData = {
+        let userProfileData: any = {
             id: '', // Will be set later
             firstName: values.firstName,
             lastName: values.lastName,
@@ -211,6 +215,10 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
                     phone: values.emergencyContactPhone,
                     relation: values.emergencyContactRelation,
                 },
+                healthMetrics: {
+                    height: values.height,
+                    weight: values.weight,
+                }
             });
         }
 
@@ -612,6 +620,7 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
 
 
                     {selectedRole === 'patient' && (
+                      <>
                         <div>
                             <FormLabel>Emergency Contact</FormLabel>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
@@ -653,6 +662,14 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
                                 />
                             </div>
                         </div>
+                        <div>
+                          <FormLabel>Health Metrics</FormLabel>
+                           <div className="grid grid-cols-2 gap-4 mt-2">
+                              <FormField control={signupForm.control} name="height" render={({ field }) => (<FormItem><FormControl><Input type="number" placeholder="Height (cm)" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                              <FormField control={signupForm.control} name="weight" render={({ field }) => (<FormItem><FormControl><Input type="number" placeholder="Weight (kg)" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                           </div>
+                        </div>
+                      </>
                     )}
 
 
@@ -720,4 +737,3 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
     </Dialog>
   );
 }
-

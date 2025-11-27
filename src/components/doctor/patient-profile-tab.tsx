@@ -1,13 +1,13 @@
 
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AtSign, Cake, Droplet, Home, Locate, MapPin, Phone, User as UserIcon, Users } from 'lucide-react';
+import { AtSign, Cake, Droplet, Home, Locate, MapPin, Phone, User as UserIcon, Users, HeartPulse, Scale, TrendingUp, Activity, Droplets } from 'lucide-react';
 import { differenceInYears } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 
-const ProfileDetail = ({ icon: Icon, label, value }) => {
+const ProfileDetail = ({ icon: Icon, label, value, description }) => {
   if (!value) return null;
   return (
     <div className="flex items-start gap-4">
@@ -15,6 +15,7 @@ const ProfileDetail = ({ icon: Icon, label, value }) => {
       <div>
         <p className="text-sm font-medium text-muted-foreground">{label}</p>
         <p className="font-semibold">{value}</p>
+        {description && <p className="text-xs text-muted-foreground">{description}</p>}
       </div>
     </div>
   );
@@ -70,6 +71,17 @@ export function PatientProfileTab({ patientId, patientProfile, isLoading }) {
     }
   };
 
+  const calculateBmi = () => {
+      const height = patientProfile?.healthMetrics?.height;
+      const weight = patientProfile?.healthMetrics?.weight;
+      if (height && weight) {
+          const heightInMeters = height / 100;
+          const bmi = weight / (heightInMeters * heightInMeters);
+          return bmi.toFixed(1);
+      }
+      return null;
+  }
+
   if (isLoading) {
     return <ProfileSkeleton />;
   }
@@ -88,42 +100,56 @@ export function PatientProfileTab({ patientId, patientProfile, isLoading }) {
   }
 
   return (
-     <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-        <Card>
-        <CardHeader>
-            <CardTitle>Personal Information</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-            <ProfileDetail icon={UserIcon} label="Full Name" value={`${patientProfile.firstName} ${patientProfile.lastName}`} />
-            <ProfileDetail icon={Cake} label="Date of Birth" value={patientProfile.dateOfBirth?.toDate ? `${patientProfile.dateOfBirth.toDate().toLocaleDateString()} (${getAge(patientProfile.dateOfBirth)} years)` : 'Not Provided'} />
-            <ProfileDetail icon={Users} label="Gender" value={patientProfile.gender} />
-            <ProfileDetail icon={Droplet} label="Blood Group" value={patientProfile.bloodGroup} />
-        </CardContent>
-        </Card>
+     <div className="grid grid-cols-1 gap-8 md:grid-cols-7">
+        <div className='md:col-span-4 space-y-8'>
+            <Card>
+            <CardHeader>
+                <CardTitle>Personal Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <ProfileDetail icon={UserIcon} label="Full Name" value={`${patientProfile.firstName} ${patientProfile.lastName}`} />
+                <ProfileDetail icon={Cake} label="Date of Birth" value={patientProfile.dateOfBirth?.toDate ? `${patientProfile.dateOfBirth.toDate().toLocaleDateString()} (${getAge(patientProfile.dateOfBirth)} years old)` : 'Not Provided'} />
+                <ProfileDetail icon={Users} label="Gender" value={patientProfile.gender} />
+                <ProfileDetail icon={Droplet} label="Blood Group" value={patientProfile.bloodGroup} />
+            </CardContent>
+            </Card>
 
-        <Card>
-        <CardHeader>
-            <CardTitle>Contact & Address</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-            <ProfileDetail icon={Phone} label="Phone Number" value={patientProfile.phoneNumber} />
-            <ProfileDetail icon={AtSign} label="Email Address" value={patientProfile.email} />
-            <ProfileDetail icon={Home} label="Full Address" value={patientProfile.address?.fullAddress} />
-            <ProfileDetail icon={MapPin} label="City / State / Country" value={patientProfile.address?.cityStateCountry} />
-            <ProfileDetail icon={MapPin} label="Pin Code" value={patientProfile.address?.pinCode} />
-            <ProfileDetail icon={Locate} label="Geo-location" value={patientProfile.address?.geolocation ? 'Set' : 'Not Set'} />
-            {patientProfile.emergencyContact?.name && (
-                <div className="flex items-start gap-4">
-                    <Users className="h-5 w-5 text-destructive mt-1 flex-shrink-0" />
-                    <div>
-                        <p className="text-sm font-medium text-muted-foreground">Emergency Contact</p>
-                        <p className="font-semibold">{patientProfile.emergencyContact.name} ({patientProfile.emergencyContact.relation})</p>
-                        <p className="text-sm font-semibold">{patientProfile.emergencyContact.phone}</p>
+            <Card>
+            <CardHeader>
+                <CardTitle>Contact & Address</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <ProfileDetail icon={Phone} label="Phone Number" value={patientProfile.phoneNumber} />
+                <ProfileDetail icon={AtSign} label="Email Address" value={patientProfile.email} />
+                <ProfileDetail icon={Home} label="Full Address" value={`${patientProfile.address?.fullAddress}, ${patientProfile.address?.cityStateCountry} - ${patientProfile.address?.pinCode}`} />
+                {patientProfile.emergencyContact?.name && (
+                    <div className="flex items-start gap-4">
+                        <Users className="h-5 w-5 text-destructive mt-1 flex-shrink-0" />
+                        <div>
+                            <p className="text-sm font-medium text-muted-foreground">Emergency Contact</p>
+                            <p className="font-semibold">{patientProfile.emergencyContact.name} ({patientProfile.emergencyContact.relation})</p>
+                            <p className="text-sm font-semibold">{patientProfile.emergencyContact.phone}</p>
+                        </div>
                     </div>
-                </div>
-            )}
-        </CardContent>
-        </Card>
+                )}
+            </CardContent>
+            </Card>
+        </div>
+        <div className="md:col-span-3">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Health Metrics</CardTitle>
+                    <CardDescription>Patient's last recorded metrics.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <ProfileDetail icon={Scale} label="Height / Weight" value={`${patientProfile.healthMetrics?.height || 'N/A'} cm / ${patientProfile.healthMetrics?.weight || 'N/A'} kg`} />
+                    <ProfileDetail icon={TrendingUp} label="Body Mass Index (BMI)" value={calculateBmi()} />
+                    <ProfileDetail icon={Activity} label="Blood Pressure" value={patientProfile.healthMetrics?.bloodPressure} description="Last reading" />
+                    <ProfileDetail icon={Droplets} label="Blood Sugar" value={patientProfile.healthMetrics?.bloodSugar ? `${patientProfile.healthMetrics.bloodSugar} mg/dL` : null} description="Fasting" />
+                    <ProfileDetail icon={HeartPulse} label="Pulse Rate" value={patientProfile.healthMetrics?.pulseRate ? `${patientProfile.healthMetrics.pulseRate} bpm` : null} description="Resting" />
+                </CardContent>
+            </Card>
+        </div>
     </div>
   )
 }
