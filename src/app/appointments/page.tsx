@@ -19,7 +19,7 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { upcomingAppointments, pastAppointments } from '@/lib/data';
 import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
@@ -32,6 +32,11 @@ import mr from '@/lib/locales/mr.json';
 
 const languageFiles = { hi, bn, ta, te, mr };
 
+// Dynamically generate available slots for the next few days
+const today = new Date();
+const tomorrow = addDays(today, 1);
+const dayAfter = addDays(today, 2);
+
 const doctors = [
   {
     name: 'Dr. Anjali Sharma',
@@ -42,9 +47,9 @@ const doctors = [
     reviews: 120,
     avatar: 'https://picsum.photos/seed/doc1/200',
     availableSlots: {
-      '2024-09-01': ['10:00 AM', '11:30 AM'],
-      '2024-09-02': ['02:00 PM', '04:00 PM'],
-      '2024-09-03': ['10:00 AM', '11:00 AM', '12:00 PM'],
+      [format(today, 'yyyy-MM-dd')]: ['04:00 PM', '04:30 PM'],
+      [format(tomorrow, 'yyyy-MM-dd')]: ['10:00 AM', '11:30 AM', '02:00 PM'],
+      [format(dayAfter, 'yyyy-MM-dd')]: ['09:00 AM', '09:30 AM', '10:00 AM'],
     }
   },
   {
@@ -56,8 +61,9 @@ const doctors = [
     reviews: 85,
     avatar: 'https://picsum.photos/seed/doc2/200',
      availableSlots: {
-      '2024-08-31': ['04:30 PM', '05:00 PM'],
-      '2024-09-01': ['09:00 AM'],
+      [format(today, 'yyyy-MM-dd')]: ['04:30 PM', '05:00 PM'],
+      [format(tomorrow, 'yyyy-MM-dd')]: ['09:00 AM', '09:30 AM'],
+      [format(dayAfter, 'yyyy-MM-dd')]: ['02:00 PM', '02:30 PM', '03:00 PM'],
     }
   },
   {
@@ -69,8 +75,9 @@ const doctors = [
     reviews: 210,
     avatar: 'https://picsum.photos/seed/doc3/200',
     availableSlots: {
-      '2024-08-31': ['02:00 PM', '03:15 PM'],
-      '2024-09-01': ['10:00 AM'],
+      [format(today, 'yyyy-MM-dd')]: ['02:00 PM', '03:15 PM'],
+      [format(tomorrow, 'yyyy-MM-dd')]: ['10:00 AM', '10:45 AM'],
+      [format(dayAfter, 'yyyy-MM-dd')]: ['11:00 AM', '11:30 AM'],
     }
   },
 ];
@@ -221,7 +228,7 @@ const FindDoctors = ({ t }) => {
             </div>
         </div>
         <Dialog open={!!selectedDoctor} onOpenChange={(isOpen) => !isOpen && handleCloseDialog()}>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-2xl">
             <DialogHeader>
                 <DialogTitle>{t('book_appointment_with_title', 'Book Appointment with')} {selectedDoctor?.name}</DialogTitle>
                 <DialogDescription>
@@ -229,7 +236,7 @@ const FindDoctors = ({ t }) => {
                 </DialogDescription>
             </DialogHeader>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
-                <div className="flex justify-center items-center">
+                <div className="flex justify-center items-start">
                 <Calendar
                     mode="single"
                     selected={selectedDate}
