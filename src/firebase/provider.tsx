@@ -78,13 +78,15 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
   useEffect(() => {
     if (!auth) {
-      setUserAuthState({ user: null, isUserLoading: false, userError: new Error("Auth service not provided.") });
+      // Services are not ready, keep loading.
+      setUserAuthState({ user: null, isUserLoading: true, userError: null });
       return;
     }
 
     const unsubscribe = onAuthStateChanged(
       auth,
       (firebaseUser) => {
+        // First auth state determined, no longer loading user.
         setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
       },
       (error) => {
@@ -93,8 +95,10 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       }
     );
     return () => unsubscribe();
-  }, [auth]);
+  }, [auth]); // Dependency is only on the auth service itself.
 
+  // The entire system is loading if the core Firebase services aren't available
+  // OR if we are still waiting for the very first onAuthStateChanged event.
   const isOverallLoading = !servicesAvailable || userAuthState.isUserLoading;
 
   const contextValue = useMemo((): FirebaseContextState => {
@@ -152,8 +156,8 @@ type MemoFirebase <T> = T & {__memo?: boolean};
 export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | (MemoFirebase<T>) {
   const memoized = useMemo(factory, deps);
   
-  if(typeof memoized !== 'object' || memoized === null) return memoized;
-  if(!('__memo' in memoized)) {
+  // This check is problematic for non-objects, but we only care about refs/queries which are objects.
+  if(typeof memoized === 'object' && memoized !== null && !('__memo' in memoized)) {
      (memoized as MemoFirebase<T>).__memo = true;
   }
   

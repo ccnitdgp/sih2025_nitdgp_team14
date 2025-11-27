@@ -58,7 +58,15 @@ export function WeeklyActivityChart() {
     }
 
     return weekDays.map(day => {
-        const count = appointments.filter(appt => appt.date && isSameDay(new Date(appt.date), day)).length;
+        const count = appointments.filter(appt => {
+          // Ensure appt.date is valid before creating a new Date
+          if (!appt.date || typeof appt.date !== 'string') return false;
+          try {
+            return isSameDay(new Date(appt.date), day)
+          } catch {
+            return false;
+          }
+        }).length;
         return {
             day: format(day, 'EEEE'),
             appointments: count,
@@ -70,6 +78,11 @@ export function WeeklyActivityChart() {
   // Show skeleton if the profile or the appointments are loading.
   if (isProfileLoading || areAppointmentsLoading) {
       return <Skeleton className="h-[250px] w-full" />;
+  }
+  
+  // Also show skeleton if the query is not ready to run yet
+  if (!appointmentsQuery) {
+     return <Skeleton className="h-[250px] w-full" />;
   }
 
   return (
