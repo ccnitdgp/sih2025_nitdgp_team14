@@ -2,8 +2,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { AtSign, Cake, Droplet, Home, Locate, MapPin, Phone, User as UserIcon, Users, HeartPulse, Scale, TrendingUp, Activity, Droplets } from 'lucide-react';
+import { AtSign, Cake, Droplet, Home, Phone, User as UserIcon, Users, HeartPulse, Scale, TrendingUp, Activity, Droplets } from 'lucide-react';
 import { differenceInYears } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -14,7 +13,7 @@ const ProfileDetail = ({ icon: Icon, label, value, description }) => {
       <Icon className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
       <div>
         <p className="text-sm font-medium text-muted-foreground">{label}</p>
-        <p className="font-semibold">{value}</p>
+        <p className="font-semibold whitespace-pre-wrap">{value}</p>
         {description && <p className="text-xs text-muted-foreground">{description}</p>}
       </div>
     </div>
@@ -141,7 +140,7 @@ export function PatientProfileTab({ patientId, patientProfile, isLoading }) {
                 <CardContent className="space-y-6">
                     <ProfileDetail icon={HeartPulse} label="Existing Conditions" value={medicalDetails?.existingMedicalConditions || 'None reported'} />
                     <ProfileDetail icon={HeartPulse} label="Known Allergies" value={medicalDetails?.knownAllergies || 'None reported'} />
-                    <ProfileDetail icon={HeartPulse} label="Family Medical History" value={medicalDetails?.familyMedicalHistory || 'None reported'} />
+                    <ProfileDetail icon={Users} label="Family Medical History" value={medicalDetails?.familyMedicalHistory || 'None reported'} />
                     <ProfileDetail icon={HeartPulse} label="Disabilities" value={medicalDetails?.disabilities || 'None reported'} />
                 </CardContent>
             </Card>
@@ -186,5 +185,3 @@ export function PatientProfileTab({ patientId, patientProfile, isLoading }) {
     </div>
   )
 }
-
-    
