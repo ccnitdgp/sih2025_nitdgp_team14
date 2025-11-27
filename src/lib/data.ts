@@ -123,54 +123,15 @@ export const visitingCamps = [
     }
 ];
 
-export const testimonials = [
-  {
-    id: 1,
-    name: 'Priya Sharma',
-    title: 'Working Professional',
-    quote:
-      'The AI symptom checker suggested I see a specialist, and it was the right call. The appointment booking was seamless. Swasthya has made managing my health so much simpler.',
-    avatarId: 'testimonial-1',
-  },
-  {
-    id: 2,
-    name: 'Amit Singh',
-    title: 'Retired Teacher',
-    quote:
-      'Finding local health camps through this app has been a blessing for my wife and me. We get regular check-ups without any hassle. A must-have for every family.',
-    avatarId: 'testimonial-2',
-  },
-  {
-    id: 3,
-    name: 'Ananya Gupta',
-    title: 'New Mother',
-    quote:
-      "Managing my child's vaccination schedule was always a challenge. Swasthya's reminders and clear record-keeping have made it incredibly easy to stay on top of everything.",
-    avatarId: 'testimonial-3',
-  },
-];
+export const testimonials = [];
 
-export const medicalHistory = [
-  { id: 1, recordType: 'medicalHistory', details: 'Diagnosed with Type 2 Diabetes in 2022.' },
-  { id: 2, recordType: 'medicalHistory', details: 'Patient has a known allergy to Penicillin.' },
-  { id: 3, recordType: 'medicalHistory', details: 'History of seasonal allergies.' },
-];
+export const medicalHistory = [];
 
-export const prescriptions = [
-  { id: 1, recordType: 'prescription', details: { medication: 'Metformin', dosage: '500mg, twice a day', doctor: 'Dr. Ramesh Gupta', date: '2023-01-15', status: 'Active' }},
-  { id: 2, recordType: 'prescription', details: { medication: 'Amoxicillin', dosage: '250mg, thrice a day', doctor: 'Dr. Sunita Patel', date: '2023-06-20', status: 'Finished' }},
-];
+export const prescriptions = [];
 
-export const labReports = [
-  { id: 1, recordType: 'labReport', details: { name: 'Complete Blood Count (CBC)', date: '2023-07-01', issuer: 'Pathology Labs' }},
-  { id: 2, recordType: 'labReport', details: { name: 'Lipid Profile', date: '2023-07-01', issuer: 'Pathology Labs' }},
-];
+export const labReports = [];
 
-export const vaccinationRecords = [
-    { id: 1, vaccine: 'COVID-19 (Covishield) - Dose 1', date: '2021-05-10', location: 'City Hospital', dose: 1 },
-    { id: 2, vaccine: 'COVID-19 (Covishield) - Dose 2', date: '2021-08-10', location: 'City Hospital', dose: 2 },
-    { id: 3, vaccine: 'Tetanus Toxoid', date: '2022-03-20', location: 'Local Clinic', dose: 1 },
-];
+export const vaccinationRecords = [];
 
 
 export type MedicalNotification = {
@@ -257,24 +218,11 @@ export type Bill = {
   status: 'Due' | 'Paid';
 };
 
-export const billingHistory: Bill[] = [
-    { id: 1, title: 'Chest X-Ray', category: 'Radiology', date: '2024-08-15', amount: 1200, status: 'Due' },
-    { id: 2, title: 'Paracetamol & Cough Syrup', category: 'Pharmacy', date: '2024-08-10', amount: 350, status: 'Paid' },
-    { id: 3, title: 'General Consultation', category: 'Consultation', date: '2024-08-10', amount: 800, status: 'Paid' },
-    { id: 4, title: 'Blood Test (CBC)', category: 'Radiology', date: '2024-08-05', amount: 750, status: 'Due' },
-];
+export const billingHistory: Bill[] = [];
 
-export const personalNotifications = [
-    { id: 1, message: "Your appointment with Dr. Sharma is confirmed for tomorrow at 10:00 AM.", time: '1 day ago' },
-    { id: 2, message: "Reminder: Time to take your evening medication.", time: '8 hours ago' },
-    { id: 3, message: "A new health tip is available: 'Benefits of staying hydrated'.", time: '3 days ago' },
-    { id: 4, message: "Your bill for the recent consultation is now due.", time: '5 days ago' },
-];
+export const personalNotifications = [];
 
-export const appointments = [
-    { id: 1, doctorId: 'Y43GFgpcD3QY6xGM3f83hTzYV5i2', patientId: 'p-101', doctorName: 'Dr. Ramesh Gupta', specialty: 'General Physician', location: 'City Hospital', date: '2024-09-10', time: '11:00 AM', avatar: 'https://picsum.photos/seed/doc1/200', type: 'In-Person' },
-    { id: 2, doctorId: 'Y43GFgpcD3QY6xGM3f83hTzYV5i2', patientId: 'p-102', doctorName: 'Dr. Sunita Patel', specialty: 'Dermatologist', location: 'SkinCare Clinic', date: '2024-09-12', time: '02:30 PM', avatar: 'https://picsum.photos/seed/doc2/200', type: 'Virtual' },
-];
+export const appointments = [];
 
 
 export type DoctorAppointment = {
@@ -291,17 +239,8 @@ export type DoctorAppointment = {
 };
 
 
-export const doctorUpcomingAppointments: DoctorAppointment[] = [
-    { id: 1, patientName: 'Amit Kumar', patientAvatar: 'https://picsum.photos/seed/p1/200', patientId: 'p-101', patientAge: 45, date: new Date().toISOString().split('T')[0], time: '10:00 AM', reason: 'Follow-up for blood pressure', type: 'In-Person', status: 'Scheduled' },
-    { id: 2, patientName: 'Sunita Devi', patientAvatar: 'https://picsum.photos/seed/p2/200', patientId: 'p-102', patientAge: 34, date: new Date().toISOString().split('T')[0], time: '11:30 AM', reason: 'General weakness and fatigue', type: 'Virtual', status: 'Scheduled' },
-    { id: 3, patientName: 'Rajesh Singh', patientAvatar: 'https://picsum.photos/seed/p3/200', patientId: 'p-103', patientAge: 52, date: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0], time: '02:00 PM', reason: 'Annual health check-up', type: 'In-Person', status: 'Scheduled' },
-];
+export const doctorUpcomingAppointments: DoctorAppointment[] = [];
 
-export const doctorPastAppointments: DoctorAppointment[] = [
-    { id: 4, patientName: 'Geeta Sharma', patientAvatar: 'https://picsum.photos/seed/p4/200', patientId: 'p-104', patientAge: 28, date: '2024-08-18', time: '09:00 AM', reason: 'Fever and sore throat', type: 'Virtual', status: 'Completed' },
-];
+export const doctorPastAppointments: DoctorAppointment[] = [];
 
-export const recentUploads = [
-    { id: 1, fileName: 'cbc_report_august.pdf', patientName: 'Amit Kumar', type: 'Lab Report', date: '2024-08-20' },
-    { id: 2, fileName: 'chest_xray.dcm', patientName: 'Sunita Devi', type: 'Scan', date: '2024-08-19' },
-];
+export const recentUploads = [];
