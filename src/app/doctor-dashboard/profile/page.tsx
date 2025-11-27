@@ -339,8 +339,7 @@ export default function DoctorProfilePage() {
                             </Card>
                              <Card className="bg-muted/30 hover:shadow-lg transition-shadow">
                                 <CardHeader>
-                                  <CardTitle className="flex items-center gap-2"><Wallet/> Pricing</CardTitle>
-                                </CardHeader>
+                                  <CardTitle className="flex items-center gap-2"><Wallet/> Pricing</CardTitle></CardHeader>
                                 <CardContent className="space-y-4 pt-2">
                                   <div>
                                     <h4 className="font-semibold text-sm">In-Clinic Fee</h4>
@@ -366,4 +365,3 @@ export default function DoctorProfilePage() {
     </div>
   );
 }
-

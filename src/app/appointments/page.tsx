@@ -21,7 +21,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Calendar } from '@/components/ui/calendar';
-import { format, addDays, startOfDay, parse, addMinutes, isWithinInterval, set, getDay } from 'date-fns';
+import { format, addDays, startOfDay, addMinutes, getDay, setHours, setMinutes } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUser, useDoc, useFirestore, useMemoFirebase, useCollection, addDocumentNonBlocking } from '@/firebase';
 import { doc, collection, query, where } from 'firebase/firestore';
@@ -56,34 +56,49 @@ type Doctor = {
   }
 };
 
+const parseTime = (timeStr: string): Date | null => {
+    const time = timeStr.toLowerCase().trim();
+    const match = time.match(/(\d{1,2}):?(\d{2})?\s?(am|pm)/);
+    if (!match) return null;
+
+    let [_, hour, minute, ampm] = match;
+    let hourNum = parseInt(hour, 10);
+    const minuteNum = minute ? parseInt(minute, 10) : 0;
+
+    if (ampm === 'pm' && hourNum < 12) {
+        hourNum += 12;
+    }
+    if (ampm === 'am' && hourNum === 12) { // Midnight case
+        hourNum = 0;
+    }
+
+    const date = new Date();
+    date.setHours(hourNum, minuteNum, 0, 0);
+    return date;
+};
+
 
 const generateTimeSlots = (workingHours?: string, duration?: number): string[] => {
     if (!workingHours || !duration) return [];
     
     const slots: string[] = [];
-    const parts = workingHours.split('-').map(s => s.trim().toLowerCase());
+    const parts = workingHours.split('-').map(s => s.trim());
     if (parts.length !== 2) return [];
 
     const [startTimeStr, endTimeStr] = parts;
     
-    try {
-        let currentTime = parse(startTimeStr, 'h a', new Date());
-        const endTime = parse(endTimeStr, 'h a', new Date());
+    const startTime = parseTime(startTimeStr);
+    const endTime = parseTime(endTimeStr);
 
-        // Handle cases like 9am - 5pm. If start is PM and end is AM, it's an overnight shift which we don't support.
-        // If end time is before start time (e.g. 5pm - 9am), it's invalid for a single day.
-        if (endTime <= currentTime) {
-            console.error("Invalid working hours: End time must be after start time.", workingHours);
-            return [];
-        }
-
-        while (currentTime < endTime) {
-            slots.push(format(currentTime, 'hh:mm a'));
-            currentTime = addMinutes(currentTime, duration);
-        }
-    } catch(e) {
-        console.error("Error parsing time:", e);
+    if (!startTime || !endTime || endTime <= startTime) {
+         console.error("Invalid working hours format or range:", workingHours);
         return [];
+    }
+
+    let currentTime = startTime;
+    while (currentTime < endTime) {
+        slots.push(format(currentTime, 'hh:mm a'));
+        currentTime = addMinutes(currentTime, duration);
     }
 
     return slots;
@@ -288,7 +303,7 @@ const FindDoctors = ({ t }) => {
                     <Sparkles className="h-6 w-6 text-primary" />
                     <CardTitle className="text-2xl">{t('symptom_checker_title', 'AI-Powered Symptom Checker')}</CardTitle>
                     </div>
-                    <p className="text-muted-foreground pt-2">{t('symptom_checker_desc', 'Describe your symptoms, and we\'ll suggest the right specialist for you.')}</p>
+                    <p className="text-muted-foreground pt-2">{t('symptom_checker_desc', 'Describe your symptoms, and we\\'ll suggest the right specialist for you.')}</p>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div>
