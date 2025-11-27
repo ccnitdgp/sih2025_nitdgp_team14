@@ -114,7 +114,7 @@ export default function DoctorPrescriptionsPage() {
         details: {
             medication: values.medicationName,
             dosage: values.dosage,
-            doctor: `Dr. ${doctorUser.displayName || 'Unknown'}`,
+            doctor: `Dr. ${userProfile?.firstName || 'Unknown'} ${userProfile?.lastName || ''}`.trim(),
             date: new Date().toISOString().split('T')[0],
             endDate: values.endDate ? format(values.endDate, 'yyyy-MM-dd') : null,
             status: 'Active',
@@ -130,8 +130,12 @@ export default function DoctorPrescriptionsPage() {
 
     addDocumentNonBlocking(patientHealthRecordsRef, prescriptionData);
     toast({ title: "Prescription Issued", description: `Prescription for ${values.medicationName} has been issued to the patient.` });
-    form.reset();
-    form.setValue('patientId', '');
+    form.reset({
+        patientId: '',
+        medicationName: '',
+        dosage: '',
+        endDate: undefined,
+    });
     setSelectedPatientId(null);
     setIsSubmitting(false);
   };
