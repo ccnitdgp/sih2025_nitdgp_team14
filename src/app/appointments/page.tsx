@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -21,7 +22,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { format, addDays } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { upcomingAppointments, pastAppointments } from '@/lib/data';
+import { upcomingAppointments, pastAppointments, appointments as allAppointments } from '@/lib/data';
 import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import hi from '@/lib/locales/hi.json';
@@ -39,10 +40,10 @@ const dayAfter = addDays(today, 2);
 
 const doctors = [
   {
+    id: 'doc1',
     name: 'Dr. Anjali Sharma',
     specialty: 'Cardiologist',
     location: 'Apollo Hospital, Delhi',
-    nextAvailable: 'Tomorrow, 10:00 AM',
     rating: 4.9,
     reviews: 120,
     avatar: 'https://picsum.photos/seed/doc1/200',
@@ -53,10 +54,10 @@ const doctors = [
     }
   },
   {
+    id: 'doc2',
     name: 'Dr. Vikram Singh',
     specialty: 'Dermatologist',
     location: 'Max Healthcare, Gurgaon',
-    nextAvailable: 'Today, 4:30 PM',
     rating: 4.8,
     reviews: 85,
     avatar: 'https://picsum.photos/seed/doc2/200',
@@ -67,10 +68,10 @@ const doctors = [
     }
   },
   {
+    id: 'doc3',
     name: 'Dr. Priya Gupta',
     specialty: 'General Physician',
     location: 'Fortis Hospital, Noida',
-    nextAvailable: 'Today, 2:00 PM',
     rating: 4.9,
     reviews: 210,
     avatar: 'https://picsum.photos/seed/doc3/200',
@@ -92,6 +93,8 @@ const FindDoctors = ({ t }) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string | undefined>(undefined);
   const { toast } = useToast();
+  const { user } = useUser();
+  const [bookedAppointments, setBookedAppointments] = useState(allAppointments);
 
   const handleGetSuggestion = async () => {
     if (!symptoms) return;
@@ -125,8 +128,19 @@ const FindDoctors = ({ t }) => {
   }
 
   const handleBookAppointment = () => {
-    if (!selectedDoctor || !selectedDate || !selectedTime) return;
+    if (!selectedDoctor || !selectedDate || !selectedTime || !user) return;
     
+    const newAppointment = {
+        id: bookedAppointments.length + 1,
+        doctorId: selectedDoctor.id,
+        patientId: user.uid,
+        date: format(selectedDate, 'yyyy-MM-dd'),
+        time: selectedTime,
+    };
+    
+    // Update the shared state
+    setBookedAppointments([...bookedAppointments, newAppointment]);
+
     toast({
       title: t('appointment_booked_title', 'Appointment Booked!'),
       description: t('appointment_booked_desc', `Your appointment with ${selectedDoctor.name} on ${format(selectedDate, 'PPP')} at ${selectedTime} has been successfully scheduled.`),
@@ -140,8 +154,18 @@ const FindDoctors = ({ t }) => {
     
   const doctorsToShow = filteredDoctors.length > 0 ? filteredDoctors : doctors;
 
+  const getAvailableTimesForDate = (doctor: Doctor, date: Date) => {
+      const dateString = format(date, 'yyyy-MM-dd');
+      const allSlots = doctor.availableSlots[dateString] || [];
+      const bookedSlotsOnDate = bookedAppointments
+          .filter(appt => appt.doctorId === doctor.id && appt.date === dateString)
+          .map(appt => appt.time);
+      
+      return allSlots.filter(slot => !bookedSlotsOnDate.includes(slot));
+  };
+
   const availableTimesForSelectedDate = selectedDoctor && selectedDate 
-    ? selectedDoctor.availableSlots[format(selectedDate, 'yyyy-MM-dd')] || []
+    ? getAvailableTimesForDate(selectedDoctor, selectedDate)
     : [];
 
     return (
@@ -210,10 +234,6 @@ const FindDoctors = ({ t }) => {
                                 <span>{doctor.location}</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <CalendarIcon className="h-4 w-4 text-primary"/>
-                                <span>{t('next_available_text', 'Next available')}: {doctor.nextAvailable}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
                                 <Star className="h-4 w-4 text-yellow-500 fill-yellow-500"/>
                                 <span>{doctor.rating} ({doctor.reviews} {t('reviews_text', 'reviews')})</span>
                             </div>
@@ -245,14 +265,13 @@ const FindDoctors = ({ t }) => {
                     setSelectedTime(undefined);
                     }}
                     disabled={(date) => {
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    if (date < today) {
-                        return true;
-                    }
-                    const dateString = format(date, 'yyyy-MM-dd');
-                    const availableSlots = selectedDoctor?.availableSlots[dateString];
-                    return !availableSlots || availableSlots.length === 0;
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      if (date < today || !selectedDoctor) {
+                          return true;
+                      }
+                      const availableSlots = getAvailableTimesForDate(selectedDoctor, date);
+                      return availableSlots.length === 0;
                     }}
                     initialFocus
                 />
@@ -426,3 +445,5 @@ export default function AppointmentsPage() {
     </div>
   );
 }
+
+    

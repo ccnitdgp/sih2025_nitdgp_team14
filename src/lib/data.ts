@@ -519,3 +519,8 @@ export const recentUploads = [
     date: 'Sep 22, 2025'
   },
 ]
+
+// This will act as our makeshift database for appointments
+export const appointments = [];
+
+    
