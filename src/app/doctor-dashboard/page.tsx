@@ -9,8 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Calendar, Users, FileText, BriefcaseMedical } from 'lucide-react';
 import Link from 'next/link';
 import { WeeklyActivityChart } from '@/components/doctor/weekly-activity-chart';
-import { doctorUpcomingAppointments } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useMemo } from 'react';
+import { isToday, parseISO } from 'date-fns';
 
 const StatCard = ({ title, value, icon: Icon, isLoading }) => (
   <Card>
@@ -54,8 +55,19 @@ export default function DoctorDashboardPage() {
 
   const { data: appointments, isLoading: areAppointmentsLoading } = useCollection(appointmentsQuery);
 
+  const upcomingAppointments = useMemo(() => {
+    if (!appointments) return [];
+    return appointments
+      .filter(appt => appt.status === 'Scheduled')
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }, [appointments]);
+
+  const todayAppointmentsCount = useMemo(() => {
+      if (!upcomingAppointments) return 0;
+      return upcomingAppointments.filter(appt => isToday(parseISO(appt.date))).length;
+  }, [upcomingAppointments]);
+
   const totalPatients = patients?.length || 0;
-  const todayAppointments = doctorUpcomingAppointments.filter(appt => new Date(appt.date).toDateString() === new Date().toDateString()).length;
 
   return (
     <div className="bg-muted/40 min-h-screen">
@@ -71,7 +83,7 @@ export default function DoctorDashboardPage() {
                 <h1 className="text-3xl font-bold tracking-tight">Welcome, Dr. {userProfile?.lastName || user?.email?.split('@')[0]}</h1>
                 <p className="text-muted-foreground flex items-center gap-2 mt-1">
                   <BriefcaseMedical className="h-4 w-4" />
-                  General Physician
+                  {userProfile?.specialty || 'General Physician'}
                 </p>
               </div>
             </div>
@@ -86,7 +98,7 @@ export default function DoctorDashboardPage() {
           </div>
           
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-             <StatCard title="Today's Appointments" value={todayAppointments} icon={Calendar} isLoading={isProfileLoading} />
+             <StatCard title="Today's Appointments" value={todayAppointmentsCount} icon={Calendar} isLoading={areAppointmentsLoading} />
              <StatCard title="Total Patients" value={totalPatients} icon={Users} isLoading={arePatientsLoading} />
              <StatCard title="Prescriptions Written" value="0" icon={FileText} isLoading={false} />
           </div>
@@ -104,20 +116,24 @@ export default function DoctorDashboardPage() {
             <Card className="col-span-1 lg:col-span-3">
               <CardHeader>
                 <CardTitle>Upcoming Appointments</CardTitle>
-                <CardDescription>Your next few appointments for today.</CardDescription>
+                <CardDescription>Your next few scheduled appointments.</CardDescription>
               </CardHeader>
               <CardContent>
-                {doctorUpcomingAppointments.length > 0 ? (
+                {areAppointmentsLoading ? (
+                    <div className="space-y-4">
+                        {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+                    </div>
+                ) : upcomingAppointments.length > 0 ? (
                   <div className="space-y-4">
-                    {doctorUpcomingAppointments.slice(0, 3).map(appt => (
+                    {upcomingAppointments.slice(0, 3).map(appt => (
                       <div key={appt.id} className="flex items-center">
                         <Avatar className="h-9 w-9">
-                          <AvatarImage src={appt.patientAvatar} alt={appt.patientName} />
-                          <AvatarFallback>{appt.patientName.charAt(0)}</AvatarFallback>
+                          <AvatarImage src={`https://picsum.photos/seed/${appt.patientId}/200`} alt={appt.patientName} />
+                          <AvatarFallback>{appt.patientName?.charAt(0) ?? 'P'}</AvatarFallback>
                         </Avatar>
                         <div className="ml-4 space-y-1">
                           <p className="text-sm font-medium leading-none">{appt.patientName}</p>
-                          <p className="text-sm text-muted-foreground">{appt.reason}</p>
+                          <p className="text-sm text-muted-foreground">{new Date(appt.date).toLocaleDateString()}</p>
                         </div>
                         <div className="ml-auto font-medium">{appt.time}</div>
                       </div>
@@ -125,7 +141,7 @@ export default function DoctorDashboardPage() {
                   </div>
                 ) : (
                     <div className="flex items-center justify-center h-full py-8">
-                        <p className="text-muted-foreground">No more appointments today.</p>
+                        <p className="text-muted-foreground">No upcoming appointments.</p>
                     </div>
                 )}
               </CardContent>

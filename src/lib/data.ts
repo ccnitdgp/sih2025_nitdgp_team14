@@ -222,9 +222,6 @@ export const billingHistory: Bill[] = [];
 
 export const personalNotifications = [];
 
-export const appointments = [];
-
-
 export type DoctorAppointment = {
     id: number;
     patientName: string;
@@ -238,9 +235,5 @@ export type DoctorAppointment = {
     status: 'Scheduled' | 'Completed' | 'Canceled';
 };
 
-
-export const doctorUpcomingAppointments: DoctorAppointment[] = [];
-
-export const doctorPastAppointments: DoctorAppointment[] = [];
 
 export const recentUploads = [];

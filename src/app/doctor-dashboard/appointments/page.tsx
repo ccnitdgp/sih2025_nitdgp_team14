@@ -11,7 +11,6 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, Clock, User, FileText, CheckCircle, Pencil, Receipt, Building, Video } from 'lucide-react';
-import { doctorUpcomingAppointments, doctorPastAppointments, type DoctorAppointment } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -20,6 +19,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import { useUser, useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
+import { collection, query, where } from 'firebase/firestore';
 
 
 const billSchema = z.object({
@@ -30,10 +31,23 @@ const billSchema = z.object({
 
 
 export default function DoctorAppointmentsPage() {
-  const [selectedAppointment, setSelectedAppointment] = useState<DoctorAppointment | null>(doctorUpcomingAppointments[0] || null);
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [isBillDialogOpen, setIsBillDialogOpen] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
+
+  const appointmentsQuery = useMemoFirebase(() => {
+      if (!user || !firestore) return null;
+      return query(collection(firestore, 'appointments'), where('doctorId', '==', user.uid));
+  }, [user, firestore]);
+
+  const { data: appointments, isLoading: isLoadingAppointments } = useCollection(appointmentsQuery);
+  
+  const upcomingAppointments = appointments?.filter(a => a.status === 'Scheduled');
+  const pastAppointments = appointments?.filter(a => a.status !== 'Scheduled');
+
 
   const form = useForm<z.infer<typeof billSchema>>({
     resolver: zodResolver(billSchema),
@@ -43,6 +57,14 @@ export default function DoctorAppointmentsPage() {
       amount: 0,
     },
   });
+  
+  // Set initial selection
+  useState(() => {
+    if (upcomingAppointments && upcomingAppointments.length > 0) {
+      setSelectedAppointment(upcomingAppointments[0]);
+    }
+  });
+
 
   const handleWritePrescription = () => {
     if (selectedAppointment) {
@@ -59,9 +81,16 @@ export default function DoctorAppointmentsPage() {
     setIsBillDialogOpen(false);
     form.reset();
   }
+  
+  const handleMarkAsComplete = () => {
+    if(!selectedAppointment || !firestore) return;
+    const apptRef = doc(firestore, 'appointments', selectedAppointment.id);
+    updateDocumentNonBlocking(apptRef, { status: 'Completed' });
+    toast({ title: "Appointment marked as complete."});
+  }
 
 
-  const AppointmentDetails = ({ appointment }: { appointment: DoctorAppointment | null }) => {
+  const AppointmentDetails = ({ appointment }: { appointment: any | null }) => {
     if (!appointment) {
       return (
         <Card className="h-full flex items-center justify-center">
@@ -105,12 +134,12 @@ export default function DoctorAppointmentsPage() {
             <h3 className="font-semibold mb-2">Patient Information</h3>
             <div className="p-4 border rounded-lg flex items-center gap-4">
                <Avatar className="h-14 w-14">
-                <AvatarImage src={appointment.patientAvatar} alt={appointment.patientName} />
-                <AvatarFallback>{appointment.patientName.charAt(0)}</AvatarFallback>
+                <AvatarImage src={`https://picsum.photos/seed/${appointment.patientId}/200`} alt={appointment.patientName} />
+                <AvatarFallback>{appointment.patientName?.charAt(0)}</AvatarFallback>
               </Avatar>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1 w-full">
                 <div className="flex items-center gap-2 text-sm"><User className="h-4 w-4 text-muted-foreground" /> {appointment.patientName}</div>
-                <div className="flex items-center gap-2 text-sm"><Calendar className="h-4 w-4 text-muted-foreground" /> {appointment.patientAge} years old</div>
+                <div className="flex items-center gap-2 text-sm"><Calendar className="h-4 w-4 text-muted-foreground" /> {appointment.patientAge || 'N/A'} years old</div>
                 <div className="flex items-center gap-2 text-sm"><Building className="h-4 w-4 text-muted-foreground" /> {appointment.type}</div>
                 <div className="flex items-center gap-2 text-sm"><FileText className="h-4 w-4 text-muted-foreground" /> ID: {appointment.patientId}</div>
               </div>
@@ -120,7 +149,7 @@ export default function DoctorAppointmentsPage() {
            <div>
             <h3 className="font-semibold mb-2">Patient's Chief Complaint</h3>
             <div className="p-4 border rounded-lg">
-              <p className="text-muted-foreground italic">&quot;{appointment.reason}&quot;</p>
+              <p className="text-muted-foreground italic">&quot;{appointment.reason || 'Not specified'}&quot;</p>
             </div>
           </div>
 
@@ -130,7 +159,7 @@ export default function DoctorAppointmentsPage() {
                 <Link href="https://meet.google.com" target="_blank"><Video className="mr-2 h-4 w-4"/>Join Video Call</Link>
               </Button>
             )}
-            <Button><CheckCircle />Mark as Complete</Button>
+            <Button onClick={handleMarkAsComplete} disabled={appointment.status !== 'Scheduled'}><CheckCircle />Mark as Complete</Button>
             <Button variant="outline" onClick={handleWritePrescription}><Pencil />Write Prescription</Button>
             <Button variant="outline" onClick={() => setIsBillDialogOpen(true)}><Receipt />Generate Bill</Button>
           </div>
@@ -146,17 +175,17 @@ export default function DoctorAppointmentsPage() {
             <div className="md:col-span-1">
                  <Tabs defaultValue="upcoming" className="w-full">
                     <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="upcoming">Upcoming ({doctorUpcomingAppointments.length})</TabsTrigger>
-                        <TabsTrigger value="history">History ({doctorPastAppointments.length})</TabsTrigger>
+                        <TabsTrigger value="upcoming">Upcoming ({upcomingAppointments?.length || 0})</TabsTrigger>
+                        <TabsTrigger value="history">History ({pastAppointments?.length || 0})</TabsTrigger>
                     </TabsList>
                     <TabsContent value="upcoming" className="mt-4">
                         <Card>
                             <CardHeader>
                                 <CardTitle>Upcoming Appointments</CardTitle>
-                                <CardDescription>You have {doctorUpcomingAppointments.length} appointments scheduled.</CardDescription>
+                                <CardDescription>You have {upcomingAppointments?.length || 0} appointments scheduled.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-2 p-2">
-                                {doctorUpcomingAppointments.map(appt => (
+                                {upcomingAppointments?.map(appt => (
                                     <button
                                         key={appt.id}
                                         onClick={() => setSelectedAppointment(appt)}
@@ -181,10 +210,10 @@ export default function DoctorAppointmentsPage() {
                          <Card>
                              <CardHeader>
                                 <CardTitle>Past Appointments</CardTitle>
-                                <CardDescription>{doctorPastAppointments.length} appointments completed.</CardDescription>
+                                <CardDescription>{pastAppointments?.length || 0} appointments completed.</CardDescription>
                             </CardHeader>
                              <CardContent className="space-y-2 p-2">
-                                {doctorPastAppointments.map(appt => (
+                                {pastAppointments?.map(appt => (
                                      <button
                                         key={appt.id}
                                         onClick={() => setSelectedAppointment(appt)}
@@ -282,5 +311,3 @@ export default function DoctorAppointmentsPage() {
     </div>
   );
 }
-
-    

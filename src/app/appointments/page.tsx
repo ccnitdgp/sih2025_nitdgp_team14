@@ -23,8 +23,7 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { format, addDays, startOfDay, parse, addMinutes, isWithinInterval, set } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { appointments as allAppointments } from '@/lib/data';
-import { useUser, useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
+import { useUser, useDoc, useFirestore, useMemoFirebase, useCollection, addDocumentNonBlocking } from '@/firebase';
 import { doc, collection, query, where } from 'firebase/firestore';
 import hi from '@/lib/locales/hi.json';
 import bn from '@/lib/locales/bn.json';
@@ -66,12 +65,17 @@ const generateTimeSlots = (workingHours: string, duration: number): string[] => 
     
     if (!startTimeStr || !endTimeStr) return [];
     
-    let currentTime = parse(startTimeStr, 'h a', new Date());
-    const endTime = parse(endTimeStr, 'h a', new Date());
+    try {
+        let currentTime = parse(startTimeStr, 'h a', new Date());
+        const endTime = parse(endTimeStr, 'h a', new Date());
 
-    while (currentTime < endTime) {
-        slots.push(format(currentTime, 'hh:mm a'));
-        currentTime = addMinutes(currentTime, duration);
+        while (currentTime < endTime) {
+            slots.push(format(currentTime, 'hh:mm a'));
+            currentTime = addMinutes(currentTime, duration);
+        }
+    } catch(e) {
+        console.error("Error parsing time:", e);
+        return [];
     }
 
     return slots;
@@ -87,7 +91,6 @@ const FindDoctors = ({ t }) => {
   const { toast } = useToast();
   const { user } = useUser();
   const firestore = useFirestore();
-  const [bookedAppointments, setBookedAppointments] = useState(allAppointments);
 
   const doctorsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -95,6 +98,13 @@ const FindDoctors = ({ t }) => {
   }, [firestore]);
 
   const { data: doctorsData, isLoading: isLoadingDoctors } = useCollection(doctorsQuery);
+  
+  const appointmentsQuery = useMemoFirebase(() => {
+      if (!firestore) return null;
+      return collection(firestore, 'appointments');
+  }, [firestore]);
+  
+  const { data: allAppointments } = useCollection(appointmentsQuery);
 
   const doctors = useMemo(() => {
     if (!doctorsData) return [];
@@ -105,7 +115,7 @@ const FindDoctors = ({ t }) => {
       const availableDays = doc.availability?.availableDays?.toLowerCase().split(',').map(s => s.trim()) || [];
       const dayMap = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
 
-      for (let i = 0; i < 7; i++) {
+      for (let i = 0; i < 30; i++) { // Generate for next 30 days
         const date = addDays(startOfDay(new Date()), i);
         const dayOfWeek = format(date, 'eee').toLowerCase();
         
@@ -120,8 +130,8 @@ const FindDoctors = ({ t }) => {
         name: `Dr. ${doc.firstName} ${doc.lastName}`,
         specialty: doc.specialty || 'General Physician',
         location: `${doc.city || ''}, ${doc.state || ''}`.replace(/^, |, $/g, ''),
-        rating: 4.8, // Placeholder
-        reviews: 0, // Placeholder
+        rating: doc.stats?.averageRating || 4.5,
+        reviews: doc.stats?.totalConsultations || 0,
         avatar: `https://picsum.photos/seed/${doc.id}/200`,
         qualifications: doc.qualifications,
         yearsOfExperience: doc.yearsOfExperience,
@@ -164,10 +174,12 @@ const FindDoctors = ({ t }) => {
   }
 
   const handleBookAppointment = () => {
-    if (!selectedDoctor || !selectedDate || !selectedTime || !user) return;
+    if (!selectedDoctor || !selectedDate || !selectedTime || !user || !firestore) return;
     
+    const newAppointmentRef = doc(collection(firestore, "appointments"));
+
     const newAppointment = {
-        id: bookedAppointments.length + 1,
+        id: newAppointmentRef.id,
         doctorId: selectedDoctor.id,
         patientId: user.uid,
         date: format(selectedDate, 'yyyy-MM-dd'),
@@ -176,13 +188,10 @@ const FindDoctors = ({ t }) => {
         doctorName: selectedDoctor.name,
         specialty: selectedDoctor.specialty,
         location: selectedDoctor.location,
-        avatar: selectedDoctor.avatar,
+        status: 'Scheduled',
     };
     
-    // This is a simulation. In a real app, this would write to Firestore.
-    allAppointments.push(newAppointment);
-    setBookedAppointments([...allAppointments]);
-
+    addDocumentNonBlocking(collection(firestore, "appointments"), newAppointment);
 
     toast({
       title: t('appointment_booked_title', 'Appointment Booked!'),
@@ -200,9 +209,10 @@ const FindDoctors = ({ t }) => {
   const getAvailableTimesForDate = (doctor: Doctor, date: Date) => {
       const dateString = format(date, 'yyyy-MM-dd');
       const allSlots = doctor.availableSlots[dateString] || [];
-      const bookedSlotsOnDate = bookedAppointments
-          .filter(appt => appt.doctorId === doctor.id && appt.date === dateString)
-          .map(appt => appt.time);
+      
+      const bookedSlotsOnDate = allAppointments
+          ?.filter(appt => appt.doctorId === doctor.id && appt.date === dateString)
+          .map(appt => appt.time) || [];
       
       return allSlots.filter(slot => !bookedSlotsOnDate.includes(slot));
   };
@@ -361,7 +371,16 @@ const FindDoctors = ({ t }) => {
 }
 
 const MyAppointments = ({ t }) => {
-    const upcomingAppointments = allAppointments.filter(appt => new Date(appt.date) >= startOfDay(new Date()));
+    const { user } = useUser();
+    const firestore = useFirestore();
+    const appointmentsQuery = useMemoFirebase(() => {
+        if (!user || !firestore) return null;
+        return query(collection(firestore, 'appointments'), where('patientId', '==', user.uid));
+    }, [user, firestore]);
+
+    const { data: allAppointments } = useCollection(appointmentsQuery);
+
+    const upcomingAppointments = allAppointments?.filter(appt => new Date(appt.date) >= startOfDay(new Date()));
 
     return (
         <Card>
@@ -370,10 +389,10 @@ const MyAppointments = ({ t }) => {
                 <CardDescription>{t('upcoming_appointments_desc', 'Here are your scheduled appointments.')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                 {upcomingAppointments.length > 0 ? upcomingAppointments.map(appt => (
+                 {upcomingAppointments && upcomingAppointments.length > 0 ? upcomingAppointments.map(appt => (
                     <Card key={appt.id} className="p-4 flex flex-col sm:flex-row items-start gap-4">
                          <Avatar className="h-16 w-16">
-                            <AvatarImage src={appt.avatar} />
+                            <AvatarImage src={`https://picsum.photos/seed/${appt.doctorId}/200`} />
                             <AvatarFallback>{appt.doctorName.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className="flex-grow">
@@ -405,7 +424,16 @@ const MyAppointments = ({ t }) => {
 }
 
 const HistoryTab = ({ t }) => {
-     const pastAppointments = allAppointments.filter(appt => new Date(appt.date) < startOfDay(new Date()));
+     const { user } = useUser();
+    const firestore = useFirestore();
+    const appointmentsQuery = useMemoFirebase(() => {
+        if (!user || !firestore) return null;
+        return query(collection(firestore, 'appointments'), where('patientId', '==', user.uid));
+    }, [user, firestore]);
+
+    const { data: allAppointments } = useCollection(appointmentsQuery);
+
+     const pastAppointments = allAppointments?.filter(appt => new Date(appt.date) < startOfDay(new Date()));
     return (
          <Card>
             <CardHeader>
@@ -413,10 +441,10 @@ const HistoryTab = ({ t }) => {
                 <CardDescription>{t('appointment_history_desc', 'Here are your past appointments.')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                {pastAppointments.length > 0 ? pastAppointments.map(appt => (
+                {pastAppointments && pastAppointments.length > 0 ? pastAppointments.map(appt => (
                     <Card key={appt.id} className="p-4 flex flex-col sm:flex-row items-start gap-4">
                          <Avatar className="h-16 w-16">
-                            <AvatarImage src={appt.avatar} />
+                            <AvatarImage src={`https://picsum.photos/seed/${appt.doctorId}/200`} />
                             <AvatarFallback>{appt.doctorName.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className="flex-grow">
