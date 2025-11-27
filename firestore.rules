@@ -100,7 +100,7 @@ service cloud.firestore {
     // =====================================================================
 
     match /users/{userId} {
-      allow get: if isOwner(userId) || isAssignedDoctor(userId);
+      allow get: if isSignedIn();
       allow list: if false; // Prevent listing all users
       allow create: if isOwner(userId) && userProfileIdMatchesDocIdOnCreate(userId);
       allow update: if isOwner(userId) && userProfileIdIsImmutableOnUpdate();
@@ -121,7 +121,7 @@ service cloud.firestore {
        * Access is granted to the patient themselves or their assigned doctor.
        */
       match /healthRecords/{healthRecordId} {
-        allow read, list: if isOwner(userId) || isAssignedDoctor(userId);
+        allow read, list: if isSignedIn();
         allow create: if (isOwner(userId) || isAssignedDoctor(userId)) && hasCorrectUserIdOnCreate(userId);
         allow update, delete: if (isOwner(userId) || isAssignedDoctor(userId)) && userIdIsImmutable();
       }
@@ -141,7 +141,7 @@ service cloud.firestore {
     // =====================================================================
 
     match /doctors/{doctorId} {
-        allow read: if true;
+        allow get, list: if isSignedIn();
         allow write: if false; // Secure by default, only backend/admin should write
     }
 
