@@ -18,7 +18,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Calendar } from '@/components/ui/calendar';
-import { format, addDays, startOfDay } from 'date-fns';
+import { format, addDays, startOfDay, parse, addMinutes, isWithinInterval, set } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { appointments as allAppointments } from '@/lib/data';
 import { useUser, useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
@@ -36,12 +36,6 @@ import Link from 'next/link';
 
 const languageFiles = { hi, bn, ta, te, mr };
 
-// Dynamically generate available slots for the next few days
-const today = new Date();
-const tomorrow = addDays(today, 1);
-const dayAfter = addDays(today, 2);
-
-
 type Doctor = {
   id: string;
   name: string;
@@ -53,7 +47,32 @@ type Doctor = {
   availableSlots: Record<string, string[]>;
   qualifications?: string;
   yearsOfExperience?: number;
+  availability?: {
+    workingHours?: string;
+    availableDays?: string;
+    appointmentDuration?: number;
+  }
 };
+
+
+const generateTimeSlots = (workingHours: string, duration: number): string[] => {
+    if (!workingHours || !duration) return [];
+    
+    const slots: string[] = [];
+    const [startTimeStr, endTimeStr] = workingHours.split('-').map(s => s.trim());
+    
+    if (!startTimeStr || !endTimeStr) return [];
+    
+    let currentTime = parse(startTimeStr, 'h a', new Date());
+    const endTime = parse(endTimeStr, 'h a', new Date());
+
+    while (currentTime < endTime) {
+        slots.push(format(currentTime, 'hh:mm a'));
+        currentTime = addMinutes(currentTime, duration);
+    }
+
+    return slots;
+}
 
 const FindDoctors = ({ t }) => {
   const [symptoms, setSymptoms] = useState('');
@@ -76,22 +95,31 @@ const FindDoctors = ({ t }) => {
 
   const doctors = useMemo(() => {
     if (!doctorsData) return [];
-    return doctorsData.map(doc => ({
-      id: doc.id,
-      name: `Dr. ${doc.firstName} ${doc.lastName}`,
-      specialty: doc.specialty || 'General Physician',
-      location: `${doc.city || ''}, ${doc.state || ''}`.replace(/^, |, $/g, ''),
-      rating: 4.8, // Placeholder
-      reviews: 0, // Placeholder
-      avatar: `https://picsum.photos/seed/${doc.id}/200`,
-      qualifications: doc.qualifications,
-      yearsOfExperience: doc.yearsOfExperience,
-      availableSlots: { // Placeholder slots
-        [format(today, 'yyyy-MM-dd')]: ['04:00 PM', '04:30 PM'],
-        [format(tomorrow, 'yyyy-MM-dd')]: ['10:00 AM', '11:30 AM', '02:00 PM'],
-        [format(dayAfter, 'yyyy-MM-dd')]: ['09:00 AM', '09:30 AM', '10:00 AM'],
+    return doctorsData.map(doc => {
+      const slots = generateTimeSlots(doc.availability?.workingHours, doc.availability?.appointmentDuration);
+      const availableSlots = {};
+      
+      // Generate slots for the next 7 days as a placeholder for real availability logic
+      for (let i = 0; i < 7; i++) {
+        const date = addDays(startOfDay(new Date()), i);
+        const dateString = format(date, 'yyyy-MM-dd');
+        availableSlots[dateString] = slots;
       }
-    }));
+      
+      return {
+        id: doc.id,
+        name: `Dr. ${doc.firstName} ${doc.lastName}`,
+        specialty: doc.specialty || 'General Physician',
+        location: `${doc.city || ''}, ${doc.state || ''}`.replace(/^, |, $/g, ''),
+        rating: 4.8, // Placeholder
+        reviews: 0, // Placeholder
+        avatar: `https://picsum.photos/seed/${doc.id}/200`,
+        qualifications: doc.qualifications,
+        yearsOfExperience: doc.yearsOfExperience,
+        availability: doc.availability,
+        availableSlots: availableSlots,
+      }
+    });
   }, [doctorsData]);
   
 
@@ -467,3 +495,5 @@ export default function AppointmentsPage() {
     </div>
   );
 }
+
+    
