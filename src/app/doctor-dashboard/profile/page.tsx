@@ -276,9 +276,9 @@ export default function DoctorProfilePage() {
                             </form>
                         </Form>
                     ) : (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                          <div className="space-y-8">
-                            <Card>
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                          <div className="lg:col-span-2 space-y-8">
+                             <Card className="hover:shadow-lg transition-shadow">
                                 <CardHeader><CardTitle className="flex items-center gap-2"><UserIcon/> Basic Information</CardTitle></CardHeader>
                                 <CardContent className="space-y-6 pt-6">
                                   <ProfileDetail icon={UserIcon} label="Full Name" value={`Dr. ${userProfile.firstName} ${userProfile.lastName}`} />
@@ -288,25 +288,14 @@ export default function DoctorProfilePage() {
                                 </CardContent>
                             </Card>
 
-                             <Card>
+                            <Card className="hover:shadow-lg transition-shadow">
                                 <CardHeader><CardTitle className="flex items-center gap-2"><BookText/> About</CardTitle></CardHeader>
                                 <CardContent className="pt-6">
                                    <p className="text-muted-foreground">{publicProfile?.biography || 'No biography provided.'}</p>
                                 </CardContent>
                             </Card>
 
-                            <Card>
-                                <CardHeader><CardTitle className="flex items-center gap-2"><Stethoscope/> Expertise & Services</CardTitle></CardHeader>
-                                <CardContent className="space-y-6 pt-6">
-                                   <ProfileDetail icon={Stethoscope} label="Conditions Handled" value={publicProfile?.conditionsHandled} />
-                                   <ProfileDetail icon={Stethoscope} label="Treatments & Procedures" value={publicProfile?.treatmentsAndProcedures} />
-                                   <ProfileDetail icon={Video} label="Teleconsultation" value={publicProfile?.teleconsultation ? 'Available' : 'Not Available'} />
-                                </CardContent>
-                            </Card>
-                          </div>
-
-                          <div className="space-y-8">
-                              <Card>
+                            <Card className="hover:shadow-lg transition-shadow">
                                 <CardHeader><CardTitle className="flex items-center gap-2"><BriefcaseMedical/> Professional Details</CardTitle></CardHeader>
                                 <CardContent className="space-y-6 pt-6">
                                   <ProfileDetail icon={BriefcaseMedical} label="Specialty" value={publicProfile?.specialty} />
@@ -317,19 +306,50 @@ export default function DoctorProfilePage() {
                                   <ProfileDetail icon={Building} label="Primary Clinic/Hospital" value={publicProfile?.clinic} />
                                 </CardContent>
                             </Card>
-                             <Card>
-                                <CardHeader><CardTitle className="flex items-center gap-2"><Calendar/> Availability</CardTitle></CardHeader>
+                            
+                             <Card className="hover:shadow-lg transition-shadow">
+                                <CardHeader><CardTitle className="flex items-center gap-2"><Stethoscope/> Expertise & Services</CardTitle></CardHeader>
                                 <CardContent className="space-y-6 pt-6">
-                                  <ProfileDetail icon={Calendar} label="Available Days" value={publicProfile?.availability?.availableDays} />
-                                  <ProfileDetail icon={Clock} label="Working Hours" value={publicProfile?.availability?.workingHours} />
-                                  <ProfileDetail icon={Clock} label="Appointment Duration" value={publicProfile?.availability?.appointmentDuration ? `${publicProfile.availability.appointmentDuration} minutes` : null} />
+                                   <ProfileDetail icon={Stethoscope} label="Conditions Handled" value={publicProfile?.conditionsHandled} />
+                                   <ProfileDetail icon={Stethoscope} label="Treatments & Procedures" value={publicProfile?.treatmentsAndProcedures} />
+                                   <ProfileDetail icon={Video} label="Teleconsultation" value={publicProfile?.teleconsultation ? 'Available' : 'Not Available'} />
                                 </CardContent>
                             </Card>
-                             <Card>
-                                <CardHeader><CardTitle className="flex items-center gap-2"><Wallet/> Pricing</CardTitle></CardHeader>
-                                <CardContent className="space-y-6 pt-6">
-                                   <ProfileDetail icon={Wallet} label="In-Clinic Fee" value={publicProfile?.pricing?.clinicFee ? `Rs. ${publicProfile.pricing.clinicFee}` : null} />
-                                   <ProfileDetail icon={Wallet} label="Online Fee" value={publicProfile?.pricing?.onlineFee ? `Rs. ${publicProfile.pricing.onlineFee}`: null} />
+                          </div>
+
+                          <div className="space-y-8">
+                             <Card className="bg-muted/30 hover:shadow-lg transition-shadow">
+                                <CardHeader>
+                                  <CardTitle className="flex items-center gap-2"><Calendar/> Availability</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4 pt-2">
+                                  <div>
+                                    <h4 className="font-semibold text-sm flex items-center gap-2"><Calendar className="h-4 w-4"/> Days</h4>
+                                    <p className="font-bold text-lg text-primary">{publicProfile?.availability?.availableDays || 'Not specified'}</p>
+                                  </div>
+                                   <div>
+                                    <h4 className="font-semibold text-sm flex items-center gap-2"><Clock className="h-4 w-4"/> Hours</h4>
+                                    <p className="font-bold text-lg text-primary">{publicProfile?.availability?.workingHours || 'Not specified'}</p>
+                                  </div>
+                                  <div>
+                                    <h4 className="font-semibold text-sm flex items-center gap-2"><Clock className="h-4 w-4"/> Duration</h4>
+                                    <p className="font-bold text-lg text-primary">{publicProfile?.availability?.appointmentDuration ? `${publicProfile.availability.appointmentDuration} minutes` : 'Not specified'}</p>
+                                  </div>
+                                </CardContent>
+                            </Card>
+                             <Card className="bg-muted/30 hover:shadow-lg transition-shadow">
+                                <CardHeader>
+                                  <CardTitle className="flex items-center gap-2"><Wallet/> Pricing</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4 pt-2">
+                                  <div>
+                                    <h4 className="font-semibold text-sm">In-Clinic Fee</h4>
+                                    <p className="font-bold text-lg text-primary">{publicProfile?.pricing?.clinicFee ? `Rs. ${publicProfile.pricing.clinicFee}` : 'Not specified'}</p>
+                                  </div>
+                                  <div>
+                                    <h4 className="font-semibold text-sm">Online Fee</h4>
+                                    <p className="font-bold text-lg text-primary">{publicProfile?.pricing?.onlineFee ? `Rs. ${publicProfile.pricing.onlineFee}`: 'Not specified'}</p>
+                                  </div>
                                 </CardContent>
                             </Card>
                           </div>
@@ -346,3 +366,4 @@ export default function DoctorProfilePage() {
     </div>
   );
 }
+
