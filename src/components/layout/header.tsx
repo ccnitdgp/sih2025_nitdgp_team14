@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { LogOut, Settings, LayoutDashboard, Menu, FileText, UserPlus, User } from "lucide-react";
+import { LogOut, Settings, LayoutDashboard, Menu, FileText, UserPlus, User, CalendarPlus, Receipt, Bot, BookUser } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,6 +36,13 @@ const generalNavLinks = [
     { href: "/camps", label: "Visiting Camps", i18n_key: "visiting_camps_link" },
     { href: "/announcements", label: "Announcements", i18n_key: "announcements_link" },
 ];
+
+const patientNavLinks = [
+    { href: "/appointments", label: "Book Appointment", i18n_key: "book_appointment_link" },
+    { href: "/billing", label: "Pay Bill", i18n_key: "pay_bill_link" },
+    { href: "/patient-dashboard", label: "Health Assistant", i18n_key: "health_assistant_link" },
+    { href: "/records", label: "Records", i18n_key: "records_link" },
+]
 
 const doctorNavLinks = [
     { href: "/doctor-dashboard", label: "Dashboard", i18n_key: "dashboard_link" },
@@ -76,7 +83,15 @@ export function Header() {
   }, [userProfile]);
   
   const isDoctor = userProfile?.role === 'doctor';
-  const navLinks = isDoctor ? doctorNavLinks : generalNavLinks;
+  const isPatient = userProfile?.role === 'patient';
+
+  let navLinks = generalNavLinks;
+  if (user && isDoctor) {
+    navLinks = doctorNavLinks;
+  } else if (user && isPatient) {
+    navLinks = patientNavLinks;
+  }
+
 
   const handleLogout = () => {
     signOut(auth).then(() => {
