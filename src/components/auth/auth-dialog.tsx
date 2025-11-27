@@ -274,11 +274,14 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
 }
   
   const handleForgotPassword = async () => {
-    const email = loginForm.getValues("email");
-    if (!email) {
-      loginForm.setError("email", { type: "manual", message: "Please enter your email to reset password." });
+    // Manually trigger validation on the email field.
+    const isValid = await loginForm.trigger("email");
+    if (!isValid) {
+      // If validation fails, react-hook-form will automatically show the error message.
       return;
     }
+
+    const email = loginForm.getValues("email");
     try {
       await sendPasswordReset(auth, email);
       toast({
@@ -290,7 +293,7 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message,
+        description: "Failed to send password reset email. Please try again.",
       });
     }
   };
@@ -717,3 +720,4 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
     </Dialog>
   );
 }
+
