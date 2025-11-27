@@ -90,7 +90,7 @@ const FindDoctors = ({ t }) => {
   const [suggestion, setSuggestion] = useState<SymptomCheckerOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState<string | undefined>(undefined);
   const { toast } = useToast();
   const { user } = useUser();
@@ -117,7 +117,7 @@ const FindDoctors = ({ t }) => {
 
   const handleOpenSlots = (doctor: Doctor) => {
     setSelectedDoctor(doctor);
-    setSelectedDate(undefined);
+    setSelectedDate(new Date());
     setSelectedTime(undefined);
   };
 
@@ -275,6 +275,8 @@ const FindDoctors = ({ t }) => {
                       return availableSlots.length === 0;
                     }}
                     initialFocus
+                    month={selectedDate}
+                    onMonthChange={setSelectedDate}
                 />
                 </div>
                 <div className="space-y-4">
