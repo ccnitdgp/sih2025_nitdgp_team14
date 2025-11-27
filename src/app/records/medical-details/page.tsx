@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
-import { HeartPulse, Save, Pencil, X } from 'lucide-react';
+import { HeartPulse, Save, Pencil, X, ShieldAlert, Users, Accessibility } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const medicalDetailsSchema = z.object({
@@ -22,10 +22,13 @@ const medicalDetailsSchema = z.object({
   existingMedicalConditions: z.string().optional(),
 });
 
-const DetailItem = ({ label, value }) => (
-    <div>
-        <h4 className="text-sm font-semibold text-muted-foreground">{label}</h4>
-        <p className="mt-1 text-foreground whitespace-pre-wrap">{value || 'None reported'}</p>
+const DetailItem = ({ icon: Icon, label, value }) => (
+    <div className="flex items-start gap-4">
+        <Icon className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
+        <div>
+            <h4 className="font-semibold text-foreground">{label}</h4>
+            <p className="mt-1 text-muted-foreground whitespace-pre-wrap">{value || 'None reported'}</p>
+        </div>
     </div>
 );
 
@@ -175,11 +178,11 @@ export default function MedicalDetailsPage() {
                 </form>
             </Form>
         ) : (
-            <div className="space-y-6">
-                <DetailItem label="Existing Medical Conditions" value={userProfile?.medicalDetails?.existingMedicalConditions} />
-                <DetailItem label="Known Allergies" value={userProfile?.medicalDetails?.knownAllergies} />
-                <DetailItem label="Disabilities" value={userProfile?.medicalDetails?.disabilities} />
-                <DetailItem label="Family Medical History" value={userProfile?.medicalDetails?.familyMedicalHistory} />
+            <div className="space-y-8">
+                <DetailItem icon={HeartPulse} label="Existing Medical Conditions" value={userProfile?.medicalDetails?.existingMedicalConditions} />
+                <DetailItem icon={ShieldAlert} label="Known Allergies" value={userProfile?.medicalDetails?.knownAllergies} />
+                <DetailItem icon={Accessibility} label="Disabilities" value={userProfile?.medicalDetails?.disabilities} />
+                <DetailItem icon={Users} label="Family Medical History" value={userProfile?.medicalDetails?.familyMedicalHistory} />
             </div>
         )}
       </CardContent>
