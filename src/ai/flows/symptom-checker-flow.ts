@@ -35,6 +35,14 @@ const prompt = ai.definePrompt({
 Symptoms: {{{symptomDescription}}}
 
 Suggest only the specialist type. For example: "Cardiologist", "Dermatologist", "General Physician".`,
+  config: {
+    safetySettings: [
+      {
+        category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+        threshold: 'BLOCK_NONE',
+      },
+    ]
+  }
 });
 
 const symptomCheckerFlow = ai.defineFlow(
