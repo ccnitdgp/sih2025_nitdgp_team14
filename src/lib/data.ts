@@ -7,7 +7,6 @@ import {
   TriangleAlert,
   ShieldCheck,
   Info,
-  CheckCircle,
 } from 'lucide-react';
 
 type Stat = {
@@ -240,7 +239,7 @@ export const medicalNotifications: MedicalNotification[] = [
         date: '12th August 2024',
         details: "A free flu vaccination drive is being organized next week. Getting vaccinated is the best way to protect yourself and others from the flu. Details about locations and times will be announced shortly.",
         details_key: "announcement_4_details",
-        Icon: CheckCircle,
+        Icon: Syringe,
         color: "text-green-600",
         bgColor: "bg-green-100",
         borderColor: "border-green-500",
@@ -273,8 +272,8 @@ export const personalNotifications = [
 ];
 
 export const appointments = [
-    { id: 1, doctorName: 'Dr. Ramesh Gupta', specialty: 'General Physician', location: 'City Hospital', date: '2024-09-10', time: '11:00 AM', avatar: 'https://picsum.photos/seed/doc1/200', type: 'In-Person' },
-    { id: 2, doctorName: 'Dr. Sunita Patel', specialty: 'Dermatologist', location: 'SkinCare Clinic', date: '2024-09-12', time: '02:30 PM', avatar: 'https://picsum.photos/seed/doc2/200', type: 'Virtual' },
+    { id: 1, doctorId: 'Y43GFgpcD3QY6xGM3f83hTzYV5i2', patientId: 'p-101', doctorName: 'Dr. Ramesh Gupta', specialty: 'General Physician', location: 'City Hospital', date: '2024-09-10', time: '11:00 AM', avatar: 'https://picsum.photos/seed/doc1/200', type: 'In-Person' },
+    { id: 2, doctorId: 'Y43GFgpcD3QY6xGM3f83hTzYV5i2', patientId: 'p-102', doctorName: 'Dr. Sunita Patel', specialty: 'Dermatologist', location: 'SkinCare Clinic', date: '2024-09-12', time: '02:30 PM', avatar: 'https://picsum.photos/seed/doc2/200', type: 'Virtual' },
 ];
 
 
