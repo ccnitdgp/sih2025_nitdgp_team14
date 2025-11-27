@@ -13,7 +13,8 @@
         "specialty": { "type": "string" },
         "city": { "type": "string" },
         "state": { "type": "string" },
-        "country": { "type": "string" }
+        "country": { "type": "string" },
+        "clinic": { "type": "string", "description": "Primary clinic or hospital name."}
       },
       "required": ["id", "firstName", "lastName", "specialty", "city", "state", "country"]
     },
@@ -449,5 +450,3 @@
     "reasoning": "The Firestore data structure has been redesigned for clarity and security. The core change is the introduction of a public `/doctors` collection, which is separate from the private `/users` collection. The `/doctors` collection stores only non-sensitive information necessary for patients to find and view doctor profiles. The `/users` collection holds all private data for both patients and doctors, strictly secured by user UID. This separation prevents permission errors when listing doctors and adheres to security best practices by not exposing the entire user base."
   }
 }
-
-    
