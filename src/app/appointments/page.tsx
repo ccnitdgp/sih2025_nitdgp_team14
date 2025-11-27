@@ -57,7 +57,7 @@ type Doctor = {
 };
 
 
-const generateTimeSlots = (workingHours: string, duration: number): string[] => {
+const generateTimeSlots = (workingHours?: string, duration?: number): string[] => {
     if (!workingHours || !duration) return [];
     
     const slots: string[] = [];
@@ -109,11 +109,9 @@ const FindDoctors = ({ t }) => {
   const doctors = useMemo(() => {
     if (!doctorsData) return [];
     return doctorsData.map(doc => {
-      const slots = generateTimeSlots(doc.availability?.workingHours, doc.availability?.appointmentDuration);
       const availableSlots = {};
-      
       const availableDays = doc.availability?.availableDays?.toLowerCase().split(',').map(s => s.trim()) || [];
-      const dayMap = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
+      const slots = generateTimeSlots(doc.availability?.workingHours, doc.availability?.appointmentDuration);
 
       for (let i = 0; i < 30; i++) { // Generate for next 30 days
         const date = addDays(startOfDay(new Date()), i);
@@ -532,3 +530,5 @@ export default function AppointmentsPage() {
     </div>
   );
 }
+
+    
