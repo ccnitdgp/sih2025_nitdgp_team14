@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { FlaskConical, PlusCircle, FileDown } from 'lucide-react';
+import { FlaskConical, FileDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
@@ -67,7 +67,7 @@ export default function LabReportsPage() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader>
          <div>
             <div className="flex items-center gap-3">
             <FlaskConical className="h-6 w-6" />
@@ -77,10 +77,6 @@ export default function LabReportsPage() {
                 {t('lab_reports_page_desc', 'View and manage your diagnostic lab reports.')}
             </CardDescription>
         </div>
-        <Button disabled>
-            <PlusCircle className="mr-2 h-4 w-4"/>
-            {t('upload_report_button', 'Upload Report')}
-        </Button>
       </CardHeader>
       <CardContent className="space-y-4">
         {isLoading ? <SkeletonLoader /> : labReports && labReports.length > 0 ? (
