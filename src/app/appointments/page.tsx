@@ -34,6 +34,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 
 
 const languageFiles = { hi, bn, ta, te, mr };
@@ -49,6 +51,7 @@ type Doctor = {
   availableSlots: Record<string, string[]>;
   qualifications?: string;
   yearsOfExperience?: number;
+  teleconsultation?: boolean;
   availability?: {
     workingHours?: string;
     availableDays?: string;
@@ -161,6 +164,7 @@ const FindDoctors = ({ t }) => {
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState<string | undefined>(undefined);
+  const [appointmentType, setAppointmentType] = useState('In-Person');
   const { toast } = useToast();
   const { user } = useUser();
   const firestore = useFirestore();
@@ -206,6 +210,7 @@ const FindDoctors = ({ t }) => {
         avatar: `https://picsum.photos/seed/${doc.id}/200`,
         qualifications: doc.qualifications,
         yearsOfExperience: doc.yearsOfExperience,
+        teleconsultation: doc.teleconsultation,
         availability: doc.availability,
         availableSlots: availableSlots,
       }
@@ -236,6 +241,7 @@ const FindDoctors = ({ t }) => {
     setSelectedDoctor(doctor);
     setSelectedDate(new Date());
     setSelectedTime(undefined);
+    setAppointmentType('In-Person');
   };
 
   const handleCloseDialog = () => {
@@ -255,7 +261,7 @@ const FindDoctors = ({ t }) => {
         patientId: user.uid,
         date: format(selectedDate, 'yyyy-MM-dd'),
         time: selectedTime,
-        type: 'In-Person', // Defaulting to In-Person for new bookings
+        type: appointmentType,
         doctorName: selectedDoctor.name,
         specialty: selectedDoctor.specialty,
         location: selectedDoctor.location,
@@ -342,7 +348,7 @@ const FindDoctors = ({ t }) => {
                 <div className="space-y-6">
                     {doctorsToShow.map((doctor, index) => (
                     <Card key={index} className="transition-shadow hover:shadow-lg">
-                        <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                        <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
                         <div className="flex items-center gap-4">
                             <Avatar className="h-16 w-16">
                             <AvatarImage src={doctor.avatar} />
@@ -359,6 +365,12 @@ const FindDoctors = ({ t }) => {
                                 <MapPin className="h-4 w-4 text-primary"/>
                                 <span>{doctor.location}</span>
                             </div>
+                             {doctor.teleconsultation && (
+                                <div className="flex items-center gap-2">
+                                    <Video className="h-4 w-4 text-primary"/>
+                                    <span>Teleconsultation Available</span>
+                                </div>
+                             )}
                             {doctor.yearsOfExperience && (
                                 <div className="flex items-center gap-2">
                                     <GraduationCap className="h-4 w-4 text-primary"/>
@@ -385,6 +397,23 @@ const FindDoctors = ({ t }) => {
                 </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
+                 {selectedDoctor?.teleconsultation && (
+                    <RadioGroup value={appointmentType} onValueChange={setAppointmentType} className="grid grid-cols-2 gap-4">
+                        <div>
+                            <RadioGroupItem value="In-Person" id="in-person" className="peer sr-only" />
+                            <Label htmlFor="in-person" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                In-Person
+                            </Label>
+                        </div>
+
+                        <div>
+                            <RadioGroupItem value="Virtual" id="virtual" className="peer sr-only" />
+                             <Label htmlFor="virtual" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                Virtual
+                            </Label>
+                        </div>
+                    </RadioGroup>
+                )}
                 <Popover>
                     <PopoverTrigger asChild>
                         <Button
@@ -449,7 +478,7 @@ const MyAppointments = ({ t }) => {
         return query(collection(firestore, 'appointments'), where('patientId', '==', user.uid));
     }, [user, firestore]);
 
-    const { data: allAppointments } = useCollection(appointmentsQuery);
+    const { data: allAppointments, isLoading } = useCollection(appointmentsQuery);
 
     const upcomingAppointments = allAppointments?.filter(appt => new Date(appt.date) >= startOfDay(new Date()));
 
@@ -460,7 +489,8 @@ const MyAppointments = ({ t }) => {
                 <CardDescription>{t('upcoming_appointments_desc', 'Here are your scheduled appointments.')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                 {upcomingAppointments && upcomingAppointments.length > 0 ? upcomingAppointments.map(appt => (
+                {isLoading ? <p>Loading appointments...</p> : 
+                 upcomingAppointments && upcomingAppointments.length > 0 ? upcomingAppointments.map(appt => (
                     <Card key={appt.id} className="p-4 flex flex-col sm:flex-row items-start gap-4">
                          <Avatar className="h-16 w-16">
                             <AvatarImage src={`https://picsum.photos/seed/${appt.doctorId}/200`} />
@@ -474,8 +504,8 @@ const MyAppointments = ({ t }) => {
                                 <span>{format(new Date(appt.date), 'PPP')} at {appt.time}</span>
                             </div>
                              <div className="flex items-center gap-2 text-sm">
-                                <MapPin className="h-4 w-4" />
-                                <span>{appt.location}</span>
+                                {appt.type === 'Virtual' ? <Video className="h-4 w-4" /> : <MapPin className="h-4 w-4" />}
+                                <span>{appt.type === 'Virtual' ? 'Virtual Consultation' : appt.location}</span>
                             </div>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-2 self-start sm:self-center">
@@ -526,8 +556,8 @@ const HistoryTab = ({ t }) => {
                                 <span>{format(new Date(appt.date), 'PPP')} at {appt.time}</span>
                             </div>
                              <div className="flex items-center gap-2 text-sm">
-                                <MapPin className="h-4 w-4" />
-                                <span>{appt.location}</span>
+                                {appt.type === 'Virtual' ? <Video className="h-4 w-4" /> : <MapPin className="h-4 w-4" />}
+                                <span>{appt.type === 'Virtual' ? 'Virtual Consultation' : appt.location}</span>
                             </div>
                         </div>
                         <div className="flex gap-2 self-start sm:self-center">
@@ -603,5 +633,3 @@ export default function AppointmentsPage() {
     </div>
   );
 }
-
-    

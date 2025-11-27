@@ -17,6 +17,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 
 const profileSchema = z.object({
   firstName: z.string().min(2, "First name is required."),
@@ -89,7 +90,7 @@ export default function DoctorProfilePage() {
         firstName: userProfile.firstName || '',
         lastName: userProfile.lastName || '',
         phoneNumber: userProfile.phoneNumber || '',
-        languagesKnown: (userProfile.languagesKnown || []).join(', '),
+        languagesKnown: (publicProfile.languagesKnown || []).join(', '),
         biography: publicProfile.biography || '',
 
         specialty: publicProfile.specialty || '',
@@ -114,16 +115,17 @@ export default function DoctorProfilePage() {
   }, [userProfile, publicProfile, form, isEditing]);
 
   const onSubmit = (values: z.infer<typeof profileSchema>) => {
-    if (!userDocRef || !doctorPublicProfileRef) return;
+    if (!userDocRef || !doctorPublicProfileRef || !user) return;
 
     const privateProfileUpdate = {
         firstName: values.firstName,
         lastName: values.lastName,
         phoneNumber: values.phoneNumber,
-        languagesKnown: values.languagesKnown?.split(',').map(lang => lang.trim()).filter(Boolean),
+        specialty: values.specialty, // Also save specialty to user doc for role checks
     };
     
     const publicProfileUpdate = {
+        id: user.uid,
         firstName: values.firstName,
         lastName: values.lastName,
         specialty: values.specialty,
@@ -247,15 +249,35 @@ export default function DoctorProfilePage() {
 
                                 <Card>
                                     <CardHeader><CardTitle className="flex items-center gap-2"><Stethoscope/> Expertise & Services</CardTitle></CardHeader>
-                                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
+                                    <CardContent className="space-y-6 pt-6">
                                          <FormField control={form.control} name="conditionsHandled" render={({ field }) => (<FormItem><FormLabel>Conditions Handled (comma-separated)</FormLabel><FormControl><Textarea placeholder="e.g. Diabetes, Hypertension" {...field} /></FormControl><FormMessage /></FormItem>)} />
                                          <FormField control={form.control} name="treatmentsAndProcedures" render={({ field }) => (<FormItem><FormLabel>Treatments & Procedures (comma-separated)</FormLabel><FormControl><Textarea placeholder="e.g. ECG, Nebulization" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                         <FormField
+                                            control={form.control}
+                                            name="teleconsultation"
+                                            render={({ field }) => (
+                                                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                                    <div className="space-y-0.5">
+                                                        <FormLabel>Enable Teleconsultation</FormLabel>
+                                                        <FormDescription>
+                                                            Allow patients to book virtual appointments with you.
+                                                        </FormDescription>
+                                                    </div>
+                                                    <FormControl>
+                                                        <Switch
+                                                        checked={field.value}
+                                                        onCheckedChange={field.onChange}
+                                                        />
+                                                    </FormControl>
+                                                </FormItem>
+                                            )}
+                                        />
                                     </CardContent>
                                 </Card>
                                 
                                 <Card>
                                     <CardHeader><CardTitle className="flex items-center gap-2"><Calendar/> Scheduling & Availability</CardTitle></CardHeader>
-                                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
+                                    <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6">
                                          <FormField control={form.control} name="availableDays" render={({ field }) => (<FormItem><FormLabel>Available Days</FormLabel><FormControl><Input placeholder="e.g. Mon - Fri, Sun" {...field} /></FormControl><FormMessage /></FormItem>)} />
                                          <FormField control={form.control} name="workingHours" render={({ field }) => (<FormItem><FormLabel>Working Hours</FormLabel><FormControl><Input placeholder="e.g. 9 AM - 5 PM" {...field} /></FormControl><FormMessage /></FormItem>)} />
                                          <FormField control={form.control} name="appointmentDuration" render={({ field }) => (<FormItem><FormLabel>Appointment Duration (mins)</FormLabel><FormControl><Input type="number" placeholder="15" {...field} /></FormControl><FormMessage /></FormItem>)} />
@@ -284,7 +306,7 @@ export default function DoctorProfilePage() {
                                   <ProfileDetail icon={UserIcon} label="Full Name" value={`Dr. ${userProfile.firstName} ${userProfile.lastName}`} />
                                   <ProfileDetail icon={AtSign} label="Email Address" value={user?.email} />
                                   <ProfileDetail icon={Phone} label="Contact Number" value={userProfile.phoneNumber} />
-                                  <ProfileDetail icon={Languages} label="Languages" value={(userProfile.languagesKnown || []).join(', ')} />
+                                  <ProfileDetail icon={Languages} label="Languages" value={(publicProfile.languagesKnown || []).join(', ')} />
                                 </CardContent>
                             </Card>
 
@@ -365,5 +387,3 @@ export default function DoctorProfilePage() {
     </div>
   );
 }
-
-    
