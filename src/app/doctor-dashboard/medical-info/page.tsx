@@ -42,7 +42,7 @@ export default function MedicalInfoPage() {
 
   const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsCollectionRef);
 
-  const onSubmit = async (values: z.infer<typeof medicalInfoSchema>) => {
+  const onSubmit = (values: z.infer<typeof medicalInfoSchema>) => {
     if (!doctorUser || !firestore) return;
 
     setIsSubmitting(true);
@@ -56,16 +56,10 @@ export default function MedicalInfoPage() {
         addedBy: doctorUser.uid,
     };
 
-    try {
-        await addDocumentNonBlocking(patientHealthRecordsRef, medicalHistoryData);
-        toast({ title: "Medical Note Saved", description: `The note has been added to the patient's medical history.` });
-        form.reset();
-    } catch (error) {
-        toast({ variant: 'destructive', title: "Error", description: "Failed to save medical note."});
-        console.error(error);
-    } finally {
-        setIsSubmitting(false);
-    }
+    addDocumentNonBlocking(patientHealthRecordsRef, medicalHistoryData);
+    toast({ title: "Medical Note Saved", description: `The note has been added to the patient's medical history.` });
+    form.reset();
+    setIsSubmitting(false);
   };
 
   return (

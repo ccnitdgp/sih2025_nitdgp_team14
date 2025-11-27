@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { History, PlusCircle, Volume2 } from 'lucide-react';
-import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, addDocumentNonBlocking } from '@/firebase';
 import { collection, addDoc, serverTimestamp, doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
@@ -64,32 +64,24 @@ export default function MedicalHistoryPage() {
         }
     };
     
-    const handleAddItem = async () => {
+    const handleAddItem = () => {
         if (!newHistoryItem.trim() || !healthRecordsRef) return;
         
         setIsAdding(true);
-        try {
-            await addDoc(healthRecordsRef, {
-                recordType: 'medicalHistory',
-                details: newHistoryItem,
-                dateCreated: serverTimestamp(),
-                userId: user?.uid,
-            });
-            setNewHistoryItem('');
-            toast({
-                title: t('success_toast_title', "Success"),
-                description: t('medical_history_added_toast_desc', "Medical history item added."),
-            });
-        } catch (error) {
-            console.error("Error adding medical history:", error);
-            toast({
-                variant: "destructive",
-                title: t('error_toast_title', "Error"),
-                description: t('add_medical_history_error_toast_desc', "Could not add medical history item."),
-            });
-        } finally {
-            setIsAdding(false);
-        }
+        const data = {
+            recordType: 'medicalHistory',
+            details: newHistoryItem,
+            dateCreated: serverTimestamp(),
+            userId: user?.uid,
+        };
+        
+        addDocumentNonBlocking(healthRecordsRef, data);
+        setNewHistoryItem('');
+        toast({
+            title: t('success_toast_title', "Success"),
+            description: t('medical_history_added_toast_desc', "Medical history item added."),
+        });
+        setIsAdding(false);
     }
     
     const SkeletonLoader = () => (

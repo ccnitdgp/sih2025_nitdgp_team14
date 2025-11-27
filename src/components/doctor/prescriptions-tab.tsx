@@ -53,7 +53,7 @@ export function PrescriptionsTab({ patientId }: { patientId: string }) {
   
   const { data: prescriptions, isLoading } = useCollection(prescriptionsRef);
 
-  const onSubmit = async (values: z.infer<typeof prescriptionSchema>) => {
+  const onSubmit = (values: z.infer<typeof prescriptionSchema>) => {
     if (!prescriptionsRef || !doctorUser) return;
 
     setIsAdding(true);
@@ -68,16 +68,10 @@ export function PrescriptionsTab({ patientId }: { patientId: string }) {
         addedBy: doctorUser.uid,
     };
     
-    try {
-        await addDocumentNonBlocking(prescriptionsRef, prescriptionData);
-        toast({ title: "Prescription Added" });
-        form.reset();
-    } catch (error) {
-        toast({ variant: 'destructive', title: "Error", description: "Failed to add prescription."});
-        console.error(error);
-    } finally {
-        setIsAdding(false);
-    }
+    addDocumentNonBlocking(prescriptionsRef, prescriptionData);
+    toast({ title: "Prescription Added" });
+    form.reset();
+    setIsAdding(false);
   };
 
   const handleDelete = (id: string) => {

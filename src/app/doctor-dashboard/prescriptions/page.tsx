@@ -101,7 +101,7 @@ export default function DoctorPrescriptionsPage() {
 
   const { data: issuedPrescriptions, isLoading: isLoadingPrescriptions } = useCollection(issuedPrescriptionsQuery);
   
-  const onSubmit = async (values: z.infer<typeof prescriptionSchema>) => {
+  const onSubmit = (values: z.infer<typeof prescriptionSchema>) => {
     if (!doctorUser || !firestore) return;
 
     setIsSubmitting(true);
@@ -128,18 +128,12 @@ export default function DoctorPrescriptionsPage() {
         addedBy: doctorUser.uid, // The doctor's ID
     };
 
-    try {
-        await addDocumentNonBlocking(patientHealthRecordsRef, prescriptionData);
-        toast({ title: "Prescription Issued", description: `Prescription for ${values.medicationName} has been issued to the patient.` });
-        form.reset();
-        form.setValue('patientId', '');
-        setSelectedPatientId(null);
-    } catch (error) {
-        toast({ variant: 'destructive', title: "Error", description: "Failed to issue prescription."});
-        console.error(error);
-    } finally {
-        setIsSubmitting(false);
-    }
+    addDocumentNonBlocking(patientHealthRecordsRef, prescriptionData);
+    toast({ title: "Prescription Issued", description: `Prescription for ${values.medicationName} has been issued to the patient.` });
+    form.reset();
+    form.setValue('patientId', '');
+    setSelectedPatientId(null);
+    setIsSubmitting(false);
   };
 
   useEffect(() => {

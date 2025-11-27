@@ -5,8 +5,8 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { History, PlusCircle, Trash2 } from 'lucide-react';
-import { useFirestore, useCollection, useMemoFirebase, useUser, deleteDocumentNonBlocking } from '@/firebase';
-import { collection, addDoc, serverTimestamp, doc } from 'firebase/firestore';
+import { useFirestore, useCollection, useMemoFirebase, useUser, deleteDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -30,26 +30,23 @@ export function MedicalHistoryTab({ patientId }: { patientId: string }) {
         if (!newHistoryItem.trim() || !healthRecordsRef || !doctorUser) return;
         
         setIsAdding(true);
+        const medicalHistoryData = {
+            recordType: 'medicalHistory',
+            details: newHistoryItem,
+            dateCreated: serverTimestamp(),
+            userId: patientId, // The patient's ID
+            addedBy: doctorUser.uid, // The doctor's ID
+        };
+
         try {
-            await addDoc(healthRecordsRef, {
-                recordType: 'medicalHistory',
-                details: newHistoryItem,
-                dateCreated: serverTimestamp(),
-                userId: patientId, // The patient's ID
-                addedBy: doctorUser.uid, // The doctor's ID
-            });
+            await addDocumentNonBlocking(healthRecordsRef, medicalHistoryData);
             setNewHistoryItem('');
             toast({
                 title: "Success",
                 description: "Medical history item added.",
             });
         } catch (error) {
-            console.error("Error adding medical history:", error);
-            toast({
-                variant: "destructive",
-                title: "Error",
-                description: "Could not add medical history item.",
-            });
+            // Error is handled by the non-blocking update function's catch block
         } finally {
             setIsAdding(false);
         }

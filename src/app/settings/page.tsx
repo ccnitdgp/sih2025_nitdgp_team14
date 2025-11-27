@@ -491,5 +491,3 @@ const SettingsSkeleton = () => (
         </div>
     </div>
 )
-
-    
