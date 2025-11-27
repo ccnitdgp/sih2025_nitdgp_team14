@@ -45,7 +45,7 @@ const profileSchema = z.object({
 
 
 const ProfileDetail = ({ icon: Icon, label, value, description }) => {
-  if (!value) return null;
+  if (value === undefined || value === null || value === '') return null;
   return (
     <div className="flex items-start gap-4">
       <Icon className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
@@ -291,16 +291,16 @@ export default function PatientProfilePage() {
                             <CardContent className="space-y-6">
                                 <ProfileDetail icon={UserIcon} label="Full Name" value={`${userProfile.firstName} ${userProfile.lastName}`} />
                                 <ProfileDetail icon={Cake} label="Date of Birth" value={userProfile.dateOfBirth?.toDate ? `${userProfile.dateOfBirth.toDate().toLocaleDateString()} (${getAge(userProfile.dateOfBirth)} years old)` : 'Not Provided'} />
-                                <ProfileDetail icon={Users} label="Gender" value={userProfile.gender} />
-                                <ProfileDetail icon={Droplet} label="Blood Group" value={userProfile.bloodGroup} />
+                                <ProfileDetail icon={Users} label="Gender" value={userProfile.gender || 'N/A'} />
+                                <ProfileDetail icon={Droplet} label="Blood Group" value={userProfile.bloodGroup || 'N/A'} />
                             </CardContent>
                         </Card>
                         <Card>
                             <CardHeader><CardTitle>Contact Details</CardTitle></CardHeader>
                             <CardContent className="space-y-6">
-                                <ProfileDetail icon={Phone} label="Phone Number" value={userProfile.phoneNumber} />
+                                <ProfileDetail icon={Phone} label="Phone Number" value={userProfile.phoneNumber || 'N/A'} />
                                 <ProfileDetail icon={AtSign} label="Email Address" value={user?.email} />
-                                <ProfileDetail icon={Home} label="Full Address" value={`${userProfile.address?.fullAddress}, ${userProfile.address?.cityStateCountry} - ${userProfile.address?.pinCode}`} />
+                                <ProfileDetail icon={Home} label="Full Address" value={`${userProfile.address?.fullAddress || ''}, ${userProfile.address?.cityStateCountry || ''} - ${userProfile.address?.pinCode || ''}`.replace(/^, | - $/g, '') || 'N/A'} />
                                 {userProfile.emergencyContact?.name && (
                                     <div className="flex items-start gap-4">
                                         <Users className="h-5 w-5 text-destructive mt-1 flex-shrink-0" />
@@ -325,11 +325,12 @@ export default function PatientProfilePage() {
                                 <CardDescription>Your latest recorded health metrics.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-6">
-                                <ProfileDetail icon={Scale} label="Height / Weight" value={`${userProfile.healthMetrics?.height || 'N/A'} cm / ${userProfile.healthMetrics?.weight || 'N/A'} kg`} />
-                                <ProfileDetail icon={TrendingUp} label="Body Mass Index (BMI)" value={calculateBmi()} />
-                                <ProfileDetail icon={Activity} label="Blood Pressure" value={userProfile.healthMetrics?.bloodPressure} description="Last reading" />
-                                <ProfileDetail icon={Droplets} label="Blood Sugar" value={userProfile.healthMetrics?.bloodSugar ? `${userProfile.healthMetrics.bloodSugar} mg/dL` : null} description="Fasting" />
-                                <ProfileDetail icon={HeartPulse} label="Pulse Rate" value={userProfile.healthMetrics?.pulseRate ? `${userProfile.healthMetrics.pulseRate} bpm` : null} description="Resting" />
+                                <ProfileDetail icon={Scale} label="Height" value={userProfile.healthMetrics?.height ? `${userProfile.healthMetrics.height} cm` : 'N/A'} />
+                                <ProfileDetail icon={Scale} label="Weight" value={userProfile.healthMetrics?.weight ? `${userProfile.healthMetrics.weight} kg` : 'N/A'} />
+                                <ProfileDetail icon={TrendingUp} label="Body Mass Index (BMI)" value={calculateBmi() || 'N/A'} />
+                                <ProfileDetail icon={Activity} label="Blood Pressure" value={userProfile.healthMetrics?.bloodPressure || 'N/A'} description="Last reading" />
+                                <ProfileDetail icon={Droplets} label="Blood Sugar" value={userProfile.healthMetrics?.bloodSugar ? `${userProfile.healthMetrics.bloodSugar} mg/dL` : 'N/A'} description="Fasting" />
+                                <ProfileDetail icon={HeartPulse} label="Pulse Rate" value={userProfile.healthMetrics?.pulseRate ? `${userProfile.healthMetrics.pulseRate} bpm` : 'N/A'} description="Resting" />
                             </CardContent>
                         </Card>
                       </div>
@@ -347,3 +348,5 @@ export default function PatientProfilePage() {
     </div>
   );
 }
+
+    

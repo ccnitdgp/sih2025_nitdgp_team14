@@ -8,7 +8,7 @@ import { differenceInYears } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const ProfileDetail = ({ icon: Icon, label, value, description }) => {
-  if (!value) return null;
+  if (value === undefined || value === null || value === '') return null;
   return (
     <div className="flex items-start gap-4">
       <Icon className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
@@ -109,8 +109,8 @@ export function PatientProfileTab({ patientId, patientProfile, isLoading }) {
             <CardContent className="space-y-6">
                 <ProfileDetail icon={UserIcon} label="Full Name" value={`${patientProfile.firstName} ${patientProfile.lastName}`} />
                 <ProfileDetail icon={Cake} label="Date of Birth" value={patientProfile.dateOfBirth?.toDate ? `${patientProfile.dateOfBirth.toDate().toLocaleDateString()} (${getAge(patientProfile.dateOfBirth)} years old)` : 'Not Provided'} />
-                <ProfileDetail icon={Users} label="Gender" value={patientProfile.gender} />
-                <ProfileDetail icon={Droplet} label="Blood Group" value={patientProfile.bloodGroup} />
+                <ProfileDetail icon={Users} label="Gender" value={patientProfile.gender || 'N/A'} />
+                <ProfileDetail icon={Droplet} label="Blood Group" value={patientProfile.bloodGroup || 'N/A'} />
             </CardContent>
             </Card>
 
@@ -119,9 +119,9 @@ export function PatientProfileTab({ patientId, patientProfile, isLoading }) {
                 <CardTitle>Contact & Address</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-                <ProfileDetail icon={Phone} label="Phone Number" value={patientProfile.phoneNumber} />
+                <ProfileDetail icon={Phone} label="Phone Number" value={patientProfile.phoneNumber || 'N/A'} />
                 <ProfileDetail icon={AtSign} label="Email Address" value={patientProfile.email} />
-                <ProfileDetail icon={Home} label="Full Address" value={`${patientProfile.address?.fullAddress}, ${patientProfile.address?.cityStateCountry} - ${patientProfile.address?.pinCode}`} />
+                <ProfileDetail icon={Home} label="Full Address" value={`${patientProfile.address?.fullAddress || ''}, ${patientProfile.address?.cityStateCountry || ''} - ${patientProfile.address?.pinCode || ''}`.replace(/^, | - $/g, '') || 'N/A'} />
                 {patientProfile.emergencyContact?.name && (
                     <div className="flex items-start gap-4">
                         <Users className="h-5 w-5 text-destructive mt-1 flex-shrink-0" />
@@ -142,14 +142,17 @@ export function PatientProfileTab({ patientId, patientProfile, isLoading }) {
                     <CardDescription>Patient's last recorded metrics.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    <ProfileDetail icon={Scale} label="Height / Weight" value={`${patientProfile.healthMetrics?.height || 'N/A'} cm / ${patientProfile.healthMetrics?.weight || 'N/A'} kg`} />
-                    <ProfileDetail icon={TrendingUp} label="Body Mass Index (BMI)" value={calculateBmi()} />
-                    <ProfileDetail icon={Activity} label="Blood Pressure" value={patientProfile.healthMetrics?.bloodPressure} description="Last reading" />
-                    <ProfileDetail icon={Droplets} label="Blood Sugar" value={patientProfile.healthMetrics?.bloodSugar ? `${patientProfile.healthMetrics.bloodSugar} mg/dL` : null} description="Fasting" />
-                    <ProfileDetail icon={HeartPulse} label="Pulse Rate" value={patientProfile.healthMetrics?.pulseRate ? `${patientProfile.healthMetrics.pulseRate} bpm` : null} description="Resting" />
+                    <ProfileDetail icon={Scale} label="Height" value={patientProfile.healthMetrics?.height ? `${patientProfile.healthMetrics.height} cm` : 'N/A'} />
+                    <ProfileDetail icon={Scale} label="Weight" value={patientProfile.healthMetrics?.weight ? `${patientProfile.healthMetrics.weight} kg` : 'N/A'} />
+                    <ProfileDetail icon={TrendingUp} label="Body Mass Index (BMI)" value={calculateBmi() || 'N/A'} />
+                    <ProfileDetail icon={Activity} label="Blood Pressure" value={patientProfile.healthMetrics?.bloodPressure || 'N/A'} description="Last reading" />
+                    <ProfileDetail icon={Droplets} label="Blood Sugar" value={patientProfile.healthMetrics?.bloodSugar ? `${patientProfile.healthMetrics.bloodSugar} mg/dL` : 'N/A'} description="Fasting" />
+                    <ProfileDetail icon={HeartPulse} label="Pulse Rate" value={patientProfile.healthMetrics?.pulseRate ? `${patientProfile.healthMetrics.pulseRate} bpm` : 'N/A'} description="Resting" />
                 </CardContent>
             </Card>
         </div>
     </div>
   )
 }
+
+    
