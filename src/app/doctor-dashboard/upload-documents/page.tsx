@@ -86,7 +86,7 @@ export default function UploadDocumentsPage() {
                         <SelectContent>
                           {patients?.map(p => (
                             <SelectItem key={p.patientId} value={p.patientId}>
-                                {p.firstName} {p.lastName} ({p.customPatientId})
+                                {p.firstName} {p.lastName} ({p.email})
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -204,3 +204,5 @@ export default function UploadDocumentsPage() {
     </div>
   );
 }
+
+    
