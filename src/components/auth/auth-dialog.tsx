@@ -253,6 +253,19 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
                 setDocumentNonBlocking(userDocRef, userProfileData, { merge: true });
             }
 
+            // Create a public doctor profile if the role is doctor
+            if (userProfileData.role === 'doctor') {
+              const publicDoctorProfile = {
+                id: user.uid,
+                firstName: userProfileData.firstName,
+                lastName: userProfileData.lastName,
+                specialty: "General Physician", // Placeholder
+                cityStateCountry: userProfileData.address.cityStateCountry,
+              };
+              const doctorDocRef = doc(firestore, 'doctors', user.uid);
+              setDocumentNonBlocking(doctorDocRef, publicDoctorProfile, {});
+            }
+
             if (userProfileData.role === 'patient' && userProfileData.doctorId) {
                 const doctorPatientsColRef = collection(firestore, 'users', userProfileData.doctorId, 'patients');
                 const patientLinkDocRef = doc(doctorPatientsColRef, user.uid);

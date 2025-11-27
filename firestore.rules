@@ -140,6 +140,11 @@ service cloud.firestore {
     // Public Data Collections
     // =====================================================================
 
+    match /doctors/{doctorId} {
+        allow read: if true;
+        allow write: if false; // Secure by default, only backend/admin should write
+    }
+
     match /vaccinationDrives/{vaccinationDriveId} {
       allow read: if true;
       allow write: if false; // Secure by default
@@ -151,3 +156,5 @@ service cloud.firestore {
     }
   }
 }
+
+    

@@ -67,7 +67,7 @@ const FindDoctors = ({ t }) => {
 
   const doctorsQuery = useMemoFirebase(() => {
       if (!firestore) return null;
-      return query(collection(firestore, 'users'), where('role', '==', 'doctor'));
+      return collection(firestore, 'doctors');
   }, [firestore]);
 
   const { data: doctorsData, isLoading: isLoadingDoctors } = useCollection(doctorsQuery);
@@ -77,8 +77,8 @@ const FindDoctors = ({ t }) => {
     return doctorsData.map(doc => ({
       id: doc.id,
       name: `Dr. ${doc.firstName} ${doc.lastName}`,
-      specialty: 'General Physician', // This should be in the userProfile for doctors
-      location: doc.address?.cityStateCountry || 'Not specified',
+      specialty: doc.specialty || 'General Physician',
+      location: doc.cityStateCountry || 'Not specified',
       rating: 4.8, // Placeholder
       reviews: 0, // Placeholder
       avatar: `https://picsum.photos/seed/${doc.id}/200`,
@@ -466,3 +466,4 @@ export default function AppointmentsPage() {
   );
 }
 
+    
