@@ -21,8 +21,8 @@ import { Calendar } from '@/components/ui/calendar';
 import { format, addDays, startOfDay } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { upcomingAppointments, pastAppointments, appointments as allAppointments } from '@/lib/data';
-import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useUser, useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
+import { doc, collection, query, where } from 'firebase/firestore';
 import hi from '@/lib/locales/hi.json';
 import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
@@ -41,52 +41,17 @@ const today = new Date();
 const tomorrow = addDays(today, 1);
 const dayAfter = addDays(today, 2);
 
-const doctors = [
-  {
-    id: 'doc1',
-    name: 'Dr. Anjali Sharma',
-    specialty: 'Cardiologist',
-    location: 'Apollo Hospital, Delhi',
-    rating: 4.9,
-    reviews: 120,
-    avatar: 'https://picsum.photos/seed/doc1/200',
-    availableSlots: {
-      [format(today, 'yyyy-MM-dd')]: ['04:00 PM', '04:30 PM'],
-      [format(tomorrow, 'yyyy-MM-dd')]: ['10:00 AM', '11:30 AM', '02:00 PM'],
-      [format(dayAfter, 'yyyy-MM-dd')]: ['09:00 AM', '09:30 AM', '10:00 AM'],
-    }
-  },
-  {
-    id: 'doc2',
-    name: 'Dr. Vikram Singh',
-    specialty: 'Dermatologist',
-    location: 'Max Healthcare, Gurgaon',
-    rating: 4.8,
-    reviews: 85,
-    avatar: 'https://picsum.photos/seed/doc2/200',
-     availableSlots: {
-      [format(today, 'yyyy-MM-dd')]: ['04:30 PM', '05:00 PM'],
-      [format(tomorrow, 'yyyy-MM-dd')]: ['09:00 AM', '09:30 AM'],
-      [format(dayAfter, 'yyyy-MM-dd')]: ['02:00 PM', '02:30 PM', '03:00 PM'],
-    }
-  },
-  {
-    id: 'doc3',
-    name: 'Dr. Priya Gupta',
-    specialty: 'General Physician',
-    location: 'Fortis Hospital, Noida',
-    rating: 4.9,
-    reviews: 210,
-    avatar: 'https://picsum.photos/seed/doc3/200',
-    availableSlots: {
-      [format(today, 'yyyy-MM-dd')]: ['02:00 PM', '03:15 PM'],
-      [format(tomorrow, 'yyyy-MM-dd')]: ['10:00 AM', '10:45 AM'],
-      [format(dayAfter, 'yyyy-MM-dd')]: ['11:00 AM', '11:30 AM'],
-    }
-  },
-];
 
-type Doctor = (typeof doctors)[0];
+type Doctor = {
+  id: string;
+  name: string;
+  specialty: string;
+  location: string;
+  rating: number;
+  reviews: number;
+  avatar: string;
+  availableSlots: Record<string, string[]>;
+};
 
 const FindDoctors = ({ t }) => {
   const [symptoms, setSymptoms] = useState('');
@@ -97,7 +62,34 @@ const FindDoctors = ({ t }) => {
   const [selectedTime, setSelectedTime] = useState<string | undefined>(undefined);
   const { toast } = useToast();
   const { user } = useUser();
+  const firestore = useFirestore();
   const [bookedAppointments, setBookedAppointments] = useState(allAppointments);
+
+  const doctorsQuery = useMemoFirebase(() => {
+      if (!firestore) return null;
+      return query(collection(firestore, 'users'), where('role', '==', 'doctor'));
+  }, [firestore]);
+
+  const { data: doctorsData, isLoading: isLoadingDoctors } = useCollection(doctorsQuery);
+
+  const doctors = useMemo(() => {
+    if (!doctorsData) return [];
+    return doctorsData.map(doc => ({
+      id: doc.id,
+      name: `Dr. ${doc.firstName} ${doc.lastName}`,
+      specialty: 'General Physician', // This should be in the userProfile for doctors
+      location: doc.address?.cityStateCountry || 'Not specified',
+      rating: 4.8, // Placeholder
+      reviews: 0, // Placeholder
+      avatar: `https://picsum.photos/seed/${doc.id}/200`,
+      availableSlots: { // Placeholder slots
+        [format(today, 'yyyy-MM-dd')]: ['04:00 PM', '04:30 PM'],
+        [format(tomorrow, 'yyyy-MM-dd')]: ['10:00 AM', '11:30 AM', '02:00 PM'],
+        [format(dayAfter, 'yyyy-MM-dd')]: ['09:00 AM', '09:30 AM', '10:00 AM'],
+      }
+    }));
+  }, [doctorsData]);
+  
 
   const handleGetSuggestion = async () => {
     if (!symptoms) return;
@@ -146,9 +138,9 @@ const FindDoctors = ({ t }) => {
         avatar: selectedDoctor.avatar,
     };
     
-    // Update the shared state
-    setBookedAppointments([...bookedAppointments, newAppointment]);
-    upcomingAppointments.push(newAppointment as any);
+    // This is a simulation. In a real app, this would write to Firestore.
+    allAppointments.push(newAppointment);
+    setBookedAppointments([...allAppointments]);
 
 
     toast({
@@ -158,7 +150,7 @@ const FindDoctors = ({ t }) => {
     handleCloseDialog();
   };
 
-  const filteredDoctors = suggestion
+  const filteredDoctors = suggestion && !isLoadingDoctors
     ? doctors.filter(doc => doc.specialty === suggestion.specialistSuggestion)
     : doctors;
     
@@ -219,11 +211,12 @@ const FindDoctors = ({ t }) => {
                 <h2 className="text-3xl font-bold tracking-tight mb-6">
                     {suggestion && filteredDoctors.length > 0 ? t('suggested_specialists_title', `Suggested ${suggestion.specialistSuggestion}s`) : t('doctors_near_you_title', 'Doctors Near You')}
                 </h2>
-                {suggestion && filteredDoctors.length === 0 && (
+                {suggestion && !isLoadingDoctors && filteredDoctors.length === 0 && (
                     <p className="text-center text-muted-foreground mb-6">
                         {t('no_doctors_found_text', 'No doctors found for the suggested specialty. Showing all doctors.')}
                     </p>
                 )}
+                {isLoadingDoctors ? <p>Loading doctors...</p> : 
                 <div className="space-y-6">
                     {doctorsToShow.map((doctor, index) => (
                     <Card key={index} className="transition-shadow hover:shadow-lg">
@@ -255,6 +248,7 @@ const FindDoctors = ({ t }) => {
                     </Card>
                     ))}
                 </div>
+                }
             </div>
         </div>
         <Dialog open={!!selectedDoctor} onOpenChange={(isOpen) => !isOpen && handleCloseDialog()}>
@@ -299,7 +293,7 @@ const FindDoctors = ({ t }) => {
 
                 <Select onValueChange={setSelectedTime} value={selectedTime} disabled={!selectedDate || availableTimesForSelectedDate.length === 0}>
                     <SelectTrigger>
-                        <SelectValue placeholder={t('select_date_prompt', 'Pick a time slot')} />
+                        <SelectValue placeholder={availableTimesForSelectedDate.length > 0 ? t('select_time_prompt', 'Pick a time slot') : t('no_slots_available_text', 'No slots available')} />
                     </SelectTrigger>
                     <SelectContent>
                         {availableTimesForSelectedDate.map(time => (
@@ -329,7 +323,7 @@ const MyAppointments = ({ t }) => {
                 <CardDescription>{t('upcoming_appointments_desc', 'Here are your scheduled appointments.')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                {upcomingAppointments.map(appt => (
+                 {upcomingAppointments.length > 0 ? upcomingAppointments.map(appt => (
                     <Card key={appt.id} className="p-4 flex flex-col sm:flex-row items-start gap-4">
                          <Avatar className="h-16 w-16">
                             <AvatarImage src={appt.avatar} />
@@ -357,7 +351,7 @@ const MyAppointments = ({ t }) => {
                             <Button variant="destructive">{t('cancel_button', 'Cancel')}</Button>
                         </div>
                     </Card>
-                ))}
+                )) : <p>No upcoming appointments.</p>}
             </CardContent>
         </Card>
     )
@@ -371,7 +365,7 @@ const HistoryTab = ({ t }) => {
                 <CardDescription>{t('appointment_history_desc', 'Here are your past appointments.')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                {pastAppointments.map(appt => (
+                {pastAppointments.length > 0 ? pastAppointments.map(appt => (
                     <Card key={appt.id} className="p-4 flex flex-col sm:flex-row items-start gap-4">
                          <Avatar className="h-16 w-16">
                             <AvatarImage src={appt.avatar} />
@@ -397,7 +391,7 @@ const HistoryTab = ({ t }) => {
                             <Button variant="outline">{t('view_details_button', 'View Details')}</Button>
                         </div>
                     </Card>
-                ))}
+                )) : <p>No past appointments.</p>}
             </CardContent>
         </Card>
     )
@@ -463,4 +457,3 @@ export default function AppointmentsPage() {
   );
 }
 
-    
