@@ -3,8 +3,8 @@
 
 import { useMemo } from "react"
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
-import { useCollection, useFirestore, useMemoFirebase, useUser } from "@/firebase"
-import { collection, query, where } from "firebase/firestore"
+import { useCollection, useFirestore, useMemoFirebase, useUser, useDoc } from "@/firebase"
+import { collection, query, where, doc } from "firebase/firestore"
 import { startOfWeek, endOfWeek, eachDayOfInterval, format, isSameDay } from 'date-fns';
 
 import {
@@ -25,17 +25,27 @@ export function WeeklyActivityChart() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const appointmentsQuery = useMemoFirebase(() => {
-    // Ensure both user and firestore are available before creating the query.
+  const userDocRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [user, firestore]);
+
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc(userDocRef);
+
+  const appointmentsQuery = useMemoFirebase(() => {
+    // CRITICAL FIX: Do not create the query until we have the user, firestore,
+    // and have confirmed the user's role is 'doctor'.
+    if (!user || !firestore || !userProfile || userProfile.role !== 'doctor') {
+      return null;
+    }
     
     return query(
         collection(firestore, 'appointments'), 
         where('doctorId', '==', user.uid)
     );
-  }, [user, firestore]);
+  }, [user, firestore, userProfile]);
 
-  const { data: appointments, isLoading } = useCollection(appointmentsQuery);
+  const { data: appointments, isLoading: areAppointmentsLoading } = useCollection(appointmentsQuery);
 
   const chartData = useMemo(() => {
     const now = new Date();
@@ -48,7 +58,7 @@ export function WeeklyActivityChart() {
     }
 
     return weekDays.map(day => {
-        const count = appointments.filter(appt => isSameDay(new Date(appt.date), day)).length;
+        const count = appointments.filter(appt => appt.date && isSameDay(new Date(appt.date), day)).length;
         return {
             day: format(day, 'EEEE'),
             appointments: count,
@@ -57,7 +67,8 @@ export function WeeklyActivityChart() {
 
   }, [appointments]);
 
-  if (isLoading && !appointments) {
+  // Show skeleton if the profile or the appointments are loading.
+  if (isProfileLoading || areAppointmentsLoading) {
       return <Skeleton className="h-[250px] w-full" />;
   }
 
