@@ -8,7 +8,7 @@ import * as z from "zod";
 import { CalendarIcon, Eye, EyeOff, User, Stethoscope } from "lucide-react";
 import { useAuth } from "@/firebase";
 import { initiateEmailSignIn, initiateEmailSignUp, sendPasswordReset } from "@/firebase/non-blocking-login";
-import { setDocumentNonBlocking, addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { doc, collection, query, where, getDocs, writeBatch } from 'firebase/firestore';
 import { useFirestore } from "@/firebase";
 import { format } from "date-fns";
@@ -177,118 +177,81 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
 
   async function onSignupSubmit(values: z.infer<typeof signupSchema>) {
     try {
-        const userCredential = await initiateEmailSignUp(auth, values.email, values.password);
-        if (userCredential && userCredential.user) {
-            const user = userCredential.user;
-
-            const usersRef = collection(firestore, "users");
-            const q = query(usersRef, where("email", "==", values.email), where("role", "==", values.role));
-            const querySnapshot = await getDocs(q);
-
-            let userProfileData: any;
-
-            if (!querySnapshot.empty) {
-                // A pre-existing profile was found for this email.
-                const existingDoc = querySnapshot.docs[0];
-                const existingData = existingDoc.data();
-
-                // Prepare the new profile data, inheriting from the old one
-                userProfileData = {
-                    ...existingData,
-                    firstName: values.firstName,
-                    lastName: values.lastName,
-                    dateOfBirth: values.dateOfBirth,
-                    gender: values.gender,
-                    phoneNumber: values.phoneNumber,
-                    address: {
-                      fullAddress: values.fullAddress,
-                      cityStateCountry: values.cityStateCountry,
-                      pinCode: values.pinCode,
-                    },
-                    id: user.uid, // CRITICAL: Update the ID to the new auth user's ID
-                };
-                 if (values.role === 'patient') {
-                    userProfileData.bloodGroup = values.bloodGroup;
-                    userProfileData.emergencyContact = {
-                        name: values.emergencyContactName,
-                        phone: values.emergencyContactPhone,
-                        relation: values.emergencyContactRelation,
-                    };
-                }
-
-                // Use a batch write to delete the old doc and create the new one atomically.
-                const batch = writeBatch(firestore);
-                batch.delete(existingDoc.ref);
-                const newDocRef = doc(firestore, 'users', user.uid);
-                batch.set(newDocRef, userProfileData);
-                await batch.commit();
-
-            } else {
-                // No pre-existing profile, create a new one from scratch.
-                userProfileData = {
-                    id: user.uid,
-                    firstName: values.firstName,
-                    lastName: values.lastName,
-                    role: values.role,
-                    email: user.email,
-                    dateOfBirth: values.dateOfBirth,
-                    gender: values.gender,
-                    phoneNumber: values.phoneNumber,
-                     address: {
-                      fullAddress: values.fullAddress,
-                      cityStateCountry: values.cityStateCountry,
-                      pinCode: values.pinCode,
-                    },
-                };
-                 if (values.role === 'patient') {
-                    userProfileData.doctorId = HARDCODED_DOCTOR_ID;
-                    userProfileData.bloodGroup = values.bloodGroup;
-                    userProfileData.emergencyContact = {
-                        name: values.emergencyContactName,
-                        phone: values.emergencyContactPhone,
-                        relation: values.emergencyContactRelation,
-                    };
-                }
-                const userDocRef = doc(firestore, 'users', user.uid);
-                setDocumentNonBlocking(userDocRef, userProfileData, { merge: true });
-            }
-
-            // Create a public doctor profile if the role is doctor
-            if (userProfileData.role === 'doctor') {
-              const publicDoctorProfile = {
-                id: user.uid,
-                firstName: userProfileData.firstName,
-                lastName: userProfileData.lastName,
-                specialty: "General Physician", // Placeholder
-                cityStateCountry: userProfileData.address.cityStateCountry,
-              };
-              const doctorDocRef = doc(firestore, 'doctors', user.uid);
-              setDocumentNonBlocking(doctorDocRef, publicDoctorProfile, {});
-            }
-
-            if (userProfileData.role === 'patient' && userProfileData.doctorId) {
-                const doctorPatientsColRef = collection(firestore, 'users', userProfileData.doctorId, 'patients');
-                const patientLinkDocRef = doc(doctorPatientsColRef, user.uid);
-                const patientLinkDoc = {
-                    patientId: user.uid,
-                    firstName: values.firstName,
-                    lastName: values.lastName,
-                    email: values.email
-                };
-                setDocumentNonBlocking(patientLinkDocRef, patientLinkDoc, {});
-            }
+      const userCredential = await initiateEmailSignUp(auth, values.email, values.password);
+      if (userCredential && userCredential.user) {
+        const user = userCredential.user;
+  
+        // Base user profile data
+        let userProfileData = {
+          id: user.uid,
+          firstName: values.firstName,
+          lastName: values.lastName,
+          role: values.role,
+          email: user.email,
+          dateOfBirth: values.dateOfBirth,
+          gender: values.gender,
+          phoneNumber: values.phoneNumber,
+          address: {
+            fullAddress: values.fullAddress,
+            cityStateCountry: values.cityStateCountry,
+            pinCode: values.pinCode,
+          },
+        };
+  
+        // Add patient-specific or doctor-specific fields
+        if (values.role === 'patient') {
+          Object.assign(userProfileData, {
+            doctorId: HARDCODED_DOCTOR_ID,
+            bloodGroup: values.bloodGroup,
+            emergencyContact: {
+              name: values.emergencyContactName,
+              phone: values.emergencyContactPhone,
+              relation: values.emergencyContactRelation,
+            },
+          });
         }
-        setOpen(false);
-        onOpenChange?.(false);
-        router.push('/login-redirect');
+  
+        // Set the user's private profile
+        const userDocRef = doc(firestore, 'users', user.uid);
+        setDocumentNonBlocking(userDocRef, userProfileData, { merge: true });
+  
+        // If the user is a doctor, create their public profile
+        if (values.role === 'doctor') {
+          const publicDoctorProfile = {
+            id: user.uid,
+            firstName: values.firstName,
+            lastName: values.lastName,
+            specialty: "General Physician", // Placeholder, could be part of signup form
+            cityStateCountry: values.cityStateCountry,
+          };
+          const doctorDocRef = doc(firestore, 'doctors', user.uid);
+          setDocumentNonBlocking(doctorDocRef, publicDoctorProfile, {});
+        }
+  
+        // If the user is a patient, link them to their doctor
+        if (values.role === 'patient' && userProfileData.doctorId) {
+          const doctorPatientsColRef = collection(firestore, 'users', userProfileData.doctorId, 'patients');
+          const patientLinkDocRef = doc(doctorPatientsColRef, user.uid);
+          const patientLinkDoc = {
+            patientId: user.uid,
+            firstName: values.firstName,
+            lastName: values.lastName,
+            email: values.email
+          };
+          setDocumentNonBlocking(patientLinkDocRef, patientLinkDoc, {});
+        }
+      }
+      setOpen(false);
+      onOpenChange?.(false);
+      router.push('/login-redirect');
     } catch (error: any) {
-        toast({
-            variant: "destructive",
-            title: "Sign up failed",
-            description: error.message,
-        });
+      toast({
+        variant: "destructive",
+        title: "Sign up failed",
+        description: error.message,
+      });
     }
-}
+  }
   
   const handleForgotPassword = async () => {
     const email = loginForm.getValues("email");

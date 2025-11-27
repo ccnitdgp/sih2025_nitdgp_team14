@@ -1,27 +1,4 @@
-/**
- * Core Philosophy: This ruleset enforces a strict user-ownership model for all private data,
- * while allowing public read access to general information like health camps and vaccination drives.
- * The primary goal is to ensure that a user can only ever access their own information, unless
- * they are a doctor, in which case they can access the data of patients assigned to them.
- *
- * Data Structure: All user data is stored under `/users/{userId}`. Private subcollections like
- * `healthRecords` are nested within this structure. For doctors, a `patients` subcollection
- * exists at `/users/{doctorId}/patients/{patientId}` which links them to their patients' data.
- * This structure is key to our security model.
- *
- * Key Security Decisions:
- * - User Enumeration is explicitly disallowed by disabling list access on the top-level `/users` collection.
- * - Public data collections (`vaccinationDrives`, `healthCamps`, `doctors`) are read-only for all users.
- * - All write operations on user-owned data require the user to be authenticated and their UID to match
- *   the `userId` in the document path.
- * - Doctors can read patient data (`/users/{patientId}`) ONLY IF a corresponding document exists in their
- *   own patient list (`/users/{request.auth.uid}/patients/{patientId}`). This is a critical security check.
- *
- * Denormalization for Authorization: The data structure is designed to be self-sufficient for authorization.
- * By nesting user-specific collections like `healthRecords` under `/users/{userId}`, we can write fast, simple
- * rules that rely only on the document path (`isOwner(userId)`) or the doctor-patient link. This avoids
- * slow and costly `get()` calls to other documents to verify ownership.
- */
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -30,122 +7,103 @@ service cloud.firestore {
     // Helper Functions
     // =====================================================================
 
-    /**
-     * Checks if a user is authenticated.
-     */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /**
-     * Checks if the authenticated user's UID matches the document's userId.
-     */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
-    
-    /**
-     * Checks if the requesting user is the assigned doctor for the given patient (patientId).
-     * This rule is the core of doctor-patient access control. It confirms that a link
-     * to the patient exists in the doctor's own `/users/{doctorId}/patients` subcollection.
-     */
+
     function isAssignedDoctor(patientId) {
-      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)/patients/$(patientId));
+      return isSignedIn()
+          && exists(/databases/$(database)/documents/users/$(request.auth.uid)/patients/$(patientId));
     }
 
-
-    /**
-     * Validates that the UserProfile 'id' field matches the document ID on create.
-     */
     function userProfileIdMatchesDocIdOnCreate(userId) {
       return request.resource.data.id == userId;
     }
 
-    /**
-     * Validates that a subcollection document's internal 'userId' field
-     * matches the {userId} from the path upon creation.
-     */
+    function userProfileIdIsImmutableOnUpdate() {
+      return !('id' in request.resource.data)
+          || request.resource.data.id == resource.data.id;
+    }
+
     function hasCorrectUserIdOnCreate(userId) {
       return request.resource.data.userId == userId;
     }
 
-    /**
-     * Enforces that the internal 'userId' of a subcollection document
-     * cannot be changed after creation.
-     */
     function userIdIsImmutable() {
       return request.resource.data.userId == resource.data.userId;
     }
-    
-    /**
-     * Ensures the 'id' field of a UserProfile cannot be changed on update.
-     * It must not exist in the request or, if it does, it must not differ.
-     */
-    function userProfileIdIsImmutableOnUpdate() {
-        return !('id' in request.resource.data) || request.resource.data.id == resource.data.id;
-    }
-
 
     // =====================================================================
-    // User Data Collections
+    // USERS COLLECTION — private data
     // =====================================================================
 
     match /users/{userId} {
+
+      // Get allowed to owner or assigned doctor
       allow get: if isOwner(userId) || isAssignedDoctor(userId);
-      allow list: if false; // Prevent listing all users
+      allow list: if false;     // prevent user enumeration
       allow create: if isOwner(userId) && userProfileIdMatchesDocIdOnCreate(userId);
       allow update: if isOwner(userId) && userProfileIdIsImmutableOnUpdate();
       allow delete: if isOwner(userId);
 
-      /**
-       * @description A doctor's list of their patients.
-       * - A doctor can read (get/list) their own patient list.
-       * - A doctor can add/remove patients from their list.
-       * - A patient can add themselves to a doctor's list (e.g. during sign-up).
-       */
+      // ============== PATIENTS SUBCOLLECTION ===================
+      // Doctor sees their own patient list
       match /patients/{patientId} {
-        allow read: if isOwner(userId);
-        allow list: if isOwner(userId);
-        allow write: if isOwner(userId) || (isOwner(patientId) && request.resource.data.patientId == patientId);
-      }
-      
-      /**
-       * @description Manages a user's private health records.
-       * Access is granted to the patient themselves or their assigned doctor.
-       */
-      match /healthRecords/{healthRecordId} {
-        allow read, list: if isOwner(userId) || isAssignedDoctor(userId);
-        allow create: if (isOwner(userId) || isAssignedDoctor(userId)) && hasCorrectUserIdOnCreate(userId);
-        allow update, delete: if (isOwner(userId) || isAssignedDoctor(userId)) && userIdIsImmutable();
+        allow read, list: if isOwner(userId);
+
+        // Owner (doctor) manages list, OR patient adds themselves
+        allow write: if isOwner(userId)
+                  || (isOwner(patientId) && request.resource.data.patientId == patientId);
       }
 
-      /**
-       * @description Manages a user's private medical notifications.
-       */
+      // ============== HEALTH RECORDS ===================
+      match /healthRecords/{healthRecordId} {
+        allow read, list: if isOwner(userId) || isAssignedDoctor(userId);
+
+        allow create: if (isOwner(userId) || isAssignedDoctor(userId))
+                    && hasCorrectUserIdOnCreate(userId);
+
+        allow update, delete: if (isOwner(userId) || isAssignedDoctor(userId))
+                           && userIdIsImmutable();
+      }
+
+      // ============== NOTIFICATIONS ===================
       match /notifications/{notificationId} {
         allow get, list: if isOwner(userId);
+
         allow create: if isOwner(userId) && hasCorrectUserIdOnCreate(userId);
         allow update, delete: if isOwner(userId) && userIdIsImmutable();
       }
     }
 
     // =====================================================================
-    // Public Data Collections
+    // PUBLIC DATA COLLECTIONS
     // =====================================================================
 
     match /doctors/{doctorId} {
-        allow get, list: if isSignedIn();
-        allow write: if false; // Secure by default, only backend/admin should write
+      // Any authenticated user can read the public list of doctors
+      allow get, list: if isSignedIn();
+      // No one can write directly to the public doctor profile
+      allow write: if false;
     }
 
-    match /vaccinationDrives/{vaccinationDriveId} {
+    // ============= VACCINATION DRIVES ==================
+    match /vaccinationDrives/{driveId} {
       allow read: if true;
-      allow write: if false; // Secure by default
+      allow write: if false;
     }
 
-    match /healthCamps/{healthCampId} {
+    // ============= HEALTH CAMPS ==================
+    match /healthCamps/{campId} {
       allow read: if true;
-      allow write: if false; // Secure by default
+      allow write: if false;
     }
+
   }
 }
+
+    

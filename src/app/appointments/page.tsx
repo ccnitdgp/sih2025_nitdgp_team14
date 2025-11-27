@@ -66,8 +66,8 @@ const FindDoctors = ({ t }) => {
   const [bookedAppointments, setBookedAppointments] = useState(allAppointments);
 
   const doctorsQuery = useMemoFirebase(() => {
-      if (!firestore) return null;
-      return collection(firestore, 'doctors');
+    if (!firestore) return null;
+    return collection(firestore, 'doctors');
   }, [firestore]);
 
   const { data: doctorsData, isLoading: isLoadingDoctors } = useCollection(doctorsQuery);
