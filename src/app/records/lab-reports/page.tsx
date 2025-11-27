@@ -11,7 +11,7 @@ import {
 import { FlaskConical, FileDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, doc } from 'firebase/firestore';
+import { collection, doc, query, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useState, useEffect } from 'react';
 import hi from '@/lib/locales/hi.json';
@@ -44,12 +44,15 @@ export default function LabReportsPage() {
 
   const t = (key: string, fallback: string) => translations[key] || fallback;
 
-  const labReportsRef = useMemoFirebase(() => {
+  const labReportsQuery = useMemoFirebase(() => {
     if (!user || !firestore) return null;
-    return collection(firestore, `users/${user.uid}/healthRecords`);
+    return query(
+        collection(firestore, `users/${user.uid}/healthRecords`),
+        where('recordType', '==', 'labReport')
+    );
   }, [user, firestore]);
   
-  const { data: labReports, isLoading } = useCollection(labReportsRef);
+  const { data: labReports, isLoading } = useCollection(labReportsQuery);
 
   const SkeletonLoader = () => (
     <div className="space-y-4">
@@ -80,9 +83,7 @@ export default function LabReportsPage() {
       </CardHeader>
       <CardContent className="space-y-4">
         {isLoading ? <SkeletonLoader /> : labReports && labReports.length > 0 ? (
-            labReports
-              .filter(report => report.recordType === 'labReport')
-              .map((report) => (
+            labReports.map((report) => (
               <Card key={report.id} className="p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                   <div className="flex-1">
                       <h3 className="font-semibold text-lg">{report.details.name}</h3>

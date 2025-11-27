@@ -2,11 +2,11 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
+import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,12 +15,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Upload, FileText, Syringe, Scan } from 'lucide-react';
-import { recentUploads } from '@/lib/data'; 
 
 const uploadSchema = z.object({
   patientId: z.string().min(1, 'Please select a patient.'),
   documentType: z.enum(['Lab Report', 'Vaccination', 'Scan']),
-  file: z.instanceof(File).refine(file => file.size > 0, 'Please select a file.'),
+  documentName: z.string().min(3, 'Please provide a name for the document.'),
+  issuer: z.string().min(3, 'Please provide the issuer of the document (e.g. lab name).'),
+  file: z.any().refine(files => files?.length === 1, 'Please select a file.'),
 });
 
 export default function UploadDocumentsPage() {
@@ -35,45 +36,53 @@ export default function UploadDocumentsPage() {
     defaultValues: {
       patientId: '',
       documentType: 'Lab Report',
+      documentName: '',
+      issuer: ''
     },
   });
 
-  const appointmentsQuery = useMemoFirebase(() => {
+   const patientsCollectionRef = useMemoFirebase(() => {
     if (!doctorUser || !firestore) return null;
-    return query(collection(firestore, 'appointments'), where('doctorId', '==', doctorUser.uid));
+    return collection(firestore, `users/${doctorUser.uid}/patients`);
   }, [doctorUser, firestore]);
 
-  const { data: appointments, isLoading: isLoadingAppointments } = useCollection(appointmentsQuery);
-
-  const patientsFromAppointments = useMemo(() => {
-    if (!appointments) return [];
-    const patientMap = new Map();
-    appointments.forEach(appt => {
-      if (!patientMap.has(appt.patientId)) {
-        patientMap.set(appt.patientId, {
-          id: appt.patientId,
-          name: appt.patientName,
-          email: 'unknown' // Email is not in appointment doc, adjust if needed
-        });
-      }
-    });
-    return Array.from(patientMap.values());
-  }, [appointments]);
-
+  const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsCollectionRef);
 
   const onSubmit = async (values: z.infer<typeof uploadSchema>) => {
-    if (!doctorUser) return;
+    if (!doctorUser || !firestore) return;
     setIsSubmitting(true);
 
-    // Placeholder for actual file upload logic
-    console.log('Uploading file for patient:', values.patientId, values.file.name);
+    // This is a placeholder for actual file upload to a service like Firebase Storage.
+    // In a real application, you would upload the file here and get a URL.
+    console.log('Uploading file for patient:', values.patientId, values.file[0].name);
     
-    setTimeout(() => {
-      toast({ title: 'Document Uploaded', description: `${values.file.name} has been uploaded for the selected patient.` });
-      form.reset();
-      setFileName('');
-      setIsSubmitting(false);
-    }, 1500);
+    const healthRecordsRef = collection(firestore, 'users', values.patientId, 'healthRecords');
+    
+    let recordType = 'labReport'; // default
+    if (values.documentType === 'Vaccination') recordType = 'vaccinationRecord';
+    if (values.documentType === 'Scan') recordType = 'scanReport';
+
+
+    const reportData = {
+        recordType: recordType,
+        details: {
+            name: values.documentName,
+            issuer: values.issuer,
+            date: new Date().toISOString().split('T')[0],
+            fileName: values.file[0].name,
+            downloadUrl: '#', // Placeholder URL
+        },
+        dateCreated: serverTimestamp(),
+        userId: values.patientId,
+        addedBy: doctorUser.uid,
+    };
+
+    addDocumentNonBlocking(healthRecordsRef, reportData);
+
+    toast({ title: 'Document Record Saved', description: `A record for ${values.file[0].name} has been saved for the patient.` });
+    form.reset();
+    setFileName('');
+    setIsSubmitting(false);
   };
 
   return (
@@ -86,23 +95,22 @@ export default function UploadDocumentsPage() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                <FormField
+              <FormField
                   control={form.control}
                   name="patientId"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Select Patient</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoadingAppointments}>
+                       <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoadingPatients}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder={isLoadingAppointments ? "Loading patients..." : "Choose a patient"} />
+                            <SelectValue placeholder={isLoadingPatients ? "Loading patients..." : "Choose a patient"} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {patientsFromAppointments?.map(p => (
-                            <SelectItem key={p.id} value={p.id}>
-                                {p.name}
+                          {patients?.map(p => (
+                            <SelectItem key={p.patientId} value={p.patientId}>
+                              {p.firstName} {p.lastName}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -111,37 +119,8 @@ export default function UploadDocumentsPage() {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="file"
-                  render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Choose File</FormLabel>
-                        <FormControl>
-                            <div className="relative">
-                                <Input 
-                                    type="file" 
-                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                    onChange={(e) => {
-                                        const file = e.target.files?.[0];
-                                        if (file) {
-                                            field.onChange(file);
-                                            setFileName(file.name);
-                                        }
-                                    }} 
-                                />
-                                <Button variant="outline" className="w-full justify-start font-normal text-muted-foreground" asChild>
-                                    <div>{fileName || 'No file chosen'}</div>
-                                </Button>
-                            </div>
-                        </FormControl>
-                         <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
 
-              <FormField
+                <FormField
                 control={form.control}
                 name="documentType"
                 render={({ field }) => (
@@ -184,37 +163,67 @@ export default function UploadDocumentsPage() {
                 )}
               />
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+                 <FormField
+                    control={form.control}
+                    name="documentName"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Document Name</FormLabel>
+                            <FormControl>
+                                <Input placeholder="e.g., Complete Blood Count Report" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                 />
+                 <FormField
+                    control={form.control}
+                    name="issuer"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Issued By (Lab/Hospital)</FormLabel>
+                            <FormControl>
+                                <Input placeholder="e.g., City Diagnostics Lab" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                 />
+                <FormField
+                  control={form.control}
+                  name="file"
+                  render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Choose File</FormLabel>
+                        <FormControl>
+                            <div className="relative">
+                                <Input 
+                                    type="file" 
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    onChange={(e) => {
+                                        field.onChange(e.target.files);
+                                        const file = e.target.files?.[0];
+                                        if (file) setFileName(file.name);
+                                    }} 
+                                />
+                                <Button variant="outline" className="w-full justify-start font-normal text-muted-foreground" asChild>
+                                    <div>{fileName || 'No file chosen'}</div>
+                                </Button>
+                            </div>
+                        </FormControl>
+                         <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
               <Button type="submit" disabled={isSubmitting}>
                 <Upload className="mr-2 h-4 w-4" />
                 {isSubmitting ? 'Uploading...' : 'Upload Document'}
               </Button>
             </form>
           </Form>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Uploads</CardTitle>
-          <CardDescription>A list of the most recently uploaded documents.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {recentUploads.length > 0 ? (
-            recentUploads.map((upload) => (
-              <div key={upload.id} className="flex items-center justify-between rounded-lg border p-4">
-                <div className="flex items-center gap-3">
-                  <FileText className="h-5 w-5 text-primary" />
-                  <div>
-                    <p className="font-medium">{upload.fileName}</p>
-                    <p className="text-sm text-muted-foreground">For {upload.patientName} - {upload.type}</p>
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground">{upload.date}</p>
-              </div>
-            ))
-          ) : (
-            <p className="text-center text-muted-foreground py-4">No documents uploaded recently.</p>
-          )}
         </CardContent>
       </Card>
     </div>
