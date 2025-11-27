@@ -3,9 +3,9 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // =====================================================================
-    // Helper Functions
-    // =====================================================================
+    // ============================================================
+    // Helpers
+    // ============================================================
 
     function isSignedIn() {
       return request.auth != null;
@@ -15,95 +15,15 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    function isAssignedDoctor(patientId) {
+    // Load current user's profile
+    function userDoc(uid) {
+      return get(/databases/$(database)/documents/users/$(uid));
+    }
+
+    function hasRole(role) {
       return isSignedIn()
-          && exists(/databases/$(database)/documents/users/$(request.auth.uid)/patients/$(patientId));
+        && userDoc(request.auth.uid).data.role == role;
     }
 
-    function userProfileIdMatchesDocIdOnCreate(userId) {
-      return request.resource.data.id == userId;
-    }
-
-    function userProfileIdIsImmutableOnUpdate() {
-      return !('id' in request.resource.data)
-          || request.resource.data.id == resource.data.id;
-    }
-
-    function hasCorrectUserIdOnCreate(userId) {
-      return request.resource.data.userId == userId;
-    }
-
-    function userIdIsImmutable() {
-      return request.resource.data.userId == resource.data.userId;
-    }
-
-    // =====================================================================
-    // USERS COLLECTION — private data
-    // =====================================================================
-
-    match /users/{userId} {
-
-      // Get allowed to owner or assigned doctor
-      allow get: if isOwner(userId) || isAssignedDoctor(userId);
-      allow list: if false;     // prevent user enumeration
-      allow create: if isOwner(userId) && userProfileIdMatchesDocIdOnCreate(userId);
-      allow update: if isOwner(userId) && userProfileIdIsImmutableOnUpdate();
-      allow delete: if isOwner(userId);
-
-      // ============== PATIENTS SUBCOLLECTION ===================
-      // Doctor sees their own patient list
-      match /patients/{patientId} {
-        allow read, list: if isOwner(userId);
-
-        // Owner (doctor) manages list, OR patient adds themselves
-        allow write: if isOwner(userId)
-                  || (isOwner(patientId) && request.resource.data.patientId == patientId);
-      }
-
-      // ============== HEALTH RECORDS ===================
-      match /healthRecords/{healthRecordId} {
-        allow read, list: if isOwner(userId) || isAssignedDoctor(userId);
-
-        allow create: if (isOwner(userId) || isAssignedDoctor(userId))
-                    && hasCorrectUserIdOnCreate(userId);
-
-        allow update, delete: if (isOwner(userId) || isAssignedDoctor(userId))
-                           && userIdIsImmutable();
-      }
-
-      // ============== NOTIFICATIONS ===================
-      match /notifications/{notificationId} {
-        allow get, list: if isOwner(userId);
-
-        allow create: if isOwner(userId) && hasCorrectUserIdOnCreate(userId);
-        allow update, delete: if isOwner(userId) && userIdIsImmutable();
-      }
-    }
-
-    // =====================================================================
-    // PUBLIC DATA COLLECTIONS
-    // =====================================================================
-
-    match /doctors/{doctorId} {
-      // Any authenticated user can read the public list of doctors
-      allow get, list: if isSignedIn();
-      // No one can write directly to the public doctor profile
-      allow write: if false;
-    }
-
-    // ============= VACCINATION DRIVES ==================
-    match /vaccinationDrives/{driveId} {
-      allow read: if true;
-      allow write: if false;
-    }
-
-    // ============= HEALTH CAMPS ==================
-    match /healthCamps/{campId} {
-      allow read: if true;
-      allow write: if false;
-    }
-
-  }
-}
-
-    
+    function isPatient() { return hasRole("patient"); }
+    function isDoctor()  { return hasR
