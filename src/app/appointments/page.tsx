@@ -87,12 +87,16 @@ const generateTimeSlots = (workingHours?: string, duration?: number): string[] =
     
     const slots: string[] = [];
     const parts = workingHours.split('-').map(s => s.trim());
-    if (parts.length !== 2) return [];
+    if (parts.length !== 2) {
+        console.error("Invalid working hours format:", workingHours);
+        return [];
+    };
 
     const startTime = parseTime(parts[0]);
     const endTime = parseTime(parts[1]);
     
     if (!startTime || !endTime || endTime <= startTime) {
+         console.error("Invalid working hours format or range:", workingHours);
         return [];
     }
 
@@ -157,7 +161,7 @@ const parseAvailableDays = (daysString?: string): number[] => {
 }
 
 
-const FindDoctors = ({ t }) => {
+const FindDoctors = ({ t, userProfile }) => {
   const [symptoms, setSymptoms] = useState('');
   const [suggestion, setSuggestion] = useState<SymptomCheckerOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -251,14 +255,16 @@ const FindDoctors = ({ t }) => {
   }
 
   const handleBookAppointment = () => {
-    if (!selectedDoctor || !selectedDate || !selectedTime || !user || !firestore) return;
+    if (!selectedDoctor || !selectedDate || !selectedTime || !user || !firestore || !userProfile) return;
     
     const newAppointmentRef = doc(collection(firestore, "appointments"));
+    const patientName = `${userProfile.firstName} ${userProfile.lastName}`;
 
     const newAppointment = {
         id: newAppointmentRef.id,
         doctorId: selectedDoctor.id,
         patientId: user.uid,
+        patientName: patientName,
         date: format(selectedDate, 'yyyy-MM-dd'),
         time: selectedTime,
         type: appointmentType,
@@ -621,7 +627,7 @@ export default function AppointmentsPage() {
                 </TabsTrigger>
             </TabsList>
             <TabsContent value="find-doctors" className="mt-8">
-                <FindDoctors t={t}/>
+                <FindDoctors t={t} userProfile={userProfile}/>
             </TabsContent>
             <TabsContent value="my-appointments" className="mt-8">
                 <MyAppointments t={t}/>

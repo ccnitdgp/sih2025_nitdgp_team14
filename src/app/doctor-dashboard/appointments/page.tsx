@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -19,8 +19,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { useUser, useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
+import { useUser, useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking, useDoc } from '@/firebase';
+import { collection, query, where, doc } from 'firebase/firestore';
+import { differenceInYears } from 'date-fns';
 
 
 const billSchema = z.object({
@@ -48,6 +49,12 @@ export default function DoctorAppointmentsPage() {
   const upcomingAppointments = appointments?.filter(a => a.status === 'Scheduled');
   const pastAppointments = appointments?.filter(a => a.status !== 'Scheduled');
 
+  useEffect(() => {
+    if (!selectedAppointment && upcomingAppointments && upcomingAppointments.length > 0) {
+      setSelectedAppointment(upcomingAppointments[0]);
+    }
+  }, [upcomingAppointments, selectedAppointment]);
+
 
   const form = useForm<z.infer<typeof billSchema>>({
     resolver: zodResolver(billSchema),
@@ -57,14 +64,6 @@ export default function DoctorAppointmentsPage() {
       amount: 0,
     },
   });
-  
-  // Set initial selection
-  useState(() => {
-    if (upcomingAppointments && upcomingAppointments.length > 0) {
-      setSelectedAppointment(upcomingAppointments[0]);
-    }
-  });
-
 
   const handleWritePrescription = () => {
     if (selectedAppointment) {
@@ -91,6 +90,24 @@ export default function DoctorAppointmentsPage() {
 
 
   const AppointmentDetails = ({ appointment }: { appointment: any | null }) => {
+    const firestore = useFirestore();
+    const patientDocRef = useMemoFirebase(() => {
+        if (!appointment?.patientId || !firestore) return null;
+        return doc(firestore, 'users', appointment.patientId);
+    }, [appointment, firestore]);
+    const { data: patientProfile, isLoading: isPatientLoading } = useDoc(patientDocRef);
+
+    const getAge = (dob) => {
+        if (!dob) return 'N/A';
+        const date = dob.toDate ? dob.toDate() : new Date(dob);
+        try {
+            return differenceInYears(new Date(), date);
+        } catch (e) {
+            return 'N/A';
+        }
+    };
+
+
     if (!appointment) {
       return (
         <Card className="h-full flex items-center justify-center">
@@ -139,9 +156,15 @@ export default function DoctorAppointmentsPage() {
               </Avatar>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1 w-full">
                 <div className="flex items-center gap-2 text-sm"><User className="h-4 w-4 text-muted-foreground" /> {appointment.patientName}</div>
-                <div className="flex items-center gap-2 text-sm"><Calendar className="h-4 w-4 text-muted-foreground" /> {appointment.patientAge || 'N/A'} years old</div>
-                <div className="flex items-center gap-2 text-sm"><Building className="h-4 w-4 text-muted-foreground" /> {appointment.type}</div>
-                <div className="flex items-center gap-2 text-sm"><FileText className="h-4 w-4 text-muted-foreground" /> ID: {appointment.patientId}</div>
+                 <div className="flex items-center gap-2 text-sm">
+                    <Calendar className="h-4 w-4 text-muted-foreground" /> 
+                    {isPatientLoading ? '...' : `${getAge(patientProfile?.dateOfBirth)} years old`}
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                    {appointment.type === 'Virtual' ? <Video className="h-4 w-4 text-muted-foreground"/> : <Building className="h-4 w-4 text-muted-foreground" />} 
+                    {appointment.type}
+                </div>
+                <div className="flex items-center gap-2 text-sm"><FileText className="h-4 w-4 text-muted-foreground" /> ID: {appointment.patientId.substring(0,8).toUpperCase()}</div>
               </div>
             </div>
           </div>
