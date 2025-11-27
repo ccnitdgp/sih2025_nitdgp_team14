@@ -4,11 +4,10 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { History, PlusCircle, Volume2 } from 'lucide-react';
-import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, addDocumentNonBlocking } from '@/firebase';
-import { collection, addDoc, serverTimestamp, doc, query, where } from 'firebase/firestore';
+import { History, Volume2 } from 'lucide-react';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { collection, doc, query, where } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import hi from '@/lib/locales/hi.json';
 import bn from '@/lib/locales/bn.json';
@@ -23,9 +22,6 @@ export default function MedicalHistoryPage() {
     const firestore = useFirestore();
     const { toast } = useToast();
     const [translations, setTranslations] = useState({});
-
-    const [newHistoryItem, setNewHistoryItem] = useState('');
-    const [isAdding, setIsAdding] = useState(false);
 
      const userDocRef = useMemoFirebase(() => {
         if (!user || !firestore) return null;
@@ -46,7 +42,10 @@ export default function MedicalHistoryPage() {
 
     const healthRecordsQuery = useMemoFirebase(() => {
         if (!user || !firestore) return null;
-        return query(collection(firestore, `users/${user.uid}/healthRecords`), where('recordType', '==', 'medicalHistory'));
+        return query(
+            collection(firestore, `users/${user.uid}/healthRecords`), 
+            where('recordType', '==', 'medicalHistory')
+        );
     }, [user, firestore]);
     
     const { data: medicalHistory, isLoading } = useCollection(healthRecordsQuery);
@@ -63,28 +62,6 @@ export default function MedicalHistoryPage() {
             });
         }
     };
-    
-    const handleAddItem = () => {
-        if (!newHistoryItem.trim() || !user) return;
-        
-        setIsAdding(true);
-        const healthRecordsRef = collection(firestore, `users/${user.uid}/healthRecords`);
-        const data = {
-            recordType: 'medicalHistory',
-            details: newHistoryItem,
-            dateCreated: serverTimestamp(),
-            userId: user?.uid,
-            addedBy: user?.uid, // Note: This is patient-added, not doctor-added.
-        };
-        
-        addDocumentNonBlocking(healthRecordsRef, data);
-        setNewHistoryItem('');
-        toast({
-            title: t('success_toast_title', "Success"),
-            description: t('medical_history_added_toast_desc', "Medical history item added."),
-        });
-        setIsAdding(false);
-    }
     
     const SkeletonLoader = () => (
       <div className="space-y-4">
