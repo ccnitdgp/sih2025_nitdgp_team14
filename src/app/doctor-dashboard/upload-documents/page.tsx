@@ -1,12 +1,12 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,12 +38,28 @@ export default function UploadDocumentsPage() {
     },
   });
 
-  const patientsCollectionRef = useMemoFirebase(() => {
+  const appointmentsQuery = useMemoFirebase(() => {
     if (!doctorUser || !firestore) return null;
-    return collection(firestore, `users/${doctorUser.uid}/patients`);
+    return query(collection(firestore, 'appointments'), where('doctorId', '==', doctorUser.uid));
   }, [doctorUser, firestore]);
 
-  const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsCollectionRef);
+  const { data: appointments, isLoading: isLoadingAppointments } = useCollection(appointmentsQuery);
+
+  const patientsFromAppointments = useMemo(() => {
+    if (!appointments) return [];
+    const patientMap = new Map();
+    appointments.forEach(appt => {
+      if (!patientMap.has(appt.patientId)) {
+        patientMap.set(appt.patientId, {
+          id: appt.patientId,
+          name: appt.patientName,
+          email: 'unknown' // Email is not in appointment doc, adjust if needed
+        });
+      }
+    });
+    return Array.from(patientMap.values());
+  }, [appointments]);
+
 
   const onSubmit = async (values: z.infer<typeof uploadSchema>) => {
     if (!doctorUser) return;
@@ -77,16 +93,16 @@ export default function UploadDocumentsPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Select Patient</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoadingPatients}>
+                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoadingAppointments}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder={isLoadingPatients ? "Loading patients..." : "Choose a patient"} />
+                            <SelectValue placeholder={isLoadingAppointments ? "Loading patients..." : "Choose a patient"} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {patients?.map(p => (
-                            <SelectItem key={p.patientId} value={p.patientId}>
-                                {p.firstName} {p.lastName} ({p.email})
+                          {patientsFromAppointments?.map(p => (
+                            <SelectItem key={p.id} value={p.id}>
+                                {p.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -204,5 +220,3 @@ export default function UploadDocumentsPage() {
     </div>
   );
 }
-
-    
