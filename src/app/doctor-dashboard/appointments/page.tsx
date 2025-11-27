@@ -164,7 +164,7 @@ export default function DoctorAppointmentsPage() {
                     {appointment.type === 'Virtual' ? <Video className="h-4 w-4 text-muted-foreground"/> : <Building className="h-4 w-4 text-muted-foreground" />} 
                     {appointment.type}
                 </div>
-                <div className="flex items-center gap-2 text-sm"><FileText className="h-4 w-4 text-muted-foreground" /> ID: {appointment.patientId.substring(0,8).toUpperCase()}</div>
+                <div className="flex items-center gap-2 text-sm"><FileText className="h-4 w-4 text-muted-foreground" /> ID: {patientProfile?.patientId || appointment.patientId.substring(0,8).toUpperCase()}</div>
               </div>
             </div>
           </div>
