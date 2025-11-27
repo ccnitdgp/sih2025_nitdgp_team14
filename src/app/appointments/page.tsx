@@ -8,7 +8,7 @@ import * as z from 'zod';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Lightbulb, Sparkles, MapPin, Calendar as CalendarIcon, Star, Clock, Search, ClipboardList, History, Video, GraduationCap } from 'lucide-react';
+import { Lightbulb, Sparkles, MapPin, Calendar as CalendarIcon, Star, Clock, Search, ClipboardList, History, Video, GraduationCap, Loader2 } from 'lucide-react';
 import { getSpecialistSuggestion, type SymptomCheckerOutput } from '@/ai/flows/symptom-checker-flow';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
@@ -257,7 +257,7 @@ const FindDoctors = ({ t }) => {
                         {t('no_doctors_found_text', 'No doctors found for the suggested specialty. Showing all doctors.')}
                     </p>
                 )}
-                {isLoadingDoctors ? <p>Loading doctors...</p> : 
+                {isLoadingDoctors ? (<div className="flex justify-center items-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>) : 
                 <div className="space-y-6">
                     {doctorsToShow.map((doctor, index) => (
                     <Card key={index} className="transition-shadow hover:shadow-lg">
@@ -504,7 +504,3 @@ export default function AppointmentsPage() {
     </div>
   );
 }
-
-
-    
-    

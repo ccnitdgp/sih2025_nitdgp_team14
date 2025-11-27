@@ -12,6 +12,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
+import { Skeleton } from "../ui/skeleton"
 
 const chartConfig = {
   appointments: {
@@ -25,6 +26,7 @@ export function WeeklyActivityChart() {
   const firestore = useFirestore();
 
   const appointmentsQuery = useMemoFirebase(() => {
+    // Ensure both user and firestore are available before creating the query.
     if (!user || !firestore) return null;
     
     return query(
@@ -33,7 +35,7 @@ export function WeeklyActivityChart() {
     );
   }, [user, firestore]);
 
-  const { data: appointments } = useCollection(appointmentsQuery);
+  const { data: appointments, isLoading } = useCollection(appointmentsQuery);
 
   const chartData = useMemo(() => {
     const now = new Date();
@@ -55,6 +57,10 @@ export function WeeklyActivityChart() {
 
   }, [appointments]);
 
+  if (isLoading && !appointments) {
+      return <Skeleton className="h-[250px] w-full" />;
+  }
+
   return (
       <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
         <BarChart accessibilityLayer data={chartData}>
@@ -75,7 +81,3 @@ export function WeeklyActivityChart() {
       </ChartContainer>
   )
 }
-
-
-    
-    
