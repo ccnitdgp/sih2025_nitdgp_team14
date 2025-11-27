@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { BookUser, FileDown, PlusCircle } from 'lucide-react';
+import { BookUser, FileDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -71,20 +71,14 @@ export default function PrescriptionsPage() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-            <div className="flex items-center gap-3">
-            <BookUser className="h-6 w-6" />
-            <CardTitle className="text-2xl">{t('prescriptions_page_title', 'Prescriptions')}</CardTitle>
-            </div>
-            <CardDescription>
-            {t('prescriptions_page_desc', 'Your prescribed medications and their details.')}
-            </CardDescription>
+      <CardHeader>
+        <div className="flex items-center gap-3">
+        <BookUser className="h-6 w-6" />
+        <CardTitle className="text-2xl">{t('prescriptions_page_title', 'Prescriptions')}</CardTitle>
         </div>
-        <Button disabled>
-            <PlusCircle className="mr-2 h-4 w-4"/>
-            {t('add_prescription_button', 'Add Prescription')}
-        </Button>
+        <CardDescription>
+        {t('prescriptions_page_desc', 'Your prescribed medications and their details.')}
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {isLoading ? <SkeletonLoader /> : prescriptions && prescriptions.length > 0 ? (
