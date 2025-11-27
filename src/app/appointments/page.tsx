@@ -85,7 +85,7 @@ const generateTimeSlots = (workingHours?: string, duration?: number): string[] =
 const parseAvailableDays = (daysString?: string): number[] => {
     if (!daysString) return [];
 
-    const dayMap = {
+    const dayMap: { [key: string]: number } = {
         sun: 0, sunday: 0,
         mon: 1, monday: 1,
         tue: 2, tuesday: 2,
@@ -96,39 +96,29 @@ const parseAvailableDays = (daysString?: string): number[] => {
     };
 
     const availableDays = new Set<number>();
-    const parts = daysString.toLowerCase().split(/,|-/).map(s => s.trim());
+    const daySegments = daysString.toLowerCase().split(',').map(s => s.trim());
 
-    for (let i = 0; i < parts.length; i++) {
-        const part = parts[i];
-        if (dayMap[part] !== undefined) {
-             if (i < parts.length - 1 && daysString.includes('-') && dayMap[parts[i+1]] !== undefined) {
-                // Handle range
-                const startDay = dayMap[part];
-                const endDay = dayMap[parts[i+1]];
+    for (const segment of daySegments) {
+        const rangeParts = segment.split(/-|to/).map(p => p.trim());
+        if (rangeParts.length === 2) {
+            const startDayStr = rangeParts[0];
+            const endDayStr = rangeParts[1];
+
+            const startDay = dayMap[startDayStr];
+            const endDay = dayMap[endDayStr];
+
+            if (startDay !== undefined && endDay !== undefined && startDay <= endDay) {
                 for (let dayIndex = startDay; dayIndex <= endDay; dayIndex++) {
                     availableDays.add(dayIndex);
                 }
-                i++; // Skip the next part as it was part of a range
-            } else {
-                availableDays.add(dayMap[part]);
+            }
+        } else if (rangeParts.length === 1) {
+            const day = dayMap[rangeParts[0]];
+            if (day !== undefined) {
+                availableDays.add(day);
             }
         }
     }
-    
-    // Handle single day ranges like "Monday to Friday"
-    if (availableDays.size === 0 && daysString.includes('to')) {
-        const rangeParts = daysString.toLowerCase().split('to').map(s => s.trim());
-        if (rangeParts.length === 2) {
-             const startDay = dayMap[rangeParts[0]];
-             const endDay = dayMap[rangeParts[1]];
-             if(startDay !== undefined && endDay !== undefined) {
-                for (let dayIndex = startDay; dayIndex <= endDay; dayIndex++) {
-                    availableDays.add(dayIndex);
-                }
-             }
-        }
-    }
-
 
     return Array.from(availableDays);
 }
