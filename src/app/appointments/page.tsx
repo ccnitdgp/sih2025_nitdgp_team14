@@ -396,7 +396,7 @@ const FindDoctors = ({ t, userProfile }) => {
                                 </div>
                             )}
                         </div>
-                        <div className="flex md:justify-end">
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-end gap-2">
                             <Button onClick={() => handleOpenSlots(doctor)}>{t('book_appointment_button', 'Book Appointment')}</Button>
                         </div>
                         </CardContent>
@@ -421,14 +421,14 @@ const FindDoctors = ({ t, userProfile }) => {
                         <RadioGroup value={appointmentType} onValueChange={setAppointmentType} className="grid grid-cols-2 gap-4 mt-2">
                             <div>
                                 <RadioGroupItem value="In-Person" id="in-person" className="peer sr-only" />
-                                <Label htmlFor="in-person" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                <Label htmlFor="in-person" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
                                     In-Person
                                 </Label>
                             </div>
 
                             <div>
                                 <RadioGroupItem value="Virtual" id="virtual" className="peer sr-only" />
-                                <Label htmlFor="virtual" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                <Label htmlFor="virtual" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
                                     Virtual
                                 </Label>
                             </div>
@@ -743,7 +743,7 @@ const HistoryTab = ({ t }) => {
                                 <span>{appt.type === 'Virtual' ? 'Virtual Consultation' : appt.location}</span>
                             </div>
                         </div>
-                        <div className="flex gap-2 self-start sm:self-center">
+                        <div className="flex flex-col sm:flex-row items-center gap-2 self-start sm:self-center">
                              {appt.status === 'Completed' && (
                                 <Button>{t('book_again_button', 'Book Again')}</Button>
                              )}
@@ -815,5 +815,3 @@ export default function AppointmentsPage() {
     </div>
   );
 }
-
-    
