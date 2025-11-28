@@ -2,7 +2,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { TrendingUp, Users, Syringe, Calendar, User, Activity } from 'lucide-react';
+import { TrendingUp, Users, Syringe, Calendar, User, Activity, FileDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DiseaseTrendChart } from '@/components/admin/disease-trend-chart';
 import { AppointmentTrendChart } from '@/components/admin/appointment-trend-chart';
@@ -27,6 +27,25 @@ const StatCard = ({ title, value, icon: Icon, description }) => (
 
 export default function AdminDashboardPage() {
     
+  const handleExport = () => {
+    const headers = "Category,Value,Description\n";
+    const rows = [
+        "Total Patients,10245,+5.2% from last month",
+        "Appointments (This Month),1890,+12% from last month",
+        "Vaccinations (This Month),4321,2 new drives started",
+        "Active Outbreak Signals,2,Flu & Dengue in Sector-15"
+    ].join("\n");
+
+    const csvContent = "data:text/csv;charset=utf-8," + headers + rows;
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "public_health_report.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
   return (
     <div className="bg-muted/40 min-h-screen">
       <div className="container mx-auto max-w-7xl px-6 py-12">
@@ -36,6 +55,10 @@ export default function AdminDashboardPage() {
               <h1 className="text-3xl font-bold tracking-tight">Admin Analytics Dashboard</h1>
               <p className="text-muted-foreground">Aggregated public health insights and operational statistics.</p>
             </div>
+            <Button onClick={handleExport}>
+                <FileDown className="mr-2 h-4 w-4" />
+                Export Report
+            </Button>
           </div>
 
            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
