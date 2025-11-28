@@ -103,7 +103,7 @@ export default function UploadDocumentsPage() {
   };
 
   return (
-    <div className="container mx-auto max-w-7xl px-6 py-12 space-y-8">
+    <div className="container mx-auto max-w-2xl px-6 py-12 space-y-8">
       <Card>
         <CardHeader>
           <CardTitle>Upload Medical Document</CardTitle>
@@ -207,7 +207,9 @@ export default function UploadDocumentsPage() {
                         </FormItem>
                     )}
                  />
-                <FormField
+              </div>
+
+               <FormField
                   control={form.control}
                   name="file"
                   render={({ field }) => (
@@ -217,7 +219,7 @@ export default function UploadDocumentsPage() {
                             <div className="relative">
                                 <Input 
                                     type="file" 
-                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                     onChange={(e) => {
                                         field.onChange(e.target.files);
                                         const file = e.target.files?.[0];
@@ -233,7 +235,6 @@ export default function UploadDocumentsPage() {
                     </FormItem>
                   )}
                 />
-              </div>
 
               <Button type="submit" disabled={isSubmitting}>
                 <Upload className="mr-2 h-4 w-4" />
@@ -246,3 +247,5 @@ export default function UploadDocumentsPage() {
     </div>
   );
 }
+
+    

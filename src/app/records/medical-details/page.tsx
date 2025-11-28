@@ -97,7 +97,7 @@ export default function MedicalDetailsPage() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-start justify-between">
+      <CardHeader className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
             <div className="flex items-center gap-3">
             <HeartPulse className="h-6 w-6" />
@@ -107,7 +107,7 @@ export default function MedicalDetailsPage() {
             Provide details about your health for a more comprehensive medical record. This information is confidential.
             </CardDescription>
         </div>
-        <Button onClick={() => setIsEditing(!isEditing)} variant="outline" size="icon">
+        <Button onClick={() => setIsEditing(!isEditing)} variant="outline" size="icon" className="shrink-0">
             {isEditing ? <X className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
             <span className="sr-only">{isEditing ? 'Cancel' : 'Edit'}</span>
         </Button>
@@ -189,3 +189,5 @@ export default function MedicalDetailsPage() {
     </Card>
   );
 }
+
+    

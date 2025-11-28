@@ -185,3 +185,5 @@ export function PatientProfileTab({ patientId, patientProfile, isLoading }) {
     </div>
   )
 }
+
+    

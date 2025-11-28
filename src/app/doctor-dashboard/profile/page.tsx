@@ -202,7 +202,7 @@ export default function DoctorProfilePage() {
             userProfile ? (
                 <div className="space-y-8">
                     <div className="flex flex-col md:flex-row items-center justify-between gap-6 p-6 bg-card rounded-lg border">
-                        <div className="flex items-center gap-6 text-center md:text-left">
+                        <div className="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
                             <Avatar className="h-32 w-32 border-4 border-primary">
                             <AvatarImage src={user?.photoURL ?? `https://picsum.photos/seed/doc-profile/200`} />
                             <AvatarFallback className="text-5xl">
@@ -387,3 +387,5 @@ export default function DoctorProfilePage() {
     </div>
   );
 }
+
+    

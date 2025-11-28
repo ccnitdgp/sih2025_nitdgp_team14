@@ -99,7 +99,10 @@ export default function DoctorAppointmentsPage() {
     if (!selectedAppointment?.patientId || !firestore) return;
     
     const billsRef = collection(firestore, 'users', selectedAppointment.patientId, 'healthRecords');
+    const newBillRef = doc(billsRef);
+
     const billData = {
+      id: newBillRef.id,
       recordType: 'bill',
       dateCreated: serverTimestamp(),
       userId: selectedAppointment.patientId,
@@ -167,11 +170,11 @@ export default function DoctorAppointmentsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Appointment Details</CardTitle>
-          <CardDescription>For {patientDisplayName}</CardDescription>
+          <CardDescription>For {patientDisplayName} (ID: {patientDisplayId})</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="p-4 border rounded-lg">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-primary" />
                 <div>
@@ -199,7 +202,7 @@ export default function DoctorAppointmentsPage() {
                 <AvatarImage src={`https://picsum.photos/seed/${appointment.patientId}/200`} alt={patientDisplayName} />
                 <AvatarFallback>{patientDisplayName?.charAt(0)}</AvatarFallback>
               </Avatar>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1 w-full">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 w-full">
                 <div className="flex items-center gap-2 text-sm"><User className="h-4 w-4 text-muted-foreground" /> {patientDisplayName}</div>
                 <div className="flex items-center gap-2 text-sm"><FileText className="h-4 w-4 text-muted-foreground" /> ID: {patientDisplayId}</div>
                  <div className="flex items-center gap-2 text-sm">

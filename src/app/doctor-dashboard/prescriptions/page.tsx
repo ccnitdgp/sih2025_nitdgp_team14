@@ -289,46 +289,50 @@ export default function DoctorPrescriptionsPage() {
                 <CardDescription>{t('issued_prescriptions_desc', 'A log of all prescriptions you have written.')}</CardDescription>
             </CardHeader>
             <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>{t('table_header_patient', 'Patient')}</TableHead>
-                            <TableHead>{t('table_header_medication', 'Medication')}</TableHead>
-                            <TableHead>{t('table_header_dosage', 'Dosage')}</TableHead>
-                            <TableHead>{t('table_header_date_issued', 'Date Issued')}</TableHead>
-                            <TableHead>{t('table_header_status', 'Status')}</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {isLoadingPrescriptions ? (
-                             [...Array(3)].map((_, i) => (
-                                <TableRow key={i}>
-                                    <TableCell><Skeleton className="h-4 w-24"/></TableCell>
-                                    <TableCell><Skeleton className="h-4 w-24"/></TableCell>
-                                    <TableCell><Skeleton className="h-4 w-32"/></TableCell>
-                                    <TableCell><Skeleton className="h-4 w-20"/></TableCell>
-                                    <TableCell><Skeleton className="h-6 w-16"/></TableCell>
-                                </TableRow>
-                            ))
-                        ) : issuedPrescriptions && issuedPrescriptions.length > 0 ? (
-                            issuedPrescriptions.map(presc => (
-                                <TableRow key={presc.id}>
-                                    <TableCell className="font-medium">{presc.patientInfo?.name || 'N/A'}</TableCell>
-                                    <TableCell>{presc.details?.medication}</TableCell>
-                                    <TableCell>{presc.details?.dosage}</TableCell>
-                                    <TableCell>{presc.details?.date}</TableCell>
-                                    <TableCell><Badge variant={presc.details?.status === 'Active' ? 'default' : 'secondary'}>{presc.details?.status}</Badge></TableCell>
-                                </TableRow>
-                            ))
-                        ) : (
+                <div className="w-full overflow-x-auto">
+                    <Table>
+                        <TableHeader>
                             <TableRow>
-                                <TableCell colSpan={5} className="text-center h-24">{t('no_prescriptions_issued', 'No prescriptions issued yet.')}</TableCell>
+                                <TableHead>{t('table_header_patient', 'Patient')}</TableHead>
+                                <TableHead>{t('table_header_medication', 'Medication')}</TableHead>
+                                <TableHead>{t('table_header_dosage', 'Dosage')}</TableHead>
+                                <TableHead>{t('table_header_date_issued', 'Date Issued')}</TableHead>
+                                <TableHead>{t('table_header_status', 'Status')}</TableHead>
                             </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
+                        </TableHeader>
+                        <TableBody>
+                            {isLoadingPrescriptions ? (
+                                [...Array(3)].map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell><Skeleton className="h-4 w-24"/></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-24"/></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-32"/></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-20"/></TableCell>
+                                        <TableCell><Skeleton className="h-6 w-16"/></TableCell>
+                                    </TableRow>
+                                ))
+                            ) : issuedPrescriptions && issuedPrescriptions.length > 0 ? (
+                                issuedPrescriptions.map(presc => (
+                                    <TableRow key={presc.id}>
+                                        <TableCell className="font-medium">{presc.patientInfo?.name || 'N/A'}</TableCell>
+                                        <TableCell>{presc.details?.medication}</TableCell>
+                                        <TableCell>{presc.details?.dosage}</TableCell>
+                                        <TableCell>{presc.details?.date}</TableCell>
+                                        <TableCell><Badge variant={presc.details?.status === 'Active' ? 'default' : 'secondary'}>{presc.details?.status}</Badge></TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center h-24">{t('no_prescriptions_issued', 'No prescriptions issued yet.')}</TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
             </CardContent>
         </Card>
     </div>
   )
 }
+
+    

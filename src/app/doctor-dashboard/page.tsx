@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
@@ -101,7 +102,7 @@ export default function DoctorDashboardPage() {
                 </p>
               </div>
             </div>
-             <div className="flex items-center gap-2">
+             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <Button variant="outline" asChild>
                     <Link href="/doctor-dashboard/patients">View Patients</Link>
                 </Button>
@@ -167,3 +168,5 @@ export default function DoctorDashboardPage() {
     </div>
   );
 }
+
+    
