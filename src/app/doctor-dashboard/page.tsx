@@ -1,10 +1,9 @@
-
 'use client';
 
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { doc, collection, query, where } from 'firebase/firestore';
+import { doc, collection, query, where, collectionGroup } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Calendar, Users, FileText, BriefcaseMedical } from 'lucide-react';
 import Link from 'next/link';
@@ -55,6 +54,18 @@ export default function DoctorDashboardPage() {
 
   const { data: appointments, isLoading: areAppointmentsLoading } = useCollection(appointmentsQuery);
 
+  const prescriptionsQuery = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return query(
+        collectionGroup(firestore, 'healthRecords'),
+        where('recordType', '==', 'prescription'),
+        where('addedBy', '==', user.uid)
+    );
+  }, [user, firestore]);
+
+  const { data: prescriptions, isLoading: arePrescriptionsLoading } = useCollection(prescriptionsQuery);
+
+
   const upcomingAppointments = useMemo(() => {
     if (!appointments) return [];
     return appointments
@@ -64,10 +75,13 @@ export default function DoctorDashboardPage() {
 
   const todayAppointmentsCount = useMemo(() => {
       if (!upcomingAppointments) return 0;
+      // The date from firestore is a string 'YYYY-MM-DD'. isToday needs a Date object.
+      // We must correctly parse it. parseISO is robust for this format.
       return upcomingAppointments.filter(appt => isToday(parseISO(appt.date))).length;
   }, [upcomingAppointments]);
 
   const totalPatients = patients?.length || 0;
+  const totalPrescriptions = prescriptions?.length || 0;
 
   return (
     <div className="bg-muted/40 min-h-screen">
@@ -100,7 +114,7 @@ export default function DoctorDashboardPage() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
              <StatCard title="Today's Appointments" value={todayAppointmentsCount} icon={Calendar} isLoading={areAppointmentsLoading} />
              <StatCard title="Total Patients" value={totalPatients} icon={Users} isLoading={arePatientsLoading} />
-             <StatCard title="Prescriptions Written" value="0" icon={FileText} isLoading={false} />
+             <StatCard title="Prescriptions Written" value={totalPrescriptions} icon={FileText} isLoading={arePrescriptionsLoading} />
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
