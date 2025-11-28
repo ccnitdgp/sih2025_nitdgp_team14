@@ -1,14 +1,15 @@
 
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Upload, CheckCircle, Clock, XCircle, FileText, ShieldCheck, Star } from 'lucide-react';
+import { Upload, CheckCircle, Clock, XCircle, FileText, ShieldCheck, QrCode, Loader2, Camera, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { updateDocumentNonBlocking } from '@/firebase';
 import { DocumentReference } from 'firebase/firestore';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 const verificationItems = [
     { id: 'medicalDegree', label: 'Medical Degree Certificate', required: true },
@@ -60,8 +61,62 @@ const VerificationItem = ({ label, status, onUpload, isRequired }) => {
 };
 
 
+const QrScannerDialog = ({ isOpen, onOpenChange }) => {
+    const [scanState, setScanState] = useState<'scanning' | 'failed' | 'success'>('scanning');
+
+    useEffect(() => {
+        if (isOpen) {
+            setScanState('scanning');
+            // Simulate scanning process
+            const timer = setTimeout(() => {
+                // Simulate a failure for demonstration purposes
+                setScanState(Math.random() > 0.5 ? 'failed' : 'success');
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [isOpen]);
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2"><QrCode/> Scan Certificate QR Code</DialogTitle>
+                    <DialogDescription>Position the QR code on the certificate within the frame.</DialogDescription>
+                </DialogHeader>
+                <div className="aspect-square w-full rounded-lg bg-black flex items-center justify-center p-4">
+                    {scanState === 'scanning' && (
+                        <div className="flex flex-col items-center gap-4 text-white">
+                            <Camera className="h-16 w-16" />
+                            <p>Simulating camera view...</p>
+                            <Loader2 className="h-8 w-8 animate-spin"/>
+                        </div>
+                    )}
+                    {scanState === 'failed' && (
+                         <div className="flex flex-col items-center gap-4 text-center text-white">
+                            <AlertTriangle className="h-16 w-16 text-destructive" />
+                            <p className="font-semibold">QR Code Verification Failed</p>
+                            <p className="text-sm text-muted-foreground">Could not verify the document automatically. Please proceed with a manual document upload.</p>
+                             <Button onClick={() => onOpenChange(false)}>Close</Button>
+                        </div>
+                    )}
+                    {scanState === 'success' && (
+                         <div className="flex flex-col items-center gap-4 text-center text-white">
+                            <CheckCircle className="h-16 w-16 text-green-500" />
+                            <p className="font-semibold">Verification Successful!</p>
+                            <p className="text-sm text-muted-foreground">The document details have been automatically fetched and updated.</p>
+                             <Button onClick={() => onOpenChange(false)}>Done</Button>
+                        </div>
+                    )}
+                </div>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
+
 export function VerificationCenter({ publicProfile, doctorPublicProfileRef }: { publicProfile: any, doctorPublicProfileRef: DocumentReference | null }) {
     const { toast } = useToast();
+    const [isScannerOpen, setIsScannerOpen] = useState(false);
 
     const handleUpload = (docType: string, file: File) => {
         if (!doctorPublicProfileRef) return;
@@ -85,15 +140,22 @@ export function VerificationCenter({ publicProfile, doctorPublicProfileRef }: { 
     };
 
     return (
+        <>
         <Card>
-            <CardHeader>
-                <div className="flex items-center gap-3">
-                    <ShieldCheck className="h-6 w-6 text-primary" />
-                    <CardTitle>Verification Center</CardTitle>
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                    <div className="flex items-center gap-3">
+                        <ShieldCheck className="h-6 w-6 text-primary" />
+                        <CardTitle>Verification Center</CardTitle>
+                    </div>
+                    <CardDescription>
+                        Submit your documents to get a verified badge on your profile. This builds trust with patients.
+                    </CardDescription>
                 </div>
-                <CardDescription>
-                    Submit your documents to get a verified badge on your profile. This builds trust with patients.
-                </CardDescription>
+                 <Button variant="default" onClick={() => setIsScannerOpen(true)}>
+                    <QrCode className="mr-2 h-4 w-4" />
+                    Scan QR Code
+                </Button>
             </CardHeader>
             <CardContent className="space-y-4">
                 {verificationItems.map((item) => (
@@ -107,5 +169,8 @@ export function VerificationCenter({ publicProfile, doctorPublicProfileRef }: { 
                 ))}
             </CardContent>
         </Card>
+        <QrScannerDialog isOpen={isScannerOpen} onOpenChange={setIsScannerOpen} />
+        </>
     );
 }
+
