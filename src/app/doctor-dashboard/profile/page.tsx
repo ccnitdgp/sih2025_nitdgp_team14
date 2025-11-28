@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { AtSign, BriefcaseMedical, Building, Phone, User as UserIcon, Pencil, X, Save, Star, Activity, Languages, GraduationCap, FileBadge, Calendar, Clock, BookText, Stethoscope, Wallet, Globe, Video } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
@@ -387,5 +387,3 @@ export default function DoctorProfilePage() {
     </div>
   );
 }
-
-    
