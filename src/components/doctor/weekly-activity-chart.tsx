@@ -3,7 +3,7 @@
 
 import { useMemo } from "react"
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
-import { startOfWeek, endOfWeek, eachDayOfInterval, format, isSameDay } from 'date-fns';
+import { startOfWeek, endOfWeek, eachDayOfInterval, format, isSameDay, parseISO } from 'date-fns';
 
 import {
   ChartContainer,
@@ -35,7 +35,8 @@ export function WeeklyActivityChart({ appointments, isLoading }: { appointments:
         const count = appointments.filter(appt => {
           if (!appt.date || typeof appt.date !== 'string') return false;
           try {
-            return isSameDay(new Date(appt.date), day)
+            // Use parseISO which is more robust for 'YYYY-MM-DD' strings
+            return isSameDay(parseISO(appt.date), day)
           } catch {
             return false;
           }
