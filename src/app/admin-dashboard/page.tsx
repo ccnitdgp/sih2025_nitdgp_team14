@@ -2,11 +2,12 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { AreaChart, BarChart, FileDown, TrendingUp, Users, Syringe, Activity, Calendar } from 'lucide-react';
+import { AreaChart, BarChart, FileDown, TrendingUp, Users, Syringe, Activity, Calendar, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DiseaseTrendChart } from '@/components/admin/disease-trend-chart';
 import { AppointmentTrendChart } from '@/components/admin/appointment-trend-chart';
 import { VaccinationCoverageChart } from '@/components/admin/vaccination-coverage-chart';
+import { DoctorLoadChart } from '@/components/admin/doctor-load-chart';
 
 const StatCard = ({ title, value, icon: Icon, description }) => (
   <Card>
@@ -58,7 +59,7 @@ export default function AdminDashboardPage() {
             </Card>
              <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><Calendar /> Appointment & Load Statistics</CardTitle>
+                    <CardTitle className="flex items-center gap-2"><Calendar /> Appointment Volume</CardTitle>
                     <CardDescription>Appointment volume over the last 7 days.</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -79,11 +80,11 @@ export default function AdminDashboardPage() {
             </Card>
             <Card className="lg:col-span-2">
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><Users /> Demographic Insights</CardTitle>
-                    <CardDescription>Anonymized patient demographics.</CardDescription>
+                    <CardTitle className="flex items-center gap-2"><Briefcase /> Doctor Workload</CardTitle>
+                    <CardDescription>Appointments handled per doctor this week.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-muted-foreground text-center py-12">Demographic charts coming soon.</p>
+                    <DoctorLoadChart />
                 </CardContent>
             </Card>
            </div>
