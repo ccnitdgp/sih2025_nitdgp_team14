@@ -225,6 +225,35 @@ export default function DoctorAppointmentsPage() {
     )
   }
 
+  const AppointmentListItem = ({ appointment, onSelect, isSelected }) => {
+    const firestore = useFirestore();
+    const patientDocRef = useMemoFirebase(() => {
+        if (!appointment?.patientId || !firestore) return null;
+        return doc(firestore, 'users', appointment.patientId);
+    }, [appointment, firestore]);
+    const { data: patientProfile } = useDoc(patientDocRef);
+
+    return (
+        <button
+            key={appointment.id}
+            onClick={() => onSelect(appointment)}
+            className={cn(
+                "w-full text-left p-3 rounded-lg border",
+                isSelected ? "bg-primary/10 border-primary" : "hover:bg-muted"
+            )}
+        >
+            <div className="flex justify-between items-start">
+                <div className="space-y-1">
+                    <p className="font-semibold">{appointment.patientName}</p>
+                    <p className="text-xs text-muted-foreground">{patientProfile?.patientId}</p>
+                    <p className="text-sm text-muted-foreground">{appointment.type} on {new Date(appointment.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                </div>
+                <p className="font-medium text-sm">{appointment.time}</p>
+            </div>
+        </button>
+    );
+  }
+
   return (
     <div className="container mx-auto max-w-7xl px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
@@ -242,22 +271,12 @@ export default function DoctorAppointmentsPage() {
                             </CardHeader>
                             <CardContent className="space-y-2 p-2">
                                 {upcomingAppointments?.map(appt => (
-                                    <button
+                                    <AppointmentListItem 
                                         key={appt.id}
-                                        onClick={() => setSelectedAppointment(appt)}
-                                        className={cn(
-                                            "w-full text-left p-3 rounded-lg border",
-                                            selectedAppointment?.id === appt.id ? "bg-primary/10 border-primary" : "hover:bg-muted"
-                                        )}
-                                    >
-                                        <div className="flex justify-between items-center">
-                                            <div>
-                                                <p className="font-semibold">{appt.patientName}</p>
-                                                <p className="text-sm text-muted-foreground">{appt.type} on {new Date(appt.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
-                                            </div>
-                                            <p className="font-medium text-sm">{appt.time}</p>
-                                        </div>
-                                    </button>
+                                        appointment={appt}
+                                        onSelect={setSelectedAppointment}
+                                        isSelected={selectedAppointment?.id === appt.id}
+                                    />
                                 ))}
                             </CardContent>
                         </Card>
@@ -270,22 +289,12 @@ export default function DoctorAppointmentsPage() {
                             </CardHeader>
                              <CardContent className="space-y-2 p-2">
                                 {pastAppointments?.map(appt => (
-                                     <button
+                                      <AppointmentListItem 
                                         key={appt.id}
-                                        onClick={() => setSelectedAppointment(appt)}
-                                        className={cn(
-                                            "w-full text-left p-3 rounded-lg border",
-                                            selectedAppointment?.id === appt.id ? "bg-primary/10 border-primary" : "hover:bg-muted"
-                                        )}
-                                    >
-                                        <div className="flex justify-between items-center">
-                                            <div>
-                                                <p className="font-semibold">{appt.patientName}</p>
-                                                <p className="text-sm text-muted-foreground">{appt.type} on {new Date(appt.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
-                                            </div>
-                                             <p className="font-medium text-sm">{appt.time}</p>
-                                        </div>
-                                    </button>
+                                        appointment={appt}
+                                        onSelect={setSelectedAppointment}
+                                        isSelected={selectedAppointment?.id === appt.id}
+                                    />
                                 ))}
                             </CardContent>
                         </Card>
