@@ -243,7 +243,32 @@ export type Bill = {
 
 export const billingHistory: Bill[] = [];
 
-export const personalNotifications = [];
+export const personalNotifications = [
+    {
+        id: 1,
+        message: 'Your appointment with Dr. Sharma is confirmed for tomorrow at 10:00 AM.',
+        time: 'Yesterday',
+        type: 'appointmentReminders'
+    },
+    {
+        id: 2,
+        message: 'Reminder: Take your Metformin tablet.',
+        time: '2 hours ago',
+        type: 'prescriptionReminders'
+    },
+    {
+        id: 3,
+        message: 'Your child\'s Polio vaccination is due next week.',
+        time: '3 days ago',
+        type: 'vaccinationReminders'
+    },
+    {
+        id: 4,
+        message: 'A new health tip is available: "5 ways to stay hydrated".',
+        time: '5 days ago',
+        type: 'healthTips'
+    }
+];
 
 export type DoctorAppointment = {
     id: number;

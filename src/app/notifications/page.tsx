@@ -56,6 +56,19 @@ export default function NotificationsPage() {
 
 
   const handleTextToSpeech = async (notification: typeof personalNotifications[0]) => {
+    if (!userProfile) return;
+
+    // Check if the specific notification type is enabled in user settings
+    const settingKey = notification.type;
+    if (!userProfile.notificationSettings?.[settingKey]) {
+      toast({
+        variant: "default",
+        title: "Reminders Disabled",
+        description: `Please enable "${t(settingKey, settingKey)}" reminders in settings to hear this notification.`,
+      });
+      return;
+    }
+
     // If another audio is playing or loading, stop it.
     if (playback.isPlaying || playback.isLoading) {
       audioRef.current?.pause();
