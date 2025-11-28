@@ -1,133 +1,221 @@
 
 'use client';
 
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { collection, query, where, getDocs, doc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
-import { UserPlus, Search, ArrowRight } from 'lucide-react';
+import { Bot, Loader2, Search, Sparkles, UserCheck, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
+import { PatientProfileTab } from '@/components/doctor/patient-profile-tab';
+import { MedicalHistoryTab } from '@/components/doctor/medical-history-tab';
+import { PrescriptionsTab } from '@/components/doctor/prescriptions-tab';
+import { LabReportsTab } from '@/components/doctor/lab-reports-tab';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { summarizeMedicalHistory } from '@/ai/flows/summarize-medical-history-flow';
 
 export default function DoctorPatientsPage() {
   const { user } = useUser();
   const firestore = useFirestore();
-  const [searchTerm, setSearchTerm] = useState('');
+  const { toast } = useToast();
 
-  const patientsCollectionRef = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
-    return collection(firestore, `users/${user.uid}/patients`);
-  }, [user, firestore]);
+  const [patientId, setPatientId] = useState('');
+  const [otp, setOtp] = useState('');
+  
+  const [foundPatient, setFoundPatient] = useState(null);
+  const [viewState, setViewState] = useState<'search' | 'otp' | 'records'>('search');
+  
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSummarizing, setIsSummarizing] = useState(false);
+  const [summary, setSummary] = useState<string | null>(null);
 
-  const { data: patients, isLoading } = useCollection(patientsCollectionRef);
+  const medicalHistoryQuery = useMemoFirebase(() => {
+    if (!foundPatient?.id || !firestore) return null;
+    return query(
+      collection(firestore, `users/${foundPatient.id}/healthRecords`),
+      where('recordType', '==', 'medicalHistory')
+    );
+  }, [foundPatient, firestore]);
 
-  const filteredPatients = patients?.filter(patient =>
-    `${patient.firstName} ${patient.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    patient.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    patient.customPatientId?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const { data: medicalHistory } = useCollection(medicalHistoryQuery);
 
-  const PatientSkeleton = () => (
-    <TableRow>
-        <TableCell>
-            <div className="flex items-center gap-3">
-                <Skeleton className="h-10 w-10 rounded-full" />
-                <div className="space-y-1">
-                    <Skeleton className="h-4 w-24" />
-                    <Skeleton className="h-3 w-32" />
-                </div>
-            </div>
-        </TableCell>
-        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-        <TableCell className="text-right"><Skeleton className="h-9 w-28 ml-auto" /></TableCell>
-    </TableRow>
-  )
+  const handleFindPatient = async () => {
+    if (!patientId.trim()) {
+      toast({ variant: 'destructive', title: 'Patient ID is required.' });
+      return;
+    }
+    setIsLoading(true);
+    setFoundPatient(null);
+    try {
+      const q = query(collection(firestore, 'users'), where('patientId', '==', patientId.trim()));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        toast({ variant: 'destructive', title: 'Patient Not Found', description: 'No patient found with that ID.' });
+      } else {
+        const patientData = { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
+        setFoundPatient(patientData);
+        setViewState('otp');
+        toast({ title: `Patient ${patientData.firstName} Found`, description: 'Please enter the OTP to proceed.' });
+      }
+    } catch (error) {
+      console.error(error);
+      toast({ variant: 'destructive', title: 'Error finding patient' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = () => {
+    // In a real app, this would be a call to a backend service.
+    // Here we just mock it. The "OTP" is always 123456
+    if (otp === '123456') {
+      toast({ title: 'Verification Successful', description: `Accessing records for ${foundPatient.firstName}.` });
+      setViewState('records');
+    } else {
+      toast({ variant: 'destructive', title: 'Invalid OTP', description: 'The OTP you entered is incorrect.' });
+    }
+  };
+
+  const handleSummarize = async () => {
+    if (!medicalHistory || medicalHistory.length === 0) {
+      toast({
+        variant: 'destructive',
+        title: "No History Found",
+        description: "There is no medical history to summarize for this patient.",
+      });
+      return;
+    }
+    setIsSummarizing(true);
+    setSummary(null);
+    try {
+      const notes = medicalHistory.map(item => item.details).join('\n');
+      const result = await summarizeMedicalHistory({ medicalNotes: notes });
+      setSummary(result.summary);
+    } catch (error) {
+      console.error("Error summarizing medical history:", error);
+      toast({
+        variant: "destructive",
+        title: "Summarization Failed",
+        description: "Could not generate medical summary at this time.",
+      });
+    } finally {
+      setIsSummarizing(false);
+    }
+  };
+
 
   return (
     <div className="container mx-auto max-w-7xl px-6 py-12">
+      <div className="space-y-8">
         <Card>
-            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                    <CardTitle>My Patients</CardTitle>
-                    <CardDescription>A list of all patients under your care.</CardDescription>
-                </div>
-                <Button asChild>
-                    <Link href="/doctor-dashboard/add-patient">
-                        <UserPlus />
-                        Add New Patient
-                    </Link>
+          <CardHeader>
+            <CardTitle>Secure Patient Access</CardTitle>
+            <CardDescription>Enter a Patient ID to search for and verify a patient to view their records.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {viewState === 'search' && (
+              <div className="flex max-w-md items-center space-x-2">
+                <Input
+                  placeholder="Enter Patient ID (e.g., PT-XXXXXXXXXX)"
+                  value={patientId}
+                  onChange={(e) => setPatientId(e.target.value)}
+                  disabled={isLoading}
+                />
+                <Button onClick={handleFindPatient} disabled={isLoading}>
+                  {isLoading ? <Loader2 className="mr-2 animate-spin" /> : <Search className="mr-2" />}
+                  Find Patient
                 </Button>
-            </CardHeader>
-            <CardContent>
-                <div className="mb-6 max-w-sm relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input 
-                        placeholder="Search by name, email, or ID..." 
-                        className="pl-10"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+              </div>
+            )}
+            {viewState === 'otp' && foundPatient && (
+              <div className="max-w-md space-y-4">
+                <p className="text-sm">
+                  An OTP has been sent to <span className="font-semibold">{foundPatient.firstName}'s</span> registered mobile number.
+                   For demo purposes, the OTP is <strong className="text-primary">123456</strong>.
+                </p>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    placeholder="Enter 6-digit OTP"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    maxLength={6}
+                  />
+                  <Button onClick={handleVerifyOtp}>
+                    <ShieldCheck className="mr-2" />
+                    Verify & View Records
+                  </Button>
                 </div>
-
-                <div className="border rounded-md">
-                    <Table>
-                        <TableHeader>
-                        <TableRow>
-                            <TableHead>Patient Details</TableHead>
-                            <TableHead>Patient ID</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {isLoading ? (
-                                <>
-                                    <PatientSkeleton />
-                                    <PatientSkeleton />
-                                    <PatientSkeleton />
-                                </>
-                            ) : filteredPatients && filteredPatients.length > 0 ? (
-                                filteredPatients.map((patient) => (
-                                    <TableRow key={patient.patientId}>
-                                    <TableCell>
-                                        <div className="flex items-center gap-3">
-                                            <Avatar>
-                                                <AvatarImage src={`https://picsum.photos/seed/${patient.patientId}/200`} />
-                                                <AvatarFallback>{patient.firstName?.charAt(0)}{patient.lastName?.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                                <p className="font-medium">{patient.firstName} {patient.lastName}</p>
-                                                <p className="text-sm text-muted-foreground">{patient.email}</p>
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="font-mono text-muted-foreground">{patient.customPatientId}</TableCell>
-                                    <TableCell className="text-right">
-                                        <Button variant="outline" asChild>
-                                            <Link href={`/doctor-dashboard/patient/${patient.patientId}`}>
-                                                View Profile <ArrowRight className="ml-2"/>
-                                            </Link>
-                                        </Button>
-                                    </TableCell>
-                                    </TableRow>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell colSpan={3} className="text-center h-24">
-                                        {searchTerm ? 'No patients found.' : 'No patients have been added yet.'}
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
-            </CardContent>
+                 <Button variant="link" onClick={() => setViewState('search')}>Search for another patient</Button>
+              </div>
+            )}
+          </CardContent>
         </Card>
+
+        {viewState === 'records' && foundPatient && (
+          <div className="space-y-8">
+             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <Avatar className="h-20 w-20 border-2 border-primary">
+                        <AvatarImage src={`https://picsum.photos/seed/${foundPatient.id}/200`} />
+                        <AvatarFallback className="text-2xl">
+                        {foundPatient.firstName?.charAt(0)}
+                        {foundPatient.lastName?.charAt(0)}
+                        </AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">{foundPatient.firstName} {foundPatient.lastName}</h1>
+                        <p className="text-muted-foreground">{foundPatient.email}</p>
+                    </div>
+                </div>
+                 <Button onClick={handleSummarize} disabled={isSummarizing}>
+                    {isSummarizing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                    {isSummarizing ? 'Summarizing...' : 'Summarize Medical History'}
+                </Button>
+            </div>
+            
+            {summary && (
+              <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-blue-900 dark:text-blue-300">
+                    <Bot className="h-6 w-6" />
+                    AI Medical Summary
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-blue-800 dark:text-blue-200 whitespace-pre-wrap">{summary}</p>
+                </CardContent>
+              </Card>
+            )}
+
+            <Tabs defaultValue="profile" className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="profile">Profile</TabsTrigger>
+                <TabsTrigger value="history">Medical History</TabsTrigger>
+                <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
+                <TabsTrigger value="reports">Lab Reports</TabsTrigger>
+              </TabsList>
+              <TabsContent value="profile" className="mt-6">
+                  <PatientProfileTab patientId={foundPatient.id} patientProfile={foundPatient} isLoading={false} />
+              </TabsContent>
+              <TabsContent value="history" className="mt-6">
+                  <MedicalHistoryTab patientId={foundPatient.id} />
+              </TabsContent>
+              <TabsContent value="prescriptions" className="mt-6">
+                  <PrescriptionsTab patientId={foundPatient.id} />
+              </TabsContent>
+              <TabsContent value="reports" className="mt-6">
+                  <LabReportsTab patientId={foundPatient.id} />
+              </TabsContent>
+            </Tabs>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
-
-    
