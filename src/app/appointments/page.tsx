@@ -416,21 +416,24 @@ const FindDoctors = ({ t, userProfile }) => {
             </DialogHeader>
             <div className="space-y-4 py-4">
                  {selectedDoctor?.teleconsultation && (
-                    <RadioGroup value={appointmentType} onValueChange={setAppointmentType} className="grid grid-cols-2 gap-4">
-                        <div>
-                            <RadioGroupItem value="In-Person" id="in-person" className="peer sr-only" />
-                            <Label htmlFor="in-person" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
-                                In-Person
-                            </Label>
-                        </div>
+                    <div>
+                        <Label>Appointment Type</Label>
+                        <RadioGroup value={appointmentType} onValueChange={setAppointmentType} className="grid grid-cols-2 gap-4 mt-2">
+                            <div>
+                                <RadioGroupItem value="In-Person" id="in-person" className="peer sr-only" />
+                                <Label htmlFor="in-person" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                    In-Person
+                                </Label>
+                            </div>
 
-                        <div>
-                            <RadioGroupItem value="Virtual" id="virtual" className="peer sr-only" />
-                             <Label htmlFor="virtual" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
-                                Virtual
-                            </Label>
-                        </div>
-                    </RadioGroup>
+                            <div>
+                                <RadioGroupItem value="Virtual" id="virtual" className="peer sr-only" />
+                                <Label htmlFor="virtual" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                    Virtual
+                                </Label>
+                            </div>
+                        </RadioGroup>
+                    </div>
                 )}
                 <Popover>
                     <PopoverTrigger asChild>
@@ -812,3 +815,5 @@ export default function AppointmentsPage() {
     </div>
   );
 }
+
+    
