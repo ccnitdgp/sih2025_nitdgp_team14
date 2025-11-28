@@ -189,6 +189,7 @@ export default function DoctorAppointmentsPage() {
               </Avatar>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1 w-full">
                 <div className="flex items-center gap-2 text-sm"><User className="h-4 w-4 text-muted-foreground" /> {patientDisplayName}</div>
+                <div className="flex items-center gap-2 text-sm"><FileText className="h-4 w-4 text-muted-foreground" /> ID: {patientDisplayId}</div>
                  <div className="flex items-center gap-2 text-sm">
                     <Calendar className="h-4 w-4 text-muted-foreground" /> 
                     {isPatientLoading ? '...' : `${getAge(patientProfile?.dateOfBirth)} years old`}
@@ -197,7 +198,6 @@ export default function DoctorAppointmentsPage() {
                     {appointment.type === 'Virtual' ? <Video className="h-4 w-4 text-muted-foreground"/> : <Building className="h-4 w-4 text-muted-foreground" />} 
                     {appointment.type}
                 </div>
-                <div className="flex items-center gap-2 text-sm"><FileText className="h-4 w-4 text-muted-foreground" /> ID: {patientDisplayId}</div>
               </div>
             </div>
           </div>
