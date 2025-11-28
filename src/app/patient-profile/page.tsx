@@ -5,7 +5,7 @@ import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocki
 import { doc } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AtSign, Cake, Droplet, Phone, User as UserIcon, Users, Home, Pencil, X, MapPin, Locate, ArrowLeft, HeartPulse, TrendingUp, Sparkles, Scale, Activity, Droplets } from 'lucide-react';
+import { AtSign, Cake, Droplet, Phone, User as UserIcon, Users, Home, Pencil, X, MapPin, Locate, ArrowLeft, HeartPulse, TrendingUp, Sparkles, Scale, Activity, Droplets, FileText } from 'lucide-react';
 import { differenceInYears, format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -222,6 +222,7 @@ export default function PatientProfilePage() {
                         <div className="space-y-1">
                             <h2 className="text-3xl font-bold">{userProfile.firstName} {userProfile.lastName}</h2>
                             <p className="text-muted-foreground">{user?.email}</p>
+                            {userProfile.patientId && <p className="text-sm font-mono text-muted-foreground">ID: {userProfile.patientId}</p>}
                         </div>
                     </div>
                     <Button onClick={() => setIsEditing(!isEditing)} variant={isEditing ? 'destructive' : 'outline'}>
@@ -299,6 +300,7 @@ export default function PatientProfilePage() {
                         <Card>
                             <CardHeader><CardTitle>Personal Information</CardTitle></CardHeader>
                             <CardContent className="space-y-6">
+                                <ProfileDetail icon={FileText} label="Patient ID" value={userProfile.patientId} />
                                 <ProfileDetail icon={UserIcon} label="Full Name" value={`${userProfile.firstName} ${userProfile.lastName}`} />
                                 <ProfileDetail icon={Cake} label="Date of Birth" value={userProfile.dateOfBirth?.toDate ? `${userProfile.dateOfBirth.toDate().toLocaleDateString()} (${getAge(userProfile.dateOfBirth)} years old)` : 'Not Provided'} />
                                 <ProfileDetail icon={Users} label="Gender" value={userProfile.gender || 'N/A'} />
@@ -358,5 +360,3 @@ export default function PatientProfilePage() {
     </div>
   );
 }
-
-    

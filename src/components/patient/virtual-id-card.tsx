@@ -44,7 +44,7 @@ const VirtualIdCardFront = ({ user, userProfile, t }) => {
                 <Logo className="scale-90 -ml-2" />
                 <div className="text-right">
                      <p className="font-bold text-sm text-gray-700">{userProfile.firstName} {userProfile.lastName}</p>
-                    <p className="text-xs text-gray-500">{userProfile.patientId || user?.uid.substring(0, 11) + '-01'}</p>
+                    <p className="text-xs text-gray-500">{userProfile.patientId || 'N/A'}</p>
                 </div>
             </div>
 

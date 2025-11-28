@@ -128,6 +128,14 @@ type AuthDialogProps = {
 
 // This is a placeholder. In a real app, you'd have a system to assign doctors.
 const HARDCODED_DOCTOR_ID = "Y43GFgpcD3QY6xGM3f83hTzYV5i2";
+const generatePatientId = () => {
+    const chars = '0123456789';
+    let result = 'PT-';
+    for (let i = 0; i < 10; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+}
 
 export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: AuthDialogProps) {
   const [open, setOpen] = useState(false);
@@ -213,7 +221,9 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
         };
 
         if (values.role === 'patient') {
+             const customPatientId = generatePatientId();
             Object.assign(userProfileData, {
+                patientId: customPatientId,
                 doctorId: HARDCODED_DOCTOR_ID,
                 bloodGroup: values.bloodGroup,
                 emergencyContact: {
@@ -749,5 +759,3 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
     </Dialog>
   );
 }
-
-    
