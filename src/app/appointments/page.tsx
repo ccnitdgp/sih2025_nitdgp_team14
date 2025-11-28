@@ -34,7 +34,7 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { format, addDays, startOfDay, addMinutes, getDay, setHours, setMinutes } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useUser, useDoc, useFirestore, useMemoFirebase, addDocumentNonBlocking, useCollection, updateDocumentNonBlocking } from '@/firebase';
+import { useUser, useDoc, useFirestore, useMemoFirebase, useCollection, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase';
 import { doc, collection, query, where } from 'firebase/firestore';
 import hi from '@/lib/locales/hi.json';
 import bn from '@/lib/locales/bn.json';
@@ -808,3 +808,5 @@ export default function AppointmentsPage() {
     </div>
   );
 }
+
+    
