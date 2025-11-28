@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -12,7 +13,7 @@ import { BookUser, FileDown, PlusCircle, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useFirestore, useCollection, useMemoFirebase, useUser, addDocumentNonBlocking, deleteDocumentNonBlocking, useDoc } from '@/firebase';
-import { collection, serverTimestamp, doc } from 'firebase/firestore';
+import { collection, serverTimestamp, doc, query, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -22,11 +23,12 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { dummyPdfContent } from '@/lib/dummy-pdf';
+import { format } from 'date-fns';
 
 const prescriptionSchema = z.object({
   medication: z.string().min(1, 'Medication name is required.'),
   dosage: z.string().min(1, 'Dosage is required.'),
-  date: z.string().min(1, 'Date is required.'),
+  endDate: z.date().optional(),
   status: z.enum(['Active', 'Finished']),
 });
 
@@ -36,67 +38,80 @@ export function PrescriptionsTab({ patientId }: { patientId: string }) {
   const { toast } = useToast();
   const [isAdding, setIsAdding] = useState(false);
   
-  const userDocRef = useMemoFirebase(() => {
+  const doctorDocRef = useMemoFirebase(() => {
     if (!doctorUser || !firestore) return null;
     return doc(firestore, 'users', doctorUser.uid);
   }, [doctorUser, firestore]);
 
-  const { data: userProfile } = useDoc(userDocRef);
+  const { data: doctorProfile } = useDoc(doctorDocRef);
+  
+  const patientDocRef = useMemoFirebase(() => {
+      if(!patientId || !firestore) return null;
+      return doc(firestore, 'users', patientId);
+  }, [patientId, firestore])
+  
+  const { data: patientProfile } = useDoc(patientDocRef);
 
   const form = useForm<z.infer<typeof prescriptionSchema>>({
     resolver: zodResolver(prescriptionSchema),
     defaultValues: {
       medication: '',
       dosage: '',
-      date: new Date().toISOString().split('T')[0],
+      endDate: undefined,
       status: 'Active',
     }
   });
 
-  const prescriptionsRef = useMemoFirebase(() => {
+  const prescriptionsQuery = useMemoFirebase(() => {
     if (!patientId || !firestore) return null;
-    return collection(firestore, `users/${patientId}/healthRecords`);
+    return query(collection(firestore, `prescriptions`), where('patientId', '==', patientId));
   }, [patientId, firestore]);
   
-  const { data: prescriptions, isLoading } = useCollection(prescriptionsRef);
+  const { data: prescriptions, isLoading } = useCollection(prescriptionsQuery);
 
   const onSubmit = (values: z.infer<typeof prescriptionSchema>) => {
-    if (!prescriptionsRef || !doctorUser || !userProfile) return;
+    if (!firestore || !doctorUser || !doctorProfile || !patientProfile) return;
 
     setIsAdding(true);
+    
+    const prescriptionsColRef = collection(firestore, 'prescriptions');
+    const newPrescriptionRef = doc(prescriptionsColRef);
+
     const prescriptionData = {
-        recordType: 'prescription',
-        details: {
-            ...values,
-            doctor: `Dr. ${userProfile.firstName} ${userProfile.lastName}`,
-        },
-        dateCreated: serverTimestamp(),
-        userId: patientId,
-        addedBy: doctorUser.uid,
+        id: newPrescriptionRef.id,
+        patientId: patientId,
+        patientName: `${patientProfile.firstName} ${patientProfile.lastName}`,
+        doctorId: doctorUser.uid,
+        doctorName: `Dr. ${doctorProfile.firstName} ${doctorProfile.lastName}`,
+        medication: values.medication,
+        dosage: values.dosage,
+        date: new Date().toISOString().split('T')[0],
+        endDate: values.endDate ? format(values.endDate, 'yyyy-MM-dd') : null,
+        status: values.status
     };
     
-    addDocumentNonBlocking(prescriptionsRef, prescriptionData);
+    addDocumentNonBlocking(newPrescriptionRef, prescriptionData, {});
     toast({ title: "Prescription Added" });
     form.reset({
       medication: '',
       dosage: '',
-      date: new Date().toISOString().split('T')[0],
+      endDate: undefined,
       status: 'Active',
     });
     setIsAdding(false);
   };
 
   const handleDelete = (id: string) => {
-    if (!prescriptionsRef) return;
-    const docRef = doc(prescriptionsRef, id);
+    if (!firestore) return;
+    const docRef = doc(firestore, 'prescriptions', id);
     deleteDocumentNonBlocking(docRef);
     toast({ title: 'Prescription removed.' });
   }
 
-  const handleDownload = (prescription) => {
+  const handleDownload = (prescription: any) => {
     const link = document.createElement('a');
     link.href = dummyPdfContent;
-    link.download = `prescription-${prescription.details.medication.replace(/\s+/g, '-')}-${prescription.details.date}.pdf`;
+    link.download = `prescription-${prescription.medication.replace(/\s+/g, '-')}-${prescription.date}.pdf`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -152,14 +167,7 @@ export function PrescriptionsTab({ patientId }: { patientId: string }) {
                     )} />
                 </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="date" render={({field}) => (
-                        <FormItem>
-                            <FormLabel>Date</FormLabel>
-                            <FormControl><Input type="date" {...field} /></FormControl>
-                             <FormMessage />
-                        </FormItem>
-                    )} />
-                    <FormField control={form.control} name="status" render={({field}) => (
+                     <FormField control={form.control} name="status" render={({field}) => (
                         <FormItem>
                             <FormLabel>Status</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
@@ -184,17 +192,16 @@ export function PrescriptionsTab({ patientId }: { patientId: string }) {
             <h4 className="font-medium">Prescription History</h4>
             {isLoading ? <SkeletonLoader /> : prescriptions && prescriptions.length > 0 ? (
             prescriptions
-                .filter(item => item.recordType === 'prescription')
-                .sort((a, b) => b.dateCreated?.toMillis() - a.dateCreated?.toMillis())
+                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                 .map((item) => (
                 <Card key={item.id} className="p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                     <div className="flex-1">
                         <div className="flex items-center gap-4">
-                            <h3 className="font-semibold text-lg">{item.details?.medication}</h3>
-                            <Badge variant={item.details?.status === 'Active' ? 'default' : 'secondary'}>{item.details?.status}</Badge>
+                            <h3 className="font-semibold text-lg">{item.medication}</h3>
+                            <Badge variant={item.status === 'Active' ? 'default' : 'secondary'}>{item.status}</Badge>
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">
-                            {item.details?.dosage} - Prescribed by {item.details?.doctor} on {item.details?.date}
+                            {item.dosage} - Prescribed by {item.doctorName} on {item.date}
                         </p>
                     </div>
                      <div className="flex gap-2">
@@ -215,3 +222,5 @@ export function PrescriptionsTab({ patientId }: { patientId: string }) {
     </Card>
   );
 }
+
+    

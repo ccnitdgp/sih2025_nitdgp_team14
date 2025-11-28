@@ -422,6 +422,25 @@
         "userId"
       ]
     },
+    "Prescription": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Prescription",
+      "type": "object",
+      "description": "Represents a single medication prescription.",
+      "properties": {
+        "id": { "type": "string" },
+        "patientId": { "type": "string", "description": "The UID of the patient." },
+        "patientName": { "type": "string" },
+        "doctorId": { "type": "string", "description": "The UID of the prescribing doctor." },
+        "doctorName": { "type": "string" },
+        "medication": { "type": "string", "description": "The name of the medication." },
+        "dosage": { "type": "string", "description": "Dosage and instructions (e.g., '500mg, twice a day')." },
+        "date": { "type": "string", "format": "date", "description": "The date the prescription was issued." },
+        "endDate": { "type": "string", "format": "date", "description": "Optional end date for the medication course." },
+        "status": { "type": "string", "enum": ["Active", "Finished", "Canceled"] }
+      },
+      "required": ["id", "patientId", "patientName", "doctorId", "doctorName", "medication", "dosage", "date", "status"]
+    },
     "ForumPost": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "ForumPost",
@@ -515,6 +534,15 @@
         }
       },
       {
+        "path": "/prescriptions/{prescriptionId}",
+        "definition": {
+          "entityName": "Prescription",
+          "schema": { "$ref": "#/backend/entities/Prescription" },
+          "description": "A collection storing all prescriptions. Security rules will enforce that only involved parties (patient, doctor) or an admin can access a document.",
+          "params": [{ "name": "prescriptionId", "description": "The unique identifier for the prescription." }]
+        }
+      },
+      {
         "path": "/users/{doctorId}/patients/{patientId}",
         "definition": {
           "entityName": "PatientLink",
@@ -533,7 +561,7 @@
           "schema": {
             "$ref": "#/backend/entities/HealthRecord"
           },
-          "description": "Stores user's health records. Path-based ownership ensures only the authenticated user or their assigned doctor can access them.",
+          "description": "Stores user's generic health records like lab reports and vaccination info. Specific records like prescriptions have their own collection. Path-based ownership ensures only the authenticated user or their assigned doctor can access them.",
           "params": [
             {
               "name": "userId",
@@ -629,6 +657,8 @@
         }
       }
     ],
-    "reasoning": "The Firestore data structure has been redesigned for clarity and security. The core change is the introduction of a public `/doctors` collection, which is separate from the private `/users` collection. The `/doctors` collection stores only non-sensitive information necessary for patients to find and view doctor profiles. The `/users` collection holds all private data for both patients and doctors, strictly secured by user UID. This separation prevents permission errors when listing doctors and adheres to security best practices by not exposing the entire user base. Added ForumPost and ForumReply collections for community discussion feature. Added a Feedback collection to store user feedback."
+    "reasoning": "The Firestore data structure has been redesigned for clarity and security. The core change is the introduction of a public `/doctors` collection, which is separate from the private `/users` collection. The `/doctors` collection stores only non-sensitive information necessary for patients to find and view doctor profiles. The `/users` collection holds all private data for both patients and doctors, strictly secured by user UID. This separation prevents permission errors when listing doctors and adheres to security best practices by not exposing the entire user base. Added ForumPost and ForumReply collections for community discussion feature. Added a Feedback collection to store user feedback. Added a dedicated `/prescriptions` collection for better data structure and security."
   }
 }
+
+    

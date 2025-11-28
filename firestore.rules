@@ -184,6 +184,27 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // ============================================================
+    // /prescriptions/{prescriptionId}  (top-level)
+    // ============================================================
+    match /prescriptions/{prescriptionId} {
+        // Create: Only a doctor can create a prescription, and they must be the doctor on record.
+        allow create: if isDoctor() && request.resource.data.doctorId == request.auth.uid;
+
+        // Read, List, Update: The patient who it belongs to, the doctor who wrote it, or an admin.
+        allow get, list, update: if isSignedIn() && (
+            resource.data.patientId == request.auth.uid ||
+            resource.data.doctorId == request.auth.uid ||
+            isAdmin()
+        );
+
+        // Delete: Only the doctor who wrote it or an admin.
+        allow delete: if isSignedIn() && (
+            resource.data.doctorId == request.auth.uid ||
+            isAdmin()
+        );
+    }
+
 
     // ============================================================
     // Public event collections
@@ -240,3 +261,5 @@ service cloud.firestore {
     }
   }
 }
+
+    

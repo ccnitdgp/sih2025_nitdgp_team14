@@ -108,43 +108,37 @@ export default function DoctorPrescriptionsPage() {
   const issuedPrescriptionsQuery = useMemoFirebase(() => {
     if (!doctorUser || !firestore) return null;
     return query(
-      collectionGroup(firestore, 'healthRecords'),
-      where('recordType', '==', 'prescription'),
-      where('addedBy', '==', doctorUser.uid),
-      orderBy('dateCreated', 'desc')
+      collection(firestore, 'prescriptions'),
+      where('doctorId', '==', doctorUser.uid),
+      orderBy('date', 'desc')
     );
   }, [doctorUser, firestore]);
 
   const { data: issuedPrescriptions, isLoading: isLoadingPrescriptions } = useCollection(issuedPrescriptionsQuery);
   
   const onSubmit = (values: z.infer<typeof prescriptionSchema>) => {
-    if (!doctorUser || !firestore) return;
+    if (!doctorUser || !firestore || !userProfile) return;
 
     setIsSubmitting(true);
     
-    const patientHealthRecordsRef = collection(firestore, 'users', values.patientId, 'healthRecords');
+    const prescriptionsRef = collection(firestore, 'prescriptions');
+    const newPrescriptionRef = doc(prescriptionsRef);
     const selectedPatient = uniquePatients?.find(p => p.id === values.patientId);
 
     const prescriptionData = {
-        recordType: 'prescription',
-        details: {
-            medication: values.medicationName,
-            dosage: values.dosage,
-            doctor: `Dr. ${userProfile?.firstName || 'Unknown'} ${userProfile?.lastName || ''}`.trim(),
-            date: new Date().toISOString().split('T')[0],
-            endDate: values.endDate ? format(values.endDate, 'yyyy-MM-dd') : null,
-            status: 'Active',
-        },
-        patientInfo: {
-            id: selectedPatient?.id,
-            name: selectedPatient?.name
-        },
-        dateCreated: serverTimestamp(),
-        userId: values.patientId, // The patient's ID
-        addedBy: doctorUser.uid, // The doctor's ID
+        id: newPrescriptionRef.id,
+        patientId: values.patientId,
+        patientName: selectedPatient?.name || 'Unknown Patient',
+        doctorId: doctorUser.uid,
+        doctorName: `Dr. ${userProfile.firstName} ${userProfile.lastName}`,
+        medication: values.medicationName,
+        dosage: values.dosage,
+        date: new Date().toISOString().split('T')[0],
+        endDate: values.endDate ? format(values.endDate, 'yyyy-MM-dd') : null,
+        status: 'Active',
     };
 
-    addDocumentNonBlocking(patientHealthRecordsRef, prescriptionData);
+    addDocumentNonBlocking(newPrescriptionRef, prescriptionData, {});
     toast({ title: "Prescription Issued", description: `Prescription for ${values.medicationName} has been issued to the patient.` });
     form.reset({
         patientId: '',
@@ -314,11 +308,11 @@ export default function DoctorPrescriptionsPage() {
                             ) : issuedPrescriptions && issuedPrescriptions.length > 0 ? (
                                 issuedPrescriptions.map(presc => (
                                     <TableRow key={presc.id}>
-                                        <TableCell className="font-medium">{presc.patientInfo?.name || 'N/A'}</TableCell>
-                                        <TableCell>{presc.details?.medication}</TableCell>
-                                        <TableCell>{presc.details?.dosage}</TableCell>
-                                        <TableCell>{presc.details?.date}</TableCell>
-                                        <TableCell><Badge variant={presc.details?.status === 'Active' ? 'default' : 'secondary'}>{presc.details?.status}</Badge></TableCell>
+                                        <TableCell className="font-medium">{presc.patientName || 'N/A'}</TableCell>
+                                        <TableCell>{presc.medication}</TableCell>
+                                        <TableCell>{presc.dosage}</TableCell>
+                                        <TableCell>{presc.date}</TableCell>
+                                        <TableCell><Badge variant={presc.status === 'Active' ? 'default' : 'secondary'}>{presc.status}</Badge></TableCell>
                                     </TableRow>
                                 ))
                             ) : (

@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -48,8 +49,8 @@ export default function PrescriptionsPage() {
   const prescriptionsQuery = useMemoFirebase(() => {
       if (!user || !firestore) return null;
       return query(
-        collection(firestore, `users/${user.uid}/healthRecords`),
-        where('recordType', '==', 'prescription')
+        collection(firestore, 'prescriptions'),
+        where('patientId', '==', user.uid)
       );
   }, [user, firestore]);
   
@@ -58,7 +59,7 @@ export default function PrescriptionsPage() {
   const handleDownload = (prescription: any) => {
     const link = document.createElement('a');
     link.href = dummyPdfContent;
-    link.download = `prescription-${prescription.details.medication.replace(/\s+/g, '-')}-${prescription.details.date}.pdf`;
+    link.download = `prescription-${prescription.medication.replace(/\s+/g, '-')}-${prescription.date}.pdf`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -95,16 +96,16 @@ export default function PrescriptionsPage() {
       <CardContent className="space-y-4">
         {isLoading ? <SkeletonLoader /> : prescriptions && prescriptions.length > 0 ? (
           prescriptions
-            .sort((a, b) => b.dateCreated?.toMillis() - a.dateCreated?.toMillis())
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
             .map((item) => (
             <Card key={item.id} className="p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                 <div className="flex-1">
                     <div className="flex items-center gap-4">
-                        <h3 className="font-semibold text-lg">{item.details?.medication}</h3>
-                        <Badge variant={item.details?.status === 'Active' ? 'default' : 'secondary'}>{t(item.details?.status.toLowerCase() + '_status', item.details?.status)}</Badge>
+                        <h3 className="font-semibold text-lg">{item.medication}</h3>
+                        <Badge variant={item.status === 'Active' ? 'default' : 'secondary'}>{t(item.status.toLowerCase() + '_status', item.status)}</Badge>
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">
-                        {item.details?.dosage} - {t('prescribed_by_text', 'Prescribed by')} {item.details?.doctor} {t('on_date_text', 'on')} {item.details?.date}
+                        {item.dosage} - {t('prescribed_by_text', 'Prescribed by')} {item.doctorName} {t('on_date_text', 'on')} {item.date}
                     </p>
                 </div>
                 <Button variant="outline" size="sm" onClick={() => handleDownload(item)}>
@@ -119,3 +120,5 @@ export default function PrescriptionsPage() {
     </Card>
   );
 }
+
+    
