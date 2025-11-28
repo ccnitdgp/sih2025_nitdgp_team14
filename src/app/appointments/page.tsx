@@ -784,7 +784,7 @@ export default function AppointmentsPage() {
         </div>
 
         <Tabs defaultValue="find-doctors" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 max-w-2xl mx-auto">
+            <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="find-doctors">
                     <Search className="mr-2 h-4 w-4"/> {t('find_doctors_tab', 'Find Doctors')}
                 </TabsTrigger>
