@@ -120,6 +120,8 @@ export default function SettingsPage() {
     const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
     const [showPasswords, setShowPasswords] = useState({ current: false, new: false, confirm: false});
     const [translations, setTranslations] = useState({});
+    const [is2faEnabled, setIs2faEnabled] = useState(false);
+
 
     const t = (key) => translations[key] || key.replace(/_/g, ' ');
 
@@ -277,7 +279,7 @@ export default function SettingsPage() {
               icon={ShieldCheck}
               title={t('two_factor_auth_title')}
               description={t('two_factor_auth_description')}
-              control={<ComingSoonTooltip t={t}><Switch id="2fa" disabled /></ComingSoonTooltip>}
+              control={<Switch id="2fa" checked={is2faEnabled} onCheckedChange={setIs2faEnabled} />}
             />
              <SettingItem
               icon={User}
@@ -491,3 +493,5 @@ const SettingsSkeleton = () => (
         </div>
     </div>
 )
+
+    
