@@ -10,7 +10,7 @@ import { doc } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AtSign, BriefcaseMedical, Building, Phone, User as UserIcon, Pencil, X, Save, Star, Activity, Languages, GraduationCap, FileBadge, Calendar, Clock, BookText, Stethoscope, Wallet, Globe, Video } from 'lucide-react';
+import { AtSign, BriefcaseMedical, Building, Phone, User as UserIcon, Pencil, X, Save, Star, Activity, Languages, GraduationCap, FileBadge, Calendar, Clock, BookText, Stethoscope, Wallet, Globe, Video, ShieldCheck, FilePen } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
@@ -34,6 +34,10 @@ const profileSchema = z.object({
   designation: z.string().optional(),
   clinic: z.string().min(1, "Clinic/Hospital is required."),
   
+  registrationNumber: z.string().optional(),
+  issuingCouncil: z.string().optional(),
+  issuedYear: z.coerce.number().optional(),
+
   treatmentsAndProcedures: z.string().optional(),
   conditionsHandled: z.string().optional(),
   teleconsultation: z.boolean().default(false),
@@ -95,6 +99,9 @@ export default function DoctorProfilePage() {
       yearsOfExperience: undefined,
       designation: '',
       clinic: '',
+      registrationNumber: '',
+      issuingCouncil: '',
+      issuedYear: undefined,
       treatmentsAndProcedures: '',
       conditionsHandled: '',
       teleconsultation: false,
@@ -122,6 +129,10 @@ export default function DoctorProfilePage() {
         designation: publicProfile.designation || '',
         clinic: publicProfile.clinic || '',
         
+        registrationNumber: publicProfile.registrationDetails?.registrationNumber || '',
+        issuingCouncil: publicProfile.registrationDetails?.issuingCouncil || '',
+        issuedYear: publicProfile.registrationDetails?.issuedYear || undefined,
+
         treatmentsAndProcedures: publicProfile.treatmentsAndProcedures || '',
         conditionsHandled: publicProfile.conditionsHandled || '',
         teleconsultation: publicProfile.teleconsultation || false,
@@ -157,6 +168,11 @@ export default function DoctorProfilePage() {
         licenseNumber: values.licenseNumber,
         yearsOfExperience: values.yearsOfExperience,
         designation: values.designation,
+        registrationDetails: {
+            registrationNumber: values.registrationNumber,
+            issuingCouncil: values.issuingCouncil,
+            issuedYear: values.issuedYear
+        },
         treatmentsAndProcedures: values.treatmentsAndProcedures,
         conditionsHandled: values.conditionsHandled,
         teleconsultation: values.teleconsultation,
@@ -169,7 +185,7 @@ export default function DoctorProfilePage() {
         pricing: {
             clinicFee: values.clinicFee,
             onlineFee: values.onlineFee,
-        }
+        },
     }
 
     updateDocumentNonBlocking(userDocRef, privateProfileUpdate);
@@ -232,9 +248,16 @@ export default function DoctorProfilePage() {
                             </AvatarFallback>
                             </Avatar>
                             <div className="space-y-1">
-                            <h2 className="text-3xl font-bold">Dr. {userProfile.firstName} {userProfile.lastName}</h2>
-                            <p className="text-muted-foreground">{user?.email}</p>
-                            <Badge variant="secondary" className="mt-2 text-base font-semibold">{publicProfile?.specialty || 'General Physician'}</Badge>
+                                <div className="flex items-center gap-2">
+                                    <h2 className="text-3xl font-bold">Dr. {userProfile.firstName} {userProfile.lastName}</h2>
+                                    {publicProfile?.isVerified ? (
+                                        <Badge className="bg-green-500 hover:bg-green-600"><ShieldCheck className="mr-1 h-4 w-4" />Verified</Badge>
+                                    ) : (
+                                         <Badge variant="destructive">Not Verified</Badge>
+                                    )}
+                                </div>
+                                <p className="text-muted-foreground">{user?.email}</p>
+                                <Badge variant="secondary" className="mt-2 text-base font-semibold">{publicProfile?.specialty || 'General Physician'}</Badge>
                             </div>
                         </div>
                         <Button onClick={() => setIsEditing(!isEditing)} variant={isEditing ? "outline" : "default"} size="sm">
@@ -266,6 +289,15 @@ export default function DoctorProfilePage() {
                                          <FormField control={form.control} name="yearsOfExperience" render={({ field }) => (<FormItem><FormLabel>Years of Experience</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
                                          <FormField control={form.control} name="licenseNumber" render={({ field }) => (<FormItem><FormLabel>Medical License Number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                                          <FormField control={form.control} name="clinic" render={({ field }) => (<FormItem><FormLabel>Primary Clinic/Hospital</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    </CardContent>
+                                </Card>
+                                
+                                <Card>
+                                    <CardHeader><CardTitle className="flex items-center gap-2"><FilePen/> Registration Details</CardTitle></CardHeader>
+                                    <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6">
+                                         <FormField control={form.control} name="registrationNumber" render={({ field }) => (<FormItem><FormLabel>Registration Number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                         <FormField control={form.control} name="issuingCouncil" render={({ field }) => (<FormItem><FormLabel>Issuing Council (e.g. NMC)</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                         <FormField control={form.control} name="issuedYear" render={({ field }) => (<FormItem><FormLabel>Year of Issue</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
                                     </CardContent>
                                 </Card>
 
@@ -349,6 +381,15 @@ export default function DoctorProfilePage() {
                                         <ProfileDetail icon={Calendar} label="Years of Experience" value={publicProfile?.yearsOfExperience ? `${publicProfile.yearsOfExperience} years` : null} />
                                         <ProfileDetail icon={UserIcon} label="Designation" value={publicProfile?.designation} />
                                         <ProfileDetail icon={Building} label="Primary Clinic/Hospital" value={publicProfile?.clinic} />
+                                        </CardContent>
+                                    </Card>
+
+                                     <Card className="hover:shadow-lg transition-shadow">
+                                        <CardHeader><CardTitle className="flex items-center gap-2"><FilePen/> Registration Details</CardTitle></CardHeader>
+                                        <CardContent className="space-y-6 pt-6">
+                                            <ProfileDetail icon={FilePen} label="Registration Number" value={publicProfile?.registrationDetails?.registrationNumber} />
+                                            <ProfileDetail icon={Building} label="Issuing Council" value={publicProfile?.registrationDetails?.issuingCouncil} />
+                                            <ProfileDetail icon={Calendar} label="Year of Issue" value={publicProfile?.registrationDetails?.issuedYear} />
                                         </CardContent>
                                     </Card>
                                     

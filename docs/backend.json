@@ -44,6 +44,15 @@
         "licenseNumber": { "type": "string" },
         "yearsOfExperience": { "type": "number" },
         "designation": { "type": "string" },
+        "isVerified": { "type": "boolean", "description": "Master flag indicating if the doctor's profile and documents are fully verified." },
+        "registrationDetails": {
+          "type": "object",
+          "properties": {
+            "registrationNumber": { "type": "string" },
+            "issuingCouncil": { "type": "string" },
+            "issuedYear": { "type": "number" }
+          }
+        },
         "treatmentsAndProcedures": { "type": "string" },
         "conditionsHandled": { "type": "string" },
         "teleconsultation": { "type": "boolean" },
@@ -594,7 +603,7 @@
         "definition": {
           "entityName": "ForumPost",
           "schema": { "$ref": "#/backend/entities/ForumPost" },
-          "description": "A collection storing all community forum posts.",
+          "description": "A collection for storing community forum posts.",
           "params": [{ "name": "postId", "description": "The unique identifier for the forum post." }]
         }
       },

@@ -8,7 +8,7 @@ import * as z from 'zod';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Lightbulb, Sparkles, MapPin, Calendar as CalendarIcon, Star, Clock, Search, ClipboardList, History, Video, GraduationCap, Loader2 } from 'lucide-react';
+import { Lightbulb, Sparkles, MapPin, Calendar as CalendarIcon, Star, Clock, Search, ClipboardList, History, Video, GraduationCap, Loader2, ShieldCheck } from 'lucide-react';
 import { getSpecialistSuggestion, type SymptomCheckerOutput } from '@/ai/flows/symptom-checker-flow';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
@@ -65,6 +65,7 @@ type Doctor = {
   qualifications?: string;
   yearsOfExperience?: number;
   teleconsultation?: boolean;
+  isVerified?: boolean;
   availability?: {
     workingHours?: string;
     availableDays?: string;
@@ -188,7 +189,7 @@ const FindDoctors = ({ t, userProfile }) => {
 
   const doctorsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return collection(firestore, 'doctors');
+    return query(collection(firestore, 'doctors'), where('isVerified', '==', true));
   }, [firestore]);
 
   const { data: doctorsData, isLoading: isLoadingDoctors } = useCollection(doctorsQuery);
@@ -228,6 +229,7 @@ const FindDoctors = ({ t, userProfile }) => {
         qualifications: doc.qualifications,
         yearsOfExperience: doc.yearsOfExperience,
         teleconsultation: doc.teleconsultation,
+        isVerified: doc.isVerified,
         availability: doc.availability,
         availableSlots: availableSlots,
       }
@@ -375,9 +377,12 @@ const FindDoctors = ({ t, userProfile }) => {
                             <AvatarFallback>{doctor.name.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div>
-                            <h3 className="font-bold text-lg">{doctor.name}</h3>
-                            <p className="text-sm text-primary font-semibold">{doctor.specialty}</p>
-                            {doctor.qualifications && <p className="text-xs text-muted-foreground">{doctor.qualifications}</p>}
+                                <div className="flex items-center gap-2">
+                                    <h3 className="font-bold text-lg">{doctor.name}</h3>
+                                    {doctor.isVerified && <ShieldCheck className="h-5 w-5 text-green-500" />}
+                                </div>
+                                <p className="text-sm text-primary font-semibold">{doctor.specialty}</p>
+                                {doctor.qualifications && <p className="text-xs text-muted-foreground">{doctor.qualifications}</p>}
                             </div>
                         </div>
                         <div className="space-y-2 text-sm text-muted-foreground">
@@ -822,6 +827,7 @@ export default function AppointmentsPage() {
 
   return (
     <div className="container mx-auto max-w-5xl px-6 py-12">
+        <BackButton />
         <div className="text-center mb-12">
             <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl">
                 {t('book_appointment_page_title', 'Book an Appointment')}
