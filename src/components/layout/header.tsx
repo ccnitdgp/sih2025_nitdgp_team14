@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
 import { Logo } from "@/components/logo";
 import { AuthDialog } from "@/components/auth/auth-dialog";
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
