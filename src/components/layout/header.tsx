@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { LogOut, Settings, LayoutDashboard, Menu, FileText, UserPlus, User, CalendarPlus, Receipt, Bot, BookUser, Sparkles, Shield, MessageSquare } from "lucide-react";
+import { LogOut, Settings, LayoutDashboard, Menu, FileText, UserPlus, User, CalendarPlus, Receipt, Bot, BookUser, Sparkles, Shield, MessageSquare, Bell } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,10 +41,9 @@ const generalNavLinks = [
 
 const patientNavLinks = [
     { href: "/patient-dashboard", label: "Dashboard", i18n_key: "dashboard_link" },
-    { href: "/patient-dashboard#health-assistant", label: "Health Assistant", i18n_key: "health_assistant_link" },
     { href: "/appointments", label: "Book Appointment", i18n_key: "book_appointment_link" },
-    { href: "/billing", label: "Pay Bill", i18n_key: "pay_bill_link" },
     { href: "/records", label: "Records", i18n_key: "records_link" },
+    { href: "/notifications", label: "Notifications", i18n_key: "my_notifications_page_title" },
 ]
 
 const doctorNavLinks = [

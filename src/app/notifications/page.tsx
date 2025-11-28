@@ -60,7 +60,7 @@ export default function NotificationsPage() {
 
     // Check if the specific notification type is enabled in user settings
     const settingKey = notification.type;
-    if (!userProfile.notificationSettings?.[settingKey]) {
+    if (userProfile.notificationSettings && !userProfile.notificationSettings[settingKey]) {
       toast({
         variant: "default",
         title: "Reminders Disabled",
