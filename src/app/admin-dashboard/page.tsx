@@ -9,6 +9,7 @@ import { AppointmentTrendChart } from '@/components/admin/appointment-trend-char
 import { VaccinationCoverageChart } from '@/components/admin/vaccination-coverage-chart';
 import { DoctorLoadChart } from '@/components/admin/doctor-load-chart';
 import { AgeDistributionChart } from '@/components/admin/age-distribution-chart';
+import { OutbreakHeatmap } from '@/components/admin/outbreak-heatmap';
 
 const StatCard = ({ title, value, icon: Icon, description }) => (
   <Card>
@@ -88,6 +89,15 @@ export default function AdminDashboardPage() {
                 </CardHeader>
                 <CardContent>
                     <DoctorLoadChart />
+                </CardContent>
+            </Card>
+            <Card className="lg:col-span-2">
+                <CardHeader>
+                    <CardTitle>Outbreak Heatmap</CardTitle>
+                    <CardDescription>Geographic distribution of recent flu cases.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <OutbreakHeatmap />
                 </CardContent>
             </Card>
            </div>
