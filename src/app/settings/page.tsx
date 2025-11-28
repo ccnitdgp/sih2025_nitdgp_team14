@@ -263,13 +263,13 @@ export default function SettingsPage() {
           <CardContent>
             <SettingItem
               icon={User}
-              title={t('edit_profile_title')}
+              title={t('edit_profile')}
               description={t('edit_profile_description')}
               control={<Button variant="outline" asChild><Link href="/patient-profile">{t('edit_profile_button')}</Link></Button>}
             />
             <SettingItem
               icon={Lock}
-              title={t('change_password_title')}
+              title={t('change_password')}
               description={t('change_password_description')}
               control={<Button variant="outline" onClick={() => setIsPasswordDialogOpen(true)}>{t('change_password_button')}</Button>}
             />
@@ -281,13 +281,13 @@ export default function SettingsPage() {
             />
             <SettingItem
               icon={User}
-              title={t('manage_linked_accounts_title')}
+              title={t('manage_linked_accounts')}
               description={t('manage_linked_accounts_description')}
               control={<ComingSoonTooltip t={t}><Button variant="outline" disabled>{t('manage_button')}</Button></ComingSoonTooltip>}
             />
             <SettingItem
               icon={Languages}
-              title={t('language_selection_title')}
+              title={t('language_selection')}
               description={t('language_selection_description')}
               control={
                 <Select 
@@ -322,31 +322,31 @@ export default function SettingsPage() {
           <CardContent>
             <SettingItem
               icon={ShieldCheck}
-              title={t('two_factor_auth_title')}
+              title={t('two_factor_auth')}
               description={t('two_factor_auth_description')}
               control={<Switch id="2fa" checked={is2faEnabled} onCheckedChange={setIs2faEnabled} />}
             />
              <SettingItem
               icon={User}
-              title={t('manage_consent_title')}
+              title={t('manage_consent')}
               description={t('manage_consent_description')}
               control={<ComingSoonTooltip t={t}><Button variant="outline" disabled>{t('manage_button')}</Button></ComingSoonTooltip>}
             />
             <SettingItem
               icon={Fingerprint}
-              title={t('app_lock_title')}
+              title={t('app_lock')}
               description={t('app_lock_description')}
               control={<ComingSoonTooltip t={t}><Switch id="app-lock" disabled /></ComingSoonTooltip>}
             />
              <SettingItem
               icon={User}
-              title={t('session_activity_title')}
+              title={t('session_activity')}
               description={t('session_activity_description')}
               control={<ComingSoonTooltip t={t}><Button variant="outline" disabled>{t('view_activity_button')}</Button></ComingSoonTooltip>}
             />
             <SettingItem
               icon={User}
-              title={t('download_my_data_title')}
+              title={t('download_my_data')}
               description={t('download_my_data_description')}
               control={<ComingSoonTooltip t={t}><Button variant="outline" disabled>{t('download_button')}</Button></ComingSoonTooltip>}
             />
@@ -364,25 +364,25 @@ export default function SettingsPage() {
           <CardContent>
              <SettingItem
               icon={Bell}
-              title={t('appointment_reminders_title')}
+              title={t('appointment_reminders')}
               description={t('appointment_reminders_description')}
               control={<Switch id="appointment-reminders" disabled={isMuted} checked={notificationSettings?.appointmentReminders ?? true} onCheckedChange={(checked) => handleNotificationChange('appointmentReminders', checked)} />}
             />
             <SettingItem
               icon={Bell}
-              title={t('prescription_reminders_title')}
+              title={t('prescription_reminders')}
               description={t('prescription_reminders_description')}
               control={<Switch id="prescription-reminders" disabled={isMuted} checked={notificationSettings?.prescriptionReminders ?? false} onCheckedChange={(checked) => handleNotificationChange('prescriptionReminders', checked)} />}
             />
             <SettingItem
               icon={Bell}
-              title={t('vaccination_reminders_title')}
+              title={t('vaccination_reminders')}
               description={t('vaccination_reminders_description')}
               control={<Switch id="vaccination-reminders" disabled={isMuted} checked={notificationSettings?.vaccinationReminders ?? true} onCheckedChange={(checked) => handleNotificationChange('vaccinationReminders', checked)} />}
             />
             <SettingItem
               icon={Bell}
-              title={t('health_tips_title')}
+              title={t('health_tips')}
               description={t('health_tips_description')}
               control={<Switch id="health-tips" disabled={isMuted} checked={notificationSettings?.healthTips ?? false} onCheckedChange={(checked) => handleNotificationChange('healthTips', checked)} />}
             />
@@ -392,19 +392,19 @@ export default function SettingsPage() {
               <div className="space-y-4">
                 <SettingItem
                   icon={Mail}
-                  title={t('email_preferences_title')}
+                  title={t('email_preferences')}
                   description={t('email_preferences_description')}
                   control={<Switch id="email-prefs" disabled={isMuted} checked={notificationSettings?.email ?? true} onCheckedChange={(checked) => handleNotificationChange('email', checked)} />}
                 />
                 <SettingItem
                   icon={Smartphone}
-                  title={t('sms_preferences_title')}
+                  title={t('sms_preferences')}
                   description={t('sms_preferences_description')}
                   control={<Switch id="sms-prefs" disabled={isMuted} checked={notificationSettings?.sms ?? false} onCheckedChange={(checked) => handleNotificationChange('sms', checked)} />}
                 />
                 <SettingItem
                   icon={Bell}
-                  title={t('push_preferences_title')}
+                  title={t('push_preferences')}
                   description={t('push_preferences_description')}
                   control={<Switch id="push-prefs" disabled={isMuted} checked={notificationSettings?.push ?? true} onCheckedChange={(checked) => handleNotificationChange('push', checked)} />}
                 />
@@ -413,7 +413,7 @@ export default function SettingsPage() {
             <div className="pt-6">
                <SettingItem
                 icon={Bell}
-                title={t('mute_notifications_title')}
+                title={t('mute_notifications')}
                 description={t('mute_notifications_description')}
                 control={<Button variant="outline" onClick={handleMute} disabled={isMuted}>{isMuted ? `Muted (${remainingMuteTime})` : t('mute_for_1_hour_button')}</Button>}
               />
