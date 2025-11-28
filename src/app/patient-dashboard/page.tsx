@@ -67,7 +67,7 @@ export default function PatientDashboardPage() {
 
   const recentBills = useMemo(() => {
     if (!bills) return [];
-    return bills.sort((a,b) => b.dateCreated?.toMillis() - a.dateCreated?.toMillis()).slice(0,3);
+    return bills.sort((a,b) => b.dateCreated?.toMillis() - a.dateCreated?.toMillis()).slice(0,4);
   }, [bills]);
 
   useEffect(() => {
@@ -392,9 +392,9 @@ export default function PatientDashboardPage() {
                     <CardDescription>{t('my_bills_card_desc', 'A summary of your recent medical expenses.')}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {isLoadingBills ? (
+                     {isLoadingBills ? (
                          <div className="space-y-4">
-                            {[...Array(3)].map((_, i) => (
+                            {[...Array(4)].map((_, i) => (
                                 <div key={i} className="flex justify-between items-center">
                                     <Skeleton className="h-4 w-2/4" />
                                     <Skeleton className="h-4 w-1/4" />
@@ -405,15 +405,14 @@ export default function PatientDashboardPage() {
                         <ul className="space-y-3">
                             {recentBills.map(bill => (
                                 <li key={bill.id} className="flex justify-between items-center">
-                                    <span className="text-muted-foreground">{bill.details.title}</span>
-                                    <span className="font-semibold">{t('currency_symbol', 'Rs.')} {bill.details.amount.toLocaleString()}</span>
+                                    <span className="text-muted-foreground truncate pr-4">{bill.details.title}</span>
+                                    <span className="font-semibold whitespace-nowrap">{t('currency_symbol', 'Rs.')} {bill.details.amount.toLocaleString()}</span>
                                 </li>
                             ))}
                         </ul>
                     ) : (
                         <p className="text-muted-foreground text-center py-4">No recent bills.</p>
                     )}
-
                      <Button variant="link" asChild className="mt-4 text-primary p-0 h-auto">
                         <Link href="/billing">{t('view_all_bills_link', 'View All Bills')} <ChevronRight className="ml-1 h-4 w-4" /></Link>
                     </Button>
@@ -425,3 +424,5 @@ export default function PatientDashboardPage() {
     </div>
   );
 }
+
+    
