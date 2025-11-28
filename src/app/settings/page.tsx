@@ -132,7 +132,7 @@ export default function SettingsPage() {
 
     const isMuted = muteUntil && muteUntil > new Date();
 
-    const t = (key) => translations[key] || key.replace(/_/g, ' ');
+    const t = (key: string, fallback: string) => translations[key] || fallback;
 
     useEffect(() => {
         if (userProfile?.preferredLanguage && languageFiles[userProfile.preferredLanguage]) {
@@ -214,18 +214,18 @@ export default function SettingsPage() {
         try {
             await reauthenticateWithCredential(auth.currentUser!, credential);
             await updatePassword(auth.currentUser!, values.newPassword);
-            toast({ title: 'Success', description: t('password_change_success') });
+            toast({ title: 'Success', description: t('password_change_success', 'Your password has been changed successfully.') });
             setIsPasswordDialogOpen(false);
             passwordForm.reset();
         } catch (error: any) {
             let description = 'An unexpected error occurred.';
             if (error.code === 'auth/wrong-password') {
-                description = t('wrong_password_error');
+                description = t('wrong_password_error', 'The current password you entered is incorrect. Please try again.');
                 passwordForm.setError('currentPassword', { type: 'manual', message: 'Incorrect password' });
             } else if (error.code === 'auth/too-many-requests') {
-                description = t('too_many_requests_error');
+                description = t('too_many_requests_error', 'Too many unsuccessful attempts. Please try again later.');
             }
-             toast({ variant: 'destructive', title: t('password_change_failed'), description });
+             toast({ variant: 'destructive', title: t('password_change_failed', 'Password Change Failed'), description });
         }
     };
     
@@ -245,33 +245,33 @@ export default function SettingsPage() {
       <div className="space-y-12">
         <div className="text-center mb-12">
           <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl">
-            {t('settings_title')}
+            {t('settings_title', 'Settings')}
           </h1>
           <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
-            {t('settings_description')}
+            {t('settings_description', 'Manage your account, privacy, and notification preferences.')}
           </p>
         </div>
 
         {/* Account & Personal Settings */}
         <Card>
           <CardHeader>
-            <CardTitle>{t('account_settings_title')}</CardTitle>
+            <CardTitle>{t('account_settings_title', 'Account & Personal Settings')}</CardTitle>
             <CardDescription>
-              {t('account_settings_description')}
+              {t('account_settings_description', 'Update your personal information and application preferences.')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <SettingItem
               icon={User}
-              title={t('edit_profile')}
-              description={t('edit_profile_description')}
-              control={<Button variant="outline" asChild><Link href="/patient-profile">{t('edit_profile_button')}</Link></Button>}
+              title={t('edit_profile_title', 'Edit Profile')}
+              description={t('edit_profile_description', 'Update your name, contact details, and address.')}
+              control={<Button variant="outline" asChild><Link href="/patient-profile">{t('edit_profile_button', 'Edit')}</Link></Button>}
             />
             <SettingItem
               icon={Lock}
-              title={t('change_password')}
-              description={t('change_password_description')}
-              control={<Button variant="outline" onClick={() => setIsPasswordDialogOpen(true)}>{t('change_password_button')}</Button>}
+              title={t('change_password_title', 'Change Password')}
+              description={t('change_password_description', 'Set a new password for your account.')}
+              control={<Button variant="outline" onClick={() => setIsPasswordDialogOpen(true)}>{t('change_password_button', 'Change')}</Button>}
             />
              <SettingItem
               icon={Palette}
@@ -281,14 +281,14 @@ export default function SettingsPage() {
             />
             <SettingItem
               icon={User}
-              title={t('manage_linked_accounts')}
-              description={t('manage_linked_accounts_description')}
-              control={<ComingSoonTooltip t={t}><Button variant="outline" disabled>{t('manage_button')}</Button></ComingSoonTooltip>}
+              title={t('manage_linked_accounts_title', 'Manage Linked Accounts')}
+              description={t('manage_linked_accounts_description', 'Connect or disconnect your Google login.')}
+              control={<ComingSoonTooltip t={t}><Button variant="outline" disabled>{t('manage_button', 'Manage')}</Button></ComingSoonTooltip>}
             />
             <SettingItem
               icon={Languages}
-              title={t('language_selection')}
-              description={t('language_selection_description')}
+              title={t('language_selection_title', 'Language Selection')}
+              description={t('language_selection_description', 'Choose your preferred language for the app.')}
               control={
                 <Select 
                     value={preferredLanguage} 
@@ -314,41 +314,41 @@ export default function SettingsPage() {
         {/* Privacy & Security */}
         <Card>
           <CardHeader>
-            <CardTitle>{t('privacy_security_title')}</CardTitle>
+            <CardTitle>{t('privacy_security_title', 'Privacy & Security')}</CardTitle>
             <CardDescription>
-              {t('privacy_security_description')}
+              {t('privacy_security_description', 'Control your privacy, data sharing, and security settings.')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <SettingItem
               icon={ShieldCheck}
-              title={t('two_factor_auth')}
-              description={t('two_factor_auth_description')}
+              title={t('two_factor_auth_title', 'Two-Factor Authentication (2FA)')}
+              description={t('two_factor_auth_description', 'Add an extra layer of security to your account.')}
               control={<Switch id="2fa" checked={is2faEnabled} onCheckedChange={setIs2faEnabled} />}
             />
              <SettingItem
               icon={User}
-              title={t('manage_consent')}
-              description={t('manage_consent_description')}
-              control={<ComingSoonTooltip t={t}><Button variant="outline" disabled>{t('manage_button')}</Button></ComingSoonTooltip>}
+              title={t('manage_consent_title', 'Manage Consent & Data Sharing')}
+              description={t('manage_consent_description', 'E.g., allow a doctor to view records for 24 hours')}
+              control={<ComingSoonTooltip t={t}><Button variant="outline" disabled>{t('manage_button', 'Manage')}</Button></ComingSoonTooltip>}
             />
             <SettingItem
               icon={Fingerprint}
-              title={t('app_lock')}
-              description={t('app_lock_description')}
+              title={t('app_lock_title', 'App Lock')}
+              description={t('app_lock_description', 'Secure the app with a PIN, fingerprint, or Face ID.')}
               control={<ComingSoonTooltip t={t}><Switch id="app-lock" disabled /></ComingSoonTooltip>}
             />
              <SettingItem
               icon={User}
-              title={t('session_activity')}
-              description={t('session_activity_description')}
-              control={<ComingSoonTooltip t={t}><Button variant="outline" disabled>{t('view_activity_button')}</Button></ComingSoonTooltip>}
+              title={t('session_activity_title', 'Session & Login Activity')}
+              description={t('session_activity_description', 'Review recent login locations and active sessions.')}
+              control={<ComingSoonTooltip t={t}><Button variant="outline" disabled>{t('view_activity_button', 'View Activity')}</Button></ComingSoonTooltip>}
             />
             <SettingItem
               icon={User}
-              title={t('download_my_data')}
-              description={t('download_my_data_description')}
-              control={<ComingSoonTooltip t={t}><Button variant="outline" disabled>{t('download_button')}</Button></ComingSoonTooltip>}
+              title={t('download_my_data_title', 'Download My Data')}
+              description={t('download_my_data_description', 'Get a copy of your personal data.')}
+              control={<ComingSoonTooltip t={t}><Button variant="outline" disabled>{t('download_button', 'Download')}</Button></ComingSoonTooltip>}
             />
           </CardContent>
         </Card>
@@ -356,66 +356,43 @@ export default function SettingsPage() {
         {/* Notifications & Alerts */}
         <Card>
           <CardHeader>
-            <CardTitle>{t('notifications_alerts_title')}</CardTitle>
+            <CardTitle>{t('notifications_alerts_title', 'Notifications & Alerts')}</CardTitle>
             <CardDescription>
-              {t('notifications_alerts_description')}
+              {t('notifications_alerts_description', 'Choose which alerts you want to receive and how.')}
             </CardDescription>
           </CardHeader>
           <CardContent>
              <SettingItem
               icon={Bell}
-              title={t('appointment_reminders')}
-              description={t('appointment_reminders_description')}
+              title={t('appointment_reminders_title', 'Appointment Reminders')}
+              description={t('appointment_reminders_description', 'Get notified about your upcoming appointments.')}
               control={<Switch id="appointment-reminders" disabled={isMuted} checked={notificationSettings?.appointmentReminders ?? true} onCheckedChange={(checked) => handleNotificationChange('appointmentReminders', checked)} />}
             />
             <SettingItem
               icon={Bell}
-              title={t('prescription_reminders')}
-              description={t('prescription_reminders_description')}
+              title={t('prescription_reminders_title', 'Prescription Reminders')}
+              description={t('prescription_reminders_description', 'Receive alerts to take your medication on time.')}
               control={<Switch id="prescription-reminders" disabled={isMuted} checked={notificationSettings?.prescriptionReminders ?? false} onCheckedChange={(checked) => handleNotificationChange('prescriptionReminders', checked)} />}
             />
             <SettingItem
               icon={Bell}
-              title={t('vaccination_reminders')}
-              description={t('vaccination_reminders_description')}
+              title={t('vaccination_reminders_title', 'Vaccination Reminders')}
+              description={t('vaccination_reminders_description', 'Stay up-to-date on immunization schedules.')}
               control={<Switch id="vaccination-reminders" disabled={isMuted} checked={notificationSettings?.vaccinationReminders ?? true} onCheckedChange={(checked) => handleNotificationChange('vaccinationReminders', checked)} />}
             />
             <SettingItem
               icon={Bell}
-              title={t('health_tips')}
-              description={t('health_tips_description')}
+              title={t('health_tips_title', 'Health Tips')}
+              description={t('health_tips_description', 'Receive occasional wellness tips and suggestions.')}
               control={<Switch id="health-tips" disabled={isMuted} checked={notificationSettings?.healthTips ?? false} onCheckedChange={(checked) => handleNotificationChange('healthTips', checked)} />}
             />
 
             <div className="pt-6">
-              <h4 className="font-semibold mb-2">{t('delivery_methods_title')}</h4>
-              <div className="space-y-4">
-                <SettingItem
-                  icon={Mail}
-                  title={t('email_preferences')}
-                  description={t('email_preferences_description')}
-                  control={<Switch id="email-prefs" disabled={isMuted} checked={notificationSettings?.email ?? true} onCheckedChange={(checked) => handleNotificationChange('email', checked)} />}
-                />
-                <SettingItem
-                  icon={Smartphone}
-                  title={t('sms_preferences')}
-                  description={t('sms_preferences_description')}
-                  control={<Switch id="sms-prefs" disabled={isMuted} checked={notificationSettings?.sms ?? false} onCheckedChange={(checked) => handleNotificationChange('sms', checked)} />}
-                />
-                <SettingItem
-                  icon={Bell}
-                  title={t('push_preferences')}
-                  description={t('push_preferences_description')}
-                  control={<Switch id="push-prefs" disabled={isMuted} checked={notificationSettings?.push ?? true} onCheckedChange={(checked) => handleNotificationChange('push', checked)} />}
-                />
-              </div>
-            </div>
-            <div className="pt-6">
                <SettingItem
                 icon={Bell}
-                title={t('mute_notifications')}
-                description={t('mute_notifications_description')}
-                control={<Button variant="outline" onClick={handleMute} disabled={isMuted}>{isMuted ? `Muted (${remainingMuteTime})` : t('mute_for_1_hour_button')}</Button>}
+                title={t('mute_notifications_title', 'Mute Notifications')}
+                description={t('mute_notifications_description', 'Temporarily pause all notifications.')}
+                control={<Button variant="outline" onClick={handleMute} disabled={isMuted}>{isMuted ? `Muted (${remainingMuteTime})` : t('mute_for_1_hour_button', 'Mute for 1 Hour')}</Button>}
               />
             </div>
           </CardContent>
@@ -425,9 +402,9 @@ export default function SettingsPage() {
        <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>{t('change_password_dialog_title')}</DialogTitle>
+                    <DialogTitle>{t('change_password_dialog_title', 'Change Your Password')}</DialogTitle>
                     <DialogDescription>
-                        {t('change_password_dialog_description')}
+                        {t('change_password_dialog_description', 'Enter your current password and a new password below.')}
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...passwordForm}>
@@ -437,7 +414,7 @@ export default function SettingsPage() {
                             name="currentPassword"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>{t('current_password_label')}</FormLabel>
+                                    <FormLabel>{t('current_password_label', 'Current Password')}</FormLabel>
                                     <FormControl>
                                       <div className="relative">
                                         <Input type={showPasswords.current ? 'text' : 'password'} {...field} />
@@ -455,7 +432,7 @@ export default function SettingsPage() {
                             name="newPassword"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>{t('new_password_label')}</FormLabel>
+                                    <FormLabel>{t('new_password_label', 'New Password')}</FormLabel>
                                     <FormControl>
                                       <div className="relative">
                                         <Input type={showPasswords.new ? 'text' : 'password'} {...field} />
@@ -473,7 +450,7 @@ export default function SettingsPage() {
                             name="confirmPassword"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>{t('confirm_new_password_label')}</FormLabel>
+                                    <FormLabel>{t('confirm_new_password_label', 'Confirm New Password')}</FormLabel>
                                     <FormControl>
                                       <div className="relative">
                                         <Input type={showPasswords.confirm ? 'text' : 'password'} {...field} />
@@ -488,10 +465,10 @@ export default function SettingsPage() {
                         />
                         <DialogFooter>
                             <DialogClose asChild>
-                                <Button type="button" variant="outline">{t('cancel_button')}</Button>
+                                <Button type="button" variant="outline">{t('cancel_button', 'Cancel')}</Button>
                             </DialogClose>
                             <Button type="submit" disabled={passwordForm.formState.isSubmitting}>
-                                {passwordForm.formState.isSubmitting ? t('changing_button') : t('change_password_button')}
+                                {passwordForm.formState.isSubmitting ? t('changing_button', 'Changing...') : t('change_password_button', 'Change Password')}
                             </Button>
                         </DialogFooter>
                     </form>
