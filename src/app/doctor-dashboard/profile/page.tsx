@@ -10,7 +10,7 @@ import { doc } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AtSign, BriefcaseMedical, Building, Phone, User as UserIcon, Pencil, X, Save, Star, Activity, Languages, GraduationCap, FileBadge, Calendar, Clock, BookText, Stethoscope, Wallet, Globe, Video, ShieldCheck, FilePen, ExternalLink, ArrowLeft } from 'lucide-react';
+import { AtSign, BriefcaseMedical, Building, Phone, User as UserIcon, Pencil, X, Save, Star, Activity, Languages, GraduationCap, FileBadge, Calendar, Clock, BookText, Stethoscope, Wallet, Globe, Video, ShieldCheck, FilePen, ExternalLink } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
@@ -20,6 +20,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { VerificationCenter } from '@/components/doctor/verification-center';
 import { BackButton } from '@/components/layout/back-button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const profileSchema = z.object({
   firstName: z.string().min(2, "First name is required."),
@@ -358,6 +359,13 @@ export default function DoctorProfilePage() {
                         </Form>
                     ) : (
                         <>
+                             <Alert variant="default" className="mb-8">
+                                <ShieldCheck className="h-4 w-4" />
+                                <AlertTitle>How Verification Works</AlertTitle>
+                                <AlertDescription>
+                                To get a 'Verified' badge, please ensure your registration details are accurate and all required documents are uploaded. Our team will review your submission and check it against the official Indian Medical Register (IMR). Verification is required for your profile to be visible to patients.
+                                </AlertDescription>
+                            </Alert>
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                                 <div className="lg:col-span-2 space-y-8">
                                     <Card className="hover:shadow-lg transition-shadow">
@@ -471,6 +479,3 @@ export default function DoctorProfilePage() {
     </div>
   );
 }
-
-
-    
