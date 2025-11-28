@@ -43,6 +43,8 @@ const patientNavLinks = [
     { href: "/patient-dashboard", label: "Dashboard", i18n_key: "dashboard_link" },
     { href: "/appointments", label: "Book Appointment", i18n_key: "book_appointment_link" },
     { href: "/records", label: "Records", i18n_key: "records_link" },
+    { href: "/billing", label: "Pay Bill", i18n_key: "pay_bill_link" },
+    { href: "/patient-dashboard#health-assistant", label: "Health Assistant", i18n_key: "health_assistant_link" },
     { href: "/notifications", label: "Notifications", i18n_key: "my_notifications_page_title" },
 ]
 
