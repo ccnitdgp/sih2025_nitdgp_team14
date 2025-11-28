@@ -58,14 +58,14 @@ export default function PostPage() {
   });
 
   const onSubmit = async (values: z.infer<typeof replySchema>) => {
-    if (!user || !userProfile || !postRef) {
+    if (!user || !userProfile || !postRef || !firestore) {
       toast({ variant: 'destructive', title: 'You must be logged in to reply.' });
       return;
     }
     setIsSubmitting(true);
     
-    const repliesColRef = collection(postRef, 'replies');
-    const newReplyRef = doc(repliesColRef);
+    // Correctly generate a new document reference within the 'replies' subcollection
+    const newReplyRef = doc(collection(firestore, 'forumPosts', postId, 'replies'));
 
     const newReply = {
       id: newReplyRef.id,
