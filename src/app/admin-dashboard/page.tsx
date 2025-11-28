@@ -2,12 +2,13 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { AreaChart, BarChart, FileDown, TrendingUp, Users, Syringe, Activity, Calendar, Briefcase } from 'lucide-react';
+import { TrendingUp, Users, Syringe, Calendar, User, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DiseaseTrendChart } from '@/components/admin/disease-trend-chart';
 import { AppointmentTrendChart } from '@/components/admin/appointment-trend-chart';
 import { VaccinationCoverageChart } from '@/components/admin/vaccination-coverage-chart';
 import { DoctorLoadChart } from '@/components/admin/doctor-load-chart';
+import { AgeDistributionChart } from '@/components/admin/age-distribution-chart';
 
 const StatCard = ({ title, value, icon: Icon, description }) => (
   <Card>
@@ -34,10 +35,6 @@ export default function AdminDashboardPage() {
               <h1 className="text-3xl font-bold tracking-tight">Admin Analytics Dashboard</h1>
               <p className="text-muted-foreground">Aggregated public health insights and operational statistics.</p>
             </div>
-            <Button>
-                <FileDown className="mr-2 h-4 w-4" />
-                Export Reports
-            </Button>
           </div>
 
            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -66,21 +63,27 @@ export default function AdminDashboardPage() {
                     <AppointmentTrendChart />
                 </CardContent>
             </Card>
-          </div>
-          
-           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <Card className="lg:col-span-1">
+            <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><Syringe /> Vaccination Coverage</CardTitle>
                     <CardDescription>Total vaccination coverage by age group.</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="flex justify-center">
                     <VaccinationCoverageChart />
                 </CardContent>
             </Card>
-            <Card className="lg:col-span-2">
+            <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><Briefcase /> Doctor Workload</CardTitle>
+                    <CardTitle className="flex items-center gap-2"><Users /> Patient Demographics</CardTitle>
+                    <CardDescription>Age distribution of registered patients.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <AgeDistributionChart />
+                </CardContent>
+            </Card>
+             <Card className="lg:col-span-2">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><User /> Doctor Workload</CardTitle>
                     <CardDescription>Appointments handled per doctor this week.</CardDescription>
                 </CardHeader>
                 <CardContent>
