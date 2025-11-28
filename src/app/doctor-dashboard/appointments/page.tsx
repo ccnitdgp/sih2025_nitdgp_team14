@@ -20,7 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { useUser, useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking, useDoc, addDocumentNonBlocking } from '@/firebase';
-import { collection, query, where, doc } from 'firebase/firestore';
+import { collection, query, where, doc, serverTimestamp } from 'firebase/firestore';
 import { differenceInYears, parseISO } from 'date-fns';
 
 
@@ -83,16 +83,22 @@ export default function DoctorAppointmentsPage() {
     }
   };
   
-  const handleGenerateBill = (values: z.infer<typeof billSchema>) => {
+ const handleGenerateBill = (values: z.infer<typeof billSchema>) => {
     if (!selectedAppointment?.patientId || !firestore) return;
     
-    const billsRef = collection(firestore, 'users', selectedAppointment.patientId, 'bills');
+    const billsRef = collection(firestore, 'users', selectedAppointment.patientId, 'healthRecords');
     const billData = {
-      title: values.description,
-      category: values.category,
-      amount: values.amount,
-      date: new Date().toISOString().split('T')[0],
-      status: 'Due',
+      recordType: 'bill',
+      dateCreated: serverTimestamp(),
+      userId: selectedAppointment.patientId,
+      addedBy: user?.uid,
+      details: {
+        title: values.description,
+        category: values.category,
+        amount: values.amount,
+        date: new Date().toISOString().split('T')[0],
+        status: 'Due',
+      }
     };
     
     addDocumentNonBlocking(billsRef, billData);
@@ -361,5 +367,3 @@ export default function DoctorAppointmentsPage() {
     </div>
   );
 }
-
-    

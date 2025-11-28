@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -10,10 +10,9 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Activity, Pill, Stethoscope, FileDown, CreditCard, DollarSign, ArrowLeft } from 'lucide-react';
-import { billingHistory, type Bill } from '@/lib/data';
 import { cn } from '@/lib/utils';
-import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useUser, useDoc, useFirestore, useMemoFirebase, useCollection, updateDocumentNonBlocking } from '@/firebase';
+import { doc, collection, query, where } from 'firebase/firestore';
 import hi from '@/lib/locales/hi.json';
 import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
@@ -32,6 +31,7 @@ const categoryIcons = {
   Radiology: <Activity className="h-6 w-6 text-primary" />,
   Pharmacy: <Pill className="h-6 w-6 text-primary" />,
   Consultation: <Stethoscope className="h-6 w-6 text-primary" />,
+  'Lab Tests': <Activity className="h-6 w-6 text-primary" />,
 };
 
 const paymentSchema = z.object({
@@ -43,14 +43,23 @@ const paymentSchema = z.object({
 
 
 export default function BillingPage() {
-  const [bills, setBills] = useState<Bill[]>(billingHistory);
   const { user } = useUser();
   const firestore = useFirestore();
   const [translations, setTranslations] = useState({});
-  const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
+  const [selectedBill, setSelectedBill] = useState<any | null>(null);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('outstanding');
   const { toast } = useToast();
+
+  const billsQuery = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return query(
+        collection(firestore, `users/${user.uid}/healthRecords`),
+        where('recordType', '==', 'bill')
+    );
+  }, [user, firestore]);
+  
+  const { data: bills, isLoading } = useCollection(billsQuery);
 
   const form = useForm<z.infer<typeof paymentSchema>>({
     resolver: zodResolver(paymentSchema),
@@ -79,27 +88,26 @@ export default function BillingPage() {
 
   const t = (key: string, fallback: string) => translations[key] || fallback;
 
-  const handlePayNow = (bill: Bill) => {
+  const handlePayNow = (bill: any) => {
     setSelectedBill(bill);
     form.reset();
     setIsPaymentDialogOpen(true);
   };
   
   const handleConfirmPayment = (values: z.infer<typeof paymentSchema>) => {
-    if (!selectedBill) return;
+    if (!selectedBill || !firestore || !user) return;
 
-    // Simulate payment processing
     console.log("Processing payment for:", values);
-
-    setBills(currentBills =>
-      currentBills.map(b =>
-        b.id === selectedBill.id ? { ...b, status: 'Paid' } : b
-      )
-    );
+    
+    const billRef = doc(firestore, 'users', user.uid, 'healthRecords', selectedBill.id);
+    
+    updateDocumentNonBlocking(billRef, {
+        'details.status': 'Paid'
+    });
     
     toast({
       title: "Payment Successful",
-      description: `Payment of ${t('currency_symbol', 'Rs.')} ${selectedBill.amount} for "${selectedBill.title}" was successful.`
+      description: `Payment of ${t('currency_symbol', 'Rs.')} ${selectedBill.details.amount} for "${selectedBill.details.title}" was successful.`
     });
 
     setIsPaymentDialogOpen(false);
@@ -107,20 +115,19 @@ export default function BillingPage() {
     setActiveTab('paid');
   };
 
-  const handleDownloadInvoice = (bill: Bill) => {
+  const handleDownloadInvoice = (bill: any) => {
     const link = document.createElement('a');
     link.href = dummyPdfContent;
-    link.download = `invoice-${bill.id}-${bill.title.replace(/\s+/g, '-')}.pdf`;
+    link.download = `invoice-${bill.id}-${bill.details.title.replace(/\s+/g, '-')}.pdf`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
 
-  const outstandingBills = bills.filter((bill) => bill.status === 'Due');
-  const paidBills = bills.filter((bill) => bill.status === 'Paid');
-
-  const totalOutstanding = outstandingBills.reduce((acc, bill) => acc + bill.amount, 0);
+  const outstandingBills = useMemo(() => bills?.filter((bill) => bill.details.status === 'Due') || [], [bills]);
+  const paidBills = useMemo(() => bills?.filter((bill) => bill.details.status === 'Paid') || [], [bills]);
+  const totalOutstanding = useMemo(() => outstandingBills.reduce((acc, bill) => acc + bill.details.amount, 0), [outstandingBills]);
 
   return (
     <div className="container mx-auto max-w-5xl px-6 py-12">
@@ -169,20 +176,20 @@ export default function BillingPage() {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="outstanding" className="mt-6 space-y-4">
-            {outstandingBills.length > 0 ? (
+            {isLoading ? <p>Loading bills...</p> : outstandingBills.length > 0 ? (
                 outstandingBills.map((bill) => (
                 <Card key={bill.id} className="p-4 flex flex-col sm:flex-row items-start gap-4">
                     <div className="p-3 bg-primary/10 rounded-full mt-1">
-                        {categoryIcons[bill.category]}
+                        {categoryIcons[bill.details.category]}
                     </div>
                     <div className="flex-grow">
-                        <h3 className="font-bold text-lg">{bill.title}</h3>
-                        <p className="text-sm text-muted-foreground">{t(bill.category.toLowerCase(), bill.category)} - {bill.date}</p>
+                        <h3 className="font-bold text-lg">{bill.details.title}</h3>
+                        <p className="text-sm text-muted-foreground">{t(bill.details.category.toLowerCase(), bill.details.category)} - {bill.details.date}</p>
                     </div>
                     <div className="flex flex-col items-end gap-2 ml-auto shrink-0">
                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-lg">{t('currency_symbol', 'Rs.')} {bill.amount.toLocaleString('en-IN')}</span>
-                            <Badge variant="destructive">{t('bill_status_due', bill.status)}</Badge>
+                            <span className="font-bold text-lg">{t('currency_symbol', 'Rs.')} {bill.details.amount.toLocaleString('en-IN')}</span>
+                            <Badge variant="destructive">{t('bill_status_due', bill.details.status)}</Badge>
                          </div>
                          <div className="flex items-center gap-2 mt-2">
                             <Button variant="ghost" size="sm" onClick={() => handleDownloadInvoice(bill)}>
@@ -203,20 +210,20 @@ export default function BillingPage() {
             )}
           </TabsContent>
           <TabsContent value="paid" className="mt-6 space-y-4">
-             {paidBills.length > 0 ? (
+             {isLoading ? <p>Loading bills...</p> : paidBills.length > 0 ? (
                 paidBills.map((bill) => (
                  <Card key={bill.id} className="p-4 flex flex-col sm:flex-row items-start gap-4">
                     <div className="p-3 bg-muted rounded-full mt-1">
-                        {categoryIcons[bill.category]}
+                        {categoryIcons[bill.details.category]}
                     </div>
                     <div className="flex-grow">
-                        <h3 className="font-bold text-lg">{bill.title}</h3>
-                        <p className="text-sm text-muted-foreground">{t(bill.category.toLowerCase(), bill.category)} - {bill.date}</p>
+                        <h3 className="font-bold text-lg">{bill.details.title}</h3>
+                        <p className="text-sm text-muted-foreground">{t(bill.details.category.toLowerCase(), bill.details.category)} - {bill.details.date}</p>
                     </div>
                     <div className="flex flex-col items-end gap-2 ml-auto shrink-0">
                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-lg">{t('currency_symbol', 'Rs.')} {bill.amount.toLocaleString('en-IN')}</span>
-                            <Badge variant="secondary">{t('bill_status_paid', bill.status)}</Badge>
+                            <span className="font-bold text-lg">{t('currency_symbol', 'Rs.')} {bill.details.amount.toLocaleString('en-IN')}</span>
+                            <Badge variant="secondary">{t('bill_status_paid', bill.details.status)}</Badge>
                          </div>
                          <div className="flex items-center gap-2 mt-2">
                             <Button variant="ghost" size="sm" onClick={() => handleDownloadInvoice(bill)}>
@@ -241,7 +248,7 @@ export default function BillingPage() {
                 <DialogHeader>
                     <DialogTitle>Complete Your Payment</DialogTitle>
                     <DialogDescription>
-                        Paying {t('currency_symbol', 'Rs.')}{selectedBill?.amount.toLocaleString('en-IN')} for "{selectedBill?.title}".
+                        Paying {t('currency_symbol', 'Rs.')}{selectedBill?.details.amount.toLocaleString('en-IN')} for "{selectedBill?.details.title}".
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
@@ -305,7 +312,7 @@ export default function BillingPage() {
                             <Button type="button" variant="outline" onClick={() => setIsPaymentDialogOpen(false)}>Cancel</Button>
                             <Button type="submit">
                                 <CreditCard className="mr-2 h-4 w-4" />
-                                Pay {t('currency_symbol', 'Rs.')}{selectedBill?.amount.toLocaleString('en-IN')}
+                                Pay {t('currency_symbol', 'Rs.')}{selectedBill?.details.amount.toLocaleString('en-IN')}
                             </Button>
                         </DialogFooter>
                     </form>
@@ -315,5 +322,3 @@ export default function BillingPage() {
     </div>
   );
 }
-
-    
