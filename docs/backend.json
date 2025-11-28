@@ -70,6 +70,19 @@
                 "averageRating": { "type": "number" },
                 "totalConsultations": { "type": "number" }
             }
+        },
+        "verification": {
+          "type": "object",
+          "description": "Stores status and URLs for doctor's verification documents.",
+          "properties": {
+            "medicalDegree": { "$ref": "#/backend/entities/VerificationDocument" },
+            "internshipCertificate": { "$ref": "#/backend/entities/VerificationDocument" },
+            "registrationCertificate": { "$ref": "#/backend/entities/VerificationDocument" },
+            "identityProof": { "$ref": "#/backend/entities/VerificationDocument" },
+            "goodStandingCertificate": { "$ref": "#/backend/entities/VerificationDocument" },
+            "photograph": { "$ref": "#/backend/entities/VerificationDocument" },
+            "specializationCertificate": { "$ref": "#/backend/entities/VerificationDocument" }
+          }
         }
       },
       "required": ["id", "firstName", "lastName", "specialty", "city", "state", "country"]
@@ -240,6 +253,17 @@
         "phoneNumber",
         "role"
       ]
+    },
+    "VerificationDocument": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "VerificationDocument",
+      "type": "object",
+      "description": "Represents a document for verification.",
+      "properties": {
+        "url": { "type": "string" },
+        "status": { "type": "string", "enum": ["Not Uploaded", "Pending", "Verified", "Rejected"] }
+      },
+      "required": ["status"]
     },
     "VaccinationDrive": {
       "$schema": "http://json-schema.org/draft-07/schema#",

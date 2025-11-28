@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { VerificationCenter } from '@/components/doctor/verification-center';
 
 const profileSchema = z.object({
   firstName: z.string().min(2, "First name is required."),
@@ -215,7 +216,7 @@ export default function DoctorProfilePage() {
                 Doctor Profile
             </h1>
             <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
-                Your professional and contact information.
+                Manage your professional and contact information and verify your credentials.
             </p>
         </div>
 
@@ -319,83 +320,90 @@ export default function DoctorProfilePage() {
                             </form>
                         </Form>
                     ) : (
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                          <div className="lg:col-span-2 space-y-8">
-                             <Card className="hover:shadow-lg transition-shadow">
-                                <CardHeader><CardTitle className="flex items-center gap-2"><UserIcon/> Basic Information</CardTitle></CardHeader>
-                                <CardContent className="space-y-6 pt-6">
-                                  <ProfileDetail icon={UserIcon} label="Full Name" value={`Dr. ${userProfile.firstName} ${userProfile.lastName}`} />
-                                  <ProfileDetail icon={AtSign} label="Email Address" value={user?.email} />
-                                  <ProfileDetail icon={Phone} label="Contact Number" value={userProfile.phoneNumber} />
-                                  <ProfileDetail icon={Languages} label="Languages" value={(publicProfile.languagesKnown || []).join(', ')} />
-                                </CardContent>
-                            </Card>
+                        <>
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                <div className="lg:col-span-2 space-y-8">
+                                    <Card className="hover:shadow-lg transition-shadow">
+                                        <CardHeader><CardTitle className="flex items-center gap-2"><UserIcon/> Basic Information</CardTitle></CardHeader>
+                                        <CardContent className="space-y-6 pt-6">
+                                        <ProfileDetail icon={UserIcon} label="Full Name" value={`Dr. ${userProfile.firstName} ${userProfile.lastName}`} />
+                                        <ProfileDetail icon={AtSign} label="Email Address" value={user?.email} />
+                                        <ProfileDetail icon={Phone} label="Contact Number" value={userProfile.phoneNumber} />
+                                        <ProfileDetail icon={Languages} label="Languages" value={(publicProfile.languagesKnown || []).join(', ')} />
+                                        </CardContent>
+                                    </Card>
 
-                            <Card className="hover:shadow-lg transition-shadow">
-                                <CardHeader><CardTitle className="flex items-center gap-2"><BookText/> About</CardTitle></CardHeader>
-                                <CardContent className="pt-6">
-                                   <p className="text-muted-foreground">{publicProfile?.biography || 'No biography provided.'}</p>
-                                </CardContent>
-                            </Card>
+                                    <Card className="hover:shadow-lg transition-shadow">
+                                        <CardHeader><CardTitle className="flex items-center gap-2"><BookText/> About</CardTitle></CardHeader>
+                                        <CardContent className="pt-6">
+                                        <p className="text-muted-foreground">{publicProfile?.biography || 'No biography provided.'}</p>
+                                        </CardContent>
+                                    </Card>
 
-                            <Card className="hover:shadow-lg transition-shadow">
-                                <CardHeader><CardTitle className="flex items-center gap-2"><BriefcaseMedical/> Professional Details</CardTitle></CardHeader>
-                                <CardContent className="space-y-6 pt-6">
-                                  <ProfileDetail icon={BriefcaseMedical} label="Specialty" value={publicProfile?.specialty} />
-                                  <ProfileDetail icon={GraduationCap} label="Qualifications" value={publicProfile?.qualifications} />
-                                  <ProfileDetail icon={FileBadge} label="Medical License Number" value={publicProfile?.licenseNumber} />
-                                  <ProfileDetail icon={Calendar} label="Years of Experience" value={publicProfile?.yearsOfExperience ? `${publicProfile.yearsOfExperience} years` : null} />
-                                  <ProfileDetail icon={UserIcon} label="Designation" value={publicProfile?.designation} />
-                                  <ProfileDetail icon={Building} label="Primary Clinic/Hospital" value={publicProfile?.clinic} />
-                                </CardContent>
-                            </Card>
-                            
-                             <Card className="hover:shadow-lg transition-shadow">
-                                <CardHeader><CardTitle className="flex items-center gap-2"><Stethoscope/> Expertise & Services</CardTitle></CardHeader>
-                                <CardContent className="space-y-6 pt-6">
-                                   <ProfileDetail icon={Stethoscope} label="Conditions Handled" value={publicProfile?.conditionsHandled} />
-                                   <ProfileDetail icon={Stethoscope} label="Treatments & Procedures" value={publicProfile?.treatmentsAndProcedures} />
-                                   <ProfileDetail icon={Video} label="Teleconsultation" value={publicProfile?.teleconsultation ? 'Available' : 'Not Available'} />
-                                </CardContent>
-                            </Card>
-                          </div>
+                                    <Card className="hover:shadow-lg transition-shadow">
+                                        <CardHeader><CardTitle className="flex items-center gap-2"><BriefcaseMedical/> Professional Details</CardTitle></CardHeader>
+                                        <CardContent className="space-y-6 pt-6">
+                                        <ProfileDetail icon={BriefcaseMedical} label="Specialty" value={publicProfile?.specialty} />
+                                        <ProfileDetail icon={GraduationCap} label="Qualifications" value={publicProfile?.qualifications} />
+                                        <ProfileDetail icon={FileBadge} label="Medical License Number" value={publicProfile?.licenseNumber} />
+                                        <ProfileDetail icon={Calendar} label="Years of Experience" value={publicProfile?.yearsOfExperience ? `${publicProfile.yearsOfExperience} years` : null} />
+                                        <ProfileDetail icon={UserIcon} label="Designation" value={publicProfile?.designation} />
+                                        <ProfileDetail icon={Building} label="Primary Clinic/Hospital" value={publicProfile?.clinic} />
+                                        </CardContent>
+                                    </Card>
+                                    
+                                    <Card className="hover:shadow-lg transition-shadow">
+                                        <CardHeader><CardTitle className="flex items-center gap-2"><Stethoscope/> Expertise & Services</CardTitle></CardHeader>
+                                        <CardContent className="space-y-6 pt-6">
+                                        <ProfileDetail icon={Stethoscope} label="Conditions Handled" value={publicProfile?.conditionsHandled} />
+                                        <ProfileDetail icon={Stethoscope} label="Treatments & Procedures" value={publicProfile?.treatmentsAndProcedures} />
+                                        <ProfileDetail icon={Video} label="Teleconsultation" value={publicProfile?.teleconsultation ? 'Available' : 'Not Available'} />
+                                        </CardContent>
+                                    </Card>
+                                </div>
 
-                          <div className="space-y-8">
-                             <Card className="bg-muted/30 hover:shadow-lg transition-shadow">
-                                <CardHeader>
-                                  <CardTitle className="flex items-center gap-2"><Calendar/> Availability</CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4 pt-2">
-                                  <div>
-                                    <h4 className="font-semibold text-sm flex items-center gap-2"><Calendar className="h-4 w-4"/> Days</h4>
-                                    <p className="font-bold text-lg text-primary">{publicProfile?.availability?.availableDays || 'Not specified'}</p>
-                                  </div>
-                                   <div>
-                                    <h4 className="font-semibold text-sm flex items-center gap-2"><Clock className="h-4 w-4"/> Hours</h4>
-                                    <p className="font-bold text-lg text-primary">{publicProfile?.availability?.workingHours || 'Not specified'}</p>
-                                  </div>
-                                  <div>
-                                    <h4 className="font-semibold text-sm flex items-center gap-2"><Clock className="h-4 w-4"/> Duration</h4>
-                                    <p className="font-bold text-lg text-primary">{publicProfile?.availability?.appointmentDuration ? `${publicProfile.availability.appointmentDuration} minutes` : 'Not specified'}</p>
-                                  </div>
-                                </CardContent>
-                            </Card>
-                             <Card className="bg-muted/30 hover:shadow-lg transition-shadow">
-                                <CardHeader>
-                                  <CardTitle className="flex items-center gap-2"><Wallet/> Pricing</CardTitle></CardHeader>
-                                <CardContent className="space-y-4 pt-2">
-                                  <div>
-                                    <h4 className="font-semibold text-sm">In-Clinic Fee</h4>
-                                    <p className="font-bold text-lg text-primary">{publicProfile?.pricing?.clinicFee ? `Rs. ${publicProfile.pricing.clinicFee}` : 'Not specified'}</p>
-                                  </div>
-                                  <div>
-                                    <h4 className="font-semibold text-sm">Online Fee</h4>
-                                    <p className="font-bold text-lg text-primary">{publicProfile?.pricing?.onlineFee ? `Rs. ${publicProfile.pricing.onlineFee}`: 'Not specified'}</p>
-                                  </div>
-                                </CardContent>
-                            </Card>
-                          </div>
-                        </div>
+                                <div className="space-y-8">
+                                    <Card className="bg-muted/30 hover:shadow-lg transition-shadow">
+                                        <CardHeader>
+                                        <CardTitle className="flex items-center gap-2"><Calendar/> Availability</CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-4 pt-2">
+                                        <div>
+                                            <h4 className="font-semibold text-sm flex items-center gap-2"><Calendar className="h-4 w-4"/> Days</h4>
+                                            <p className="font-bold text-lg text-primary">{publicProfile?.availability?.availableDays || 'Not specified'}</p>
+                                        </div>
+                                        <div>
+                                            <h4 className="font-semibold text-sm flex items-center gap-2"><Clock className="h-4 w-4"/> Hours</h4>
+                                            <p className="font-bold text-lg text-primary">{publicProfile?.availability?.workingHours || 'Not specified'}</p>
+                                        </div>
+                                        <div>
+                                            <h4 className="font-semibold text-sm flex items-center gap-2"><Clock className="h-4 w-4"/> Duration</h4>
+                                            <p className="font-bold text-lg text-primary">{publicProfile?.availability?.appointmentDuration ? `${publicProfile.availability.appointmentDuration} minutes` : 'Not specified'}</p>
+                                        </div>
+                                        </CardContent>
+                                    </Card>
+                                    <Card className="bg-muted/30 hover:shadow-lg transition-shadow">
+                                        <CardHeader>
+                                        <CardTitle className="flex items-center gap-2"><Wallet/> Pricing</CardTitle></CardHeader>
+                                        <CardContent className="space-y-4 pt-2">
+                                        <div>
+                                            <h4 className="font-semibold text-sm">In-Clinic Fee</h4>
+                                            <p className="font-bold text-lg text-primary">{publicProfile?.pricing?.clinicFee ? `Rs. ${publicProfile.pricing.clinicFee}` : 'Not specified'}</p>
+                                        </div>
+                                        <div>
+                                            <h4 className="font-semibold text-sm">Online Fee</h4>
+                                            <p className="font-bold text-lg text-primary">{publicProfile?.pricing?.onlineFee ? `Rs. ${publicProfile.pricing.onlineFee}`: 'Not specified'}</p>
+                                        </div>
+                                        </CardContent>
+                                    </Card>
+                                </div>
+                            </div>
+
+                            <VerificationCenter 
+                                publicProfile={publicProfile} 
+                                doctorPublicProfileRef={doctorPublicProfileRef}
+                            />
+                        </>
                     )}
                 </div>
             ) : (
