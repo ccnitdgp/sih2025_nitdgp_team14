@@ -20,10 +20,21 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
 import { Calendar } from '@/components/ui/calendar';
 import { format, addDays, startOfDay, addMinutes, getDay, setHours, setMinutes } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useUser, useDoc, useFirestore, useMemoFirebase, addDocumentNonBlocking, useCollection } from '@/firebase';
+import { useUser, useDoc, useFirestore, useMemoFirebase, addDocumentNonBlocking, useCollection, updateDocumentNonBlocking } from '@/firebase';
 import { doc, collection, query, where } from 'firebase/firestore';
 import hi from '@/lib/locales/hi.json';
 import bn from '@/lib/locales/bn.json';
@@ -479,6 +490,10 @@ const FindDoctors = ({ t, userProfile }) => {
 const MyAppointments = ({ t }) => {
     const { user } = useUser();
     const firestore = useFirestore();
+    const { toast } = useToast();
+    const [appointmentToCancel, setAppointmentToCancel] = useState(null);
+    const [appointmentToReschedule, setAppointmentToReschedule] = useState(null);
+
     const appointmentsQuery = useMemoFirebase(() => {
         if (!user || !firestore) return null;
         return query(collection(firestore, 'appointments'), where('patientId', '==', user.uid));
@@ -486,9 +501,36 @@ const MyAppointments = ({ t }) => {
 
     const { data: allAppointments, isLoading } = useCollection(appointmentsQuery);
 
-    const upcomingAppointments = allAppointments?.filter(appt => new Date(appt.date) >= startOfDay(new Date()));
+    const upcomingAppointments = allAppointments?.filter(appt => appt.status === 'Scheduled');
+
+    const handleCancelAppointment = () => {
+        if (!appointmentToCancel || !firestore) return;
+        const apptRef = doc(firestore, 'appointments', appointmentToCancel.id);
+        updateDocumentNonBlocking(apptRef, { status: 'Canceled' });
+        toast({
+            variant: "destructive",
+            title: "Appointment Canceled",
+            description: `Your appointment with ${appointmentToCancel.doctorName} has been canceled.`,
+        });
+        setAppointmentToCancel(null);
+    };
+
+    const handleReschedule = (newDate, newTime) => {
+        if (!appointmentToReschedule || !firestore) return;
+        const apptRef = doc(firestore, 'appointments', appointmentToReschedule.id);
+        updateDocumentNonBlocking(apptRef, {
+            date: format(newDate, 'yyyy-MM-dd'),
+            time: newTime,
+        });
+        toast({
+            title: "Appointment Rescheduled",
+            description: `Your appointment with ${appointmentToReschedule.doctorName} is now on ${format(newDate, 'PPP')} at ${newTime}.`,
+        });
+        setAppointmentToReschedule(null);
+    };
 
     return (
+        <>
         <Card>
             <CardHeader>
                 <CardTitle>{t('upcoming_appointments_title', 'Upcoming Appointments')}</CardTitle>
@@ -520,15 +562,142 @@ const MyAppointments = ({ t }) => {
                                 <Link href="https://meet.google.com" target="_blank"><Video className="mr-2 h-4 w-4" />Join Call</Link>
                               </Button>
                             )}
-                            <Button variant="outline">{t('reschedule_button', 'Reschedule')}</Button>
-                            <Button variant="destructive">{t('cancel_button', 'Cancel')}</Button>
+                            <Button variant="outline" onClick={() => setAppointmentToReschedule(appt)}>{t('reschedule_button', 'Reschedule')}</Button>
+                            <Button variant="destructive" onClick={() => setAppointmentToCancel(appt)}>{t('cancel_button', 'Cancel')}</Button>
                         </div>
                     </Card>
                 )) : <p>No upcoming appointments.</p>}
             </CardContent>
         </Card>
+        
+        {appointmentToCancel && (
+            <AlertDialog open={!!appointmentToCancel} onOpenChange={() => setAppointmentToCancel(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will cancel your appointment with {appointmentToCancel.doctorName} on {format(new Date(appointmentToCancel.date), 'PPP')}. This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Go Back</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleCancelAppointment}>Confirm Cancellation</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        )}
+
+        {appointmentToReschedule && <RescheduleDialog t={t} appointment={appointmentToReschedule} onConfirm={handleReschedule} onOpenChange={() => setAppointmentToReschedule(null)} />}
+        </>
     )
 }
+
+const RescheduleDialog = ({ t, appointment, onConfirm, onOpenChange }) => {
+    const firestore = useFirestore();
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+    const [selectedTime, setSelectedTime] = useState<string | undefined>(undefined);
+
+    const doctorQuery = useMemoFirebase(() => {
+        if (!firestore || !appointment?.doctorId) return null;
+        return doc(firestore, 'doctors', appointment.doctorId);
+    }, [firestore, appointment?.doctorId]);
+    const { data: doctorData } = useDoc(doctorQuery);
+
+    const appointmentsQuery = useMemoFirebase(() => {
+        if (!firestore || !appointment?.doctorId) return null;
+        return query(collection(firestore, 'appointments'), where('doctorId', '==', appointment.doctorId));
+    }, [firestore, appointment?.doctorId]);
+    const { data: doctorAppointments } = useCollection(appointmentsQuery);
+
+    const doctor = useMemo(() => {
+        if (!doctorData) return null;
+        const availableSlots: Record<string, string[]> = {};
+        const workingDays = parseAvailableDays(doctorData.availability?.availableDays);
+        const slots = generateTimeSlots(doctorData.availability?.workingHours, doctorData.availability?.appointmentDuration);
+  
+        for (let i = 0; i < 30; i++) {
+          const date = addDays(startOfDay(new Date()), i);
+          const dayOfWeek = getDay(date);
+          if (workingDays.includes(dayOfWeek)) {
+              const dateString = format(date, 'yyyy-MM-dd');
+              availableSlots[dateString] = slots;
+          }
+        }
+        return { availableSlots: availableSlots };
+    }, [doctorData]);
+
+
+    const getAvailableTimesForDate = (date: Date) => {
+        if (!doctor) return [];
+        const dateString = format(date, 'yyyy-MM-dd');
+        const allSlots = doctor.availableSlots[dateString] || [];
+        
+        const bookedSlotsOnDate = doctorAppointments
+            ?.filter(appt => appt.id !== appointment.id && appt.date === dateString)
+            .map(appt => appt.time) || [];
+        
+        return allSlots.filter(slot => !bookedSlotsOnDate.includes(slot));
+    };
+
+    const availableTimesForSelectedDate = selectedDate ? getAvailableTimesForDate(selectedDate) : [];
+
+    return (
+        <Dialog open={!!appointment} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>Reschedule Appointment</DialogTitle>
+                    <DialogDescription>
+                        Select a new date and time for your appointment with {appointment.doctorName}.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant={"outline"}
+                                className={cn("w-full justify-start text-left font-normal", !selectedDate && "text-muted-foreground")}
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                            <Calendar
+                                mode="single"
+                                selected={selectedDate}
+                                onSelect={(date) => {
+                                    setSelectedDate(date);
+                                    setSelectedTime(undefined);
+                                }}
+                                disabled={(date) => {
+                                    if (date < startOfDay(new Date())) return true;
+                                    if (!doctor) return true;
+                                    return getAvailableTimesForDate(date).length === 0;
+                                }}
+                                initialFocus
+                            />
+                        </PopoverContent>
+                    </Popover>
+
+                    <Select onValueChange={setSelectedTime} value={selectedTime} disabled={!selectedDate || availableTimesForSelectedDate.length === 0}>
+                        <SelectTrigger>
+                            <SelectValue placeholder={availableTimesForSelectedDate.length > 0 ? t('select_time_prompt', 'Pick a time slot') : t('no_slots_available_text', 'No slots available')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {availableTimesForSelectedDate.map(time => (
+                                <SelectItem key={time} value={time}>{time}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <DialogFooter className="sm:justify-between">
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+                    <Button onClick={() => onConfirm(selectedDate, selectedTime)} disabled={!selectedDate || !selectedTime}>Confirm Reschedule</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+};
 
 const HistoryTab = ({ t }) => {
      const { user } = useUser();
@@ -540,7 +709,7 @@ const HistoryTab = ({ t }) => {
 
     const { data: allAppointments } = useCollection(appointmentsQuery);
 
-     const pastAppointments = allAppointments?.filter(appt => new Date(appt.date) < startOfDay(new Date()));
+     const pastAppointments = allAppointments?.filter(appt => appt.status !== 'Scheduled');
     return (
          <Card>
             <CardHeader>
@@ -567,11 +736,10 @@ const HistoryTab = ({ t }) => {
                             </div>
                         </div>
                         <div className="flex gap-2 self-start sm:self-center">
-                             {appt.type === 'Virtual' && (
-                              <Button disabled>Call Ended</Button>
-                            )}
-                            <Button>{t('book_again_button', 'Book Again')}</Button>
-                            <Button variant="outline">{t('view_details_button', 'View Details')}</Button>
+                             {appt.status === 'Completed' && (
+                                <Button>{t('book_again_button', 'Book Again')}</Button>
+                             )}
+                             <Badge variant={appt.status === 'Canceled' ? 'destructive' : 'secondary'}>{appt.status}</Badge>
                         </div>
                     </Card>
                 )) : <p>No past appointments.</p>}
