@@ -52,7 +52,7 @@ export function CommunityInsightsSection() {
     const t = (key: string, fallback: string) => translations[key] || fallback;
     
     return (
-        <section className="py-12 sm:py-24">
+        <section id="community-insights" className="py-12 sm:py-24">
             <div className="container mx-auto max-w-7xl px-6">
                  <div className="text-center mb-12">
                     <h2 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl">

@@ -1,6 +1,7 @@
 
 {
     "home_link": "హోమ్",
+    "insights_link": "అంతర్దృష్టులు",
     "vaccination_drive_link": "టీకా డ్రైవ్",
     "visiting_camps_link": "ఆరోగ్య శిబిరాలు",
     "announcements_link": "ప్రకటనలు",
@@ -284,7 +285,7 @@
     "lab_reports_link": "ల్యాబ్ నివేదికలు",
     "back_to_dashboard_button": "డాష్‌బోర్డ్‌కు తిరిగి వెళ్ళు",
     "medical_history_page_title": "వైద్య చరిత్ర",
-    "medical_history_page_desc": "మీ వైద్యుడు నమోదు చేసిన మీ గత మరియు ప్రస్తుత వైద్య పరిస్థితుల యొక్క ಸಾರಾಂಶ.",
+    "medical_history_page_desc": "మీ వైద్యుడు నమోదు చేసిన మీ గత మరియు ప్రస్తుత వైద్య పరిస్థితుల యొక్క సారాంశం.",
     "no_medical_history_text": "ఇంకా ఏ వైద్య చరిత్ర నమోదు చేయబడలేదు.",
     "success_toast_title": "విజయవంతం",
     "medical_history_added_toast_desc": "వైద్య చరిత్ర అంశం జోడించబడింది.",
