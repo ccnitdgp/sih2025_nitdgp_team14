@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CalendarPlus, Receipt, ScanText, Mic, ArrowRight, Sparkles, Bot, BookUser, FlaskConical, History, ShieldCheck, FileText, ChevronRight, ChevronsUpDown, Volume2, Loader2, Play, MessageSquare } from 'lucide-react';
+import { CalendarPlus, Receipt, ScanText, Mic, ArrowRight, Sparkles, Bot, BookUser, FlaskConical, History, ShieldCheck, FileText, ChevronRight, ChevronsUpDown, Volume2, Loader2, Play, MessageSquare, Bell } from 'lucide-react';
 import { doc, collection, query, where } from 'firebase/firestore';
 import Link from 'next/link';
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -388,33 +388,16 @@ export default function PatientDashboardPage() {
 
             <Card className="shadow-sm">
                 <CardHeader>
-                    <CardTitle>{t('my_bills_card_title', 'My Bills')}</CardTitle>
-                    <CardDescription>{t('my_bills_card_desc', 'A summary of your recent medical expenses.')}</CardDescription>
+                    <CardTitle>{t('my_notifications_page_title', 'My Notifications')}</CardTitle>
+                    <CardDescription>{t('my_notifications_page_desc', 'A summary of your recent alerts.')}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                     {isLoadingBills ? (
-                         <div className="space-y-4">
-                            {[...Array(4)].map((_, i) => (
-                                <div key={i} className="flex justify-between items-center">
-                                    <Skeleton className="h-4 w-2/4" />
-                                    <Skeleton className="h-4 w-1/4" />
-                                </div>
-                            ))}
-                        </div>
-                    ) : recentBills.length > 0 ? (
-                        <ul className="space-y-3">
-                            {recentBills.map(bill => (
-                                <li key={bill.id} className="flex justify-between items-center">
-                                    <span className="text-muted-foreground truncate pr-4">{bill.details.title}</span>
-                                    <span className="font-semibold whitespace-nowrap">{t('currency_symbol', 'Rs.')} {bill.details.amount.toLocaleString()}</span>
-                                </li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <p className="text-muted-foreground text-center py-4">No recent bills.</p>
-                    )}
+                     <div className="flex items-center gap-3 p-3 rounded-md hover:bg-muted">
+                        <Bell className="h-5 w-5 text-primary"/>
+                        <span className="font-medium">You have 3 new notifications</span>
+                    </div>
                      <Button variant="link" asChild className="mt-4 text-primary p-0 h-auto">
-                        <Link href="/billing">{t('view_all_bills_link', 'View All Bills')} <ChevronRight className="ml-1 h-4 w-4" /></Link>
+                        <Link href="/notifications">{t('view_all_link', 'View All')} <ChevronRight className="ml-1 h-4 w-4" /></Link>
                     </Button>
                 </CardContent>
             </Card>
@@ -441,4 +424,3 @@ export default function PatientDashboardPage() {
     </div>
   );
 }
-
