@@ -45,6 +45,18 @@ export default function DoctorAppointmentsPage() {
   }, [user, firestore]);
 
   const { data: appointments, isLoading: isLoadingAppointments } = useCollection(appointmentsQuery);
+
+  const usersQuery = useMemoFirebase(() => {
+    if(!firestore) return null;
+    return collection(firestore, 'users');
+  }, [firestore]);
+
+  const { data: allUsers } = useCollection(usersQuery);
+
+  const patientIdMap = useMemo(() => {
+    if (!allUsers) return new Map();
+    return new Map(allUsers.map(u => [u.id, u.patientId]));
+  }, [allUsers]);
   
   const upcomingAppointments = useMemo(() => {
     if (!appointments) return [];
@@ -226,12 +238,6 @@ export default function DoctorAppointmentsPage() {
   }
 
   const AppointmentListItem = ({ appointment, onSelect, isSelected }) => {
-    const firestore = useFirestore();
-    const patientDocRef = useMemoFirebase(() => {
-        if (!appointment?.patientId || !firestore) return null;
-        return doc(firestore, 'users', appointment.patientId);
-    }, [appointment, firestore]);
-    const { data: patientProfile } = useDoc(patientDocRef);
 
     return (
         <button
@@ -245,7 +251,7 @@ export default function DoctorAppointmentsPage() {
             <div className="flex justify-between items-start">
                 <div className="space-y-1">
                     <p className="font-semibold">{appointment.patientName}</p>
-                    <p className="text-xs text-muted-foreground">{patientProfile?.patientId}</p>
+                    <p className="text-xs text-muted-foreground">{patientIdMap.get(appointment.patientId)}</p>
                     <p className="text-sm text-muted-foreground">{appointment.type} on {new Date(appointment.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
                 </div>
                 <p className="font-medium text-sm">{appointment.time}</p>
@@ -376,3 +382,5 @@ export default function DoctorAppointmentsPage() {
     </div>
   );
 }
+
+    
