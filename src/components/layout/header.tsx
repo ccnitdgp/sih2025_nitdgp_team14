@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { LogOut, Settings, LayoutDashboard, Menu, FileText, UserPlus, User, CalendarPlus, Receipt, Bot, BookUser, Sparkles, Shield } from "lucide-react";
+import { LogOut, Settings, LayoutDashboard, Menu, FileText, UserPlus, User, CalendarPlus, Receipt, Bot, BookUser, Sparkles, Shield, MessageSquare } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,7 +32,7 @@ const languageFiles = { hi, bn, ta, te, mr };
 
 const generalNavLinks = [
     { href: "/", label: "Home", i18n_key: "home_link" },
-    { href: "/#community-insights", label: "Insights", i18n_key: "insights_link" },
+    { href: "/forum", label: "Forum", i18n_key: "forum_link" },
     { href: "/vaccination", label: "Vaccination Drive", i18n_key: "vaccination_drive_link" },
     { href: "/camps", label: "Visiting Camps", i18n_key: "visiting_camps_link" },
     { href: "/announcements", label: "Announcements", i18n_key: "announcements_link" },

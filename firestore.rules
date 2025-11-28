@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -196,6 +197,33 @@ service cloud.firestore {
     match /healthCamps/{healthCampId} {
       allow get, list: if true;          // public read
       allow create, update, delete: if isAdmin();
+    }
+    
+    // ============================================================
+    // Forum collections
+    // ============================================================
+
+    match /forumPosts/{postId} {
+      // Any signed-in user can read.
+      allow get, list: if isSignedIn();
+
+      // Only patients can create posts. authorId must be their own.
+      allow create: if isPatient() && request.resource.data.authorId == request.auth.uid;
+      
+      // Only the author or an admin can update/delete.
+      allow update, delete: if isSignedIn() && (isOwner(resource.data.authorId) || isAdmin());
+
+      // --- Replies subcollection ---
+      match /replies/{replyId} {
+        // Any signed-in user can read.
+        allow get, list: if isSignedIn();
+        
+        // Only patients can create replies. authorId must be their own.
+        allow create: if isPatient() && request.resource.data.authorId == request.auth.uid;
+
+        // Only the author or an admin can update/delete.
+        allow update, delete: if isSignedIn() && (isOwner(resource.data.authorId) || isAdmin());
+      }
     }
   }
 }
