@@ -270,7 +270,7 @@
       "description": "Represents a document for verification.",
       "properties": {
         "url": { "type": "string" },
-        "status": { "type": "string", "enum": ["Not Uploaded", "Pending", "Verified", "Rejected"] }
+        "status": { "type": "string", "enum": ["Not Uploaded", "Pending", "Verified", "Rejected", "Suspended"] }
       },
       "required": ["status"]
     },

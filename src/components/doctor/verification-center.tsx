@@ -29,6 +29,8 @@ const StatusBadge = ({ status }) => {
             return <Badge variant="secondary"><Clock className="mr-1 h-3 w-3" />Pending</Badge>;
         case 'Rejected':
             return <Badge variant="destructive"><XCircle className="mr-1 h-3 w-3" />Rejected</Badge>;
+        case 'Suspended':
+            return <Badge variant="default" className="bg-yellow-500 hover:bg-yellow-600 text-yellow-foreground"><AlertTriangle className="mr-1 h-3 w-3" />Suspended</Badge>;
         default:
             return <Badge variant="outline">Not Uploaded</Badge>;
     }
