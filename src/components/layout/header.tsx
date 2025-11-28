@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { LogOut, Settings, LayoutDashboard, Menu, FileText, UserPlus, User, CalendarPlus, Receipt, Bot, BookUser, Sparkles } from "lucide-react";
+import { LogOut, Settings, LayoutDashboard, Menu, FileText, UserPlus, User, CalendarPlus, Receipt, Bot, BookUser, Sparkles, Shield } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -85,6 +85,7 @@ export function Header() {
   
   const isDoctor = userProfile?.role === 'doctor';
   const isPatient = userProfile?.role === 'patient';
+  const isAdmin = userProfile?.role === 'admin';
 
   let navLinks = generalNavLinks;
   if (user && isDoctor) {
@@ -118,6 +119,13 @@ export function Header() {
     </nav>
   );
 
+  const getDashboardPath = () => {
+    if (isAdmin) return '/admin-dashboard';
+    if (isDoctor) return '/doctor-dashboard';
+    if (isPatient) return '/patient-dashboard';
+    return '/';
+  }
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 max-w-7xl items-center">
@@ -147,10 +155,17 @@ export function Header() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuItem onClick={() => router.push(userProfile?.role === 'doctor' ? '/doctor-dashboard' : '/patient-dashboard')}>
+                   <DropdownMenuItem onClick={() => router.push(getDashboardPath())}>
                     <LayoutDashboard className="mr-2 h-4 w-4" />
                     <span>{t('dashboard_link', 'Dashboard')}</span>
                   </DropdownMenuItem>
+                  {isAdmin && (
+                    <DropdownMenuItem onClick={() => router.push('/admin-dashboard')}>
+                        <Shield className="mr-2 h-4 w-4" />
+                        <span>Admin Dashboard</span>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem disabled>
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none">{userProfile?.firstName ? `${userProfile.firstName} ${userProfile.lastName}` : 'Welcome'}</p>
