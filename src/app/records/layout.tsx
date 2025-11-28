@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -127,5 +128,3 @@ export default function RecordsLayout({ children }: RecordsLayoutProps) {
     </div>
   );
 }
-
-    

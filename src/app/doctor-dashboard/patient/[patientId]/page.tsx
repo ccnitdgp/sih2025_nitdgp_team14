@@ -11,8 +11,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PatientProfileTab } from '@/components/doctor/patient-profile-tab';
 import { MedicalHistoryTab } from '@/components/doctor/medical-history-tab';
+import { MedicalDetailsTab } from '@/components/doctor/medical-details-tab';
 import { PrescriptionsTab } from '@/components/doctor/prescriptions-tab';
 import { LabReportsTab } from '@/components/doctor/lab-reports-tab';
+import { VaccinationRecordsTab } from '@/components/doctor/vaccination-records-tab';
 import { ArrowLeft, Bot, Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -136,11 +138,13 @@ export default function PatientDetailPage() {
             )}
 
           <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="profile">Profile</TabsTrigger>
               <TabsTrigger value="history">Medical History</TabsTrigger>
+              <TabsTrigger value="details">Medical Details</TabsTrigger>
               <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
               <TabsTrigger value="reports">Lab Reports</TabsTrigger>
+              <TabsTrigger value="vaccinations">Vaccinations</TabsTrigger>
             </TabsList>
             <TabsContent value="profile" className="mt-6">
                 <PatientProfileTab patientId={patientId} patientProfile={patientProfile} isLoading={isProfileLoading} />
@@ -148,11 +152,17 @@ export default function PatientDetailPage() {
             <TabsContent value="history" className="mt-6">
                 <MedicalHistoryTab patientId={patientId} />
             </TabsContent>
+            <TabsContent value="details" className="mt-6">
+              <MedicalDetailsTab patientId={patientId} />
+            </TabsContent>
             <TabsContent value="prescriptions" className="mt-6">
                 <PrescriptionsTab patientId={patientId} />
             </TabsContent>
             <TabsContent value="reports" className="mt-6">
                 <LabReportsTab patientId={patientId} />
+            </TabsContent>
+            <TabsContent value="vaccinations" className="mt-6">
+              <VaccinationRecordsTab patientId={patientId} />
             </TabsContent>
           </Tabs>
         </div>
