@@ -19,6 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { VerificationCenter } from '@/components/doctor/verification-center';
+import { BackButton } from '@/components/layout/back-button';
 
 const profileSchema = z.object({
   firstName: z.string().min(2, "First name is required."),
@@ -470,5 +471,6 @@ export default function DoctorProfilePage() {
     </div>
   );
 }
+
 
     
