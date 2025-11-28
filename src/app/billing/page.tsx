@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -37,7 +38,7 @@ const paymentSchema = z.object({
   cardName: z.string().min(1, 'Name on card is required.'),
   cardNumber: z.string().regex(/^\d{16}$/, 'Card number must be 16 digits.'),
   expiryDate: z.string().regex(/^(0[1-9]|1[0-2])\/\d{2}$/, 'Expiry date must be in MM/YY format.'),
-  cvc: z.string().regex(/^\d{3}$/, 'CVC must be 3 digits.'),
+  cvc: z.string().regex(/^\d{3,4}$/, 'CVC must be 3 or 4 digits.'),
 });
 
 
@@ -96,10 +97,13 @@ export default function BillingPage() {
   const handleConfirmPayment = (values: z.infer<typeof paymentSchema>) => {
     if (!selectedBill || !firestore || !user) return;
 
+    // In a real app, you would integrate with a payment gateway here.
+    // For now, we simulate a successful payment.
     console.log("Processing payment for:", values);
     
     const billRef = doc(firestore, 'users', user.uid, 'healthRecords', selectedBill.id);
     
+    // Non-blocking update to Firestore
     updateDocumentNonBlocking(billRef, {
         'details.status': 'Paid'
     });
@@ -111,6 +115,7 @@ export default function BillingPage() {
 
     setIsPaymentDialogOpen(false);
     setSelectedBill(null);
+    // Switch to the 'paid' tab to show the user their updated history
     setActiveTab('paid');
   };
 
@@ -321,3 +326,4 @@ export default function BillingPage() {
     </div>
   );
 }
+
