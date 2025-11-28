@@ -72,7 +72,7 @@ export default function AdminDashboardPage() {
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><Activity /> Disease & Symptom Trends</CardTitle>
-                    <CardDescription>Top 5 most common diagnoses this month.</CardDescription>
+                    <CardDescription>Reported cases of Influenza over the last 7 days.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <DiseaseTrendChart />
@@ -118,7 +118,7 @@ export default function AdminDashboardPage() {
                 <CardHeader>
                     <CardTitle>Outbreak Heatmap</CardTitle>
                     <CardDescription>Geographic distribution of recent flu cases.</CardDescription>
-                </CardHeader>
+                </Header>
                 <CardContent>
                     <OutbreakHeatmap />
                 </CardContent>

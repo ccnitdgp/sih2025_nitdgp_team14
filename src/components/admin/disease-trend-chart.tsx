@@ -1,24 +1,28 @@
 
 'use client';
 
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { Line, LineChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import { eachDayOfInterval, format, subDays } from 'date-fns';
 
-const chartData = [
-  { disease: 'Flu', cases: 340 },
-  { disease: 'Dengue', cases: 180 },
-  { disease: 'Typhoid', cases: 110 },
-  { disease: 'Pneumonia', cases: 95 },
-  { disease: 'Malaria', cases: 80 },
-];
+const today = new Date();
+const last7Days = eachDayOfInterval({
+  start: subDays(today, 6),
+  end: today,
+});
+
+const chartData = last7Days.map((day) => ({
+  date: format(day, 'MMM d'),
+  influenza: 50 + Math.floor(Math.random() * 50),
+}));
 
 const chartConfig = {
-  cases: {
-    label: 'Cases',
+  influenza: {
+    label: 'Influenza Cases',
     color: 'hsl(var(--primary))',
   },
 };
@@ -26,11 +30,11 @@ const chartConfig = {
 export function DiseaseTrendChart() {
   return (
     <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
-      <BarChart accessibilityLayer data={chartData}>
+      <LineChart accessibilityLayer data={chartData}>
         <CartesianGrid vertical={false} />
-        <YAxis dataKey="cases" />
+        <YAxis dataKey="influenza" />
         <XAxis
-          dataKey="disease"
+          dataKey="date"
           tickLine={false}
           tickMargin={10}
           axisLine={false}
@@ -39,8 +43,14 @@ export function DiseaseTrendChart() {
           cursor={false}
           content={<ChartTooltipContent indicator="dot" />}
         />
-        <Bar dataKey="cases" fill="var(--color-cases)" radius={4} />
-      </BarChart>
+        <Line
+          dataKey="influenza"
+          type="monotone"
+          stroke="var(--color-influenza)"
+          strokeWidth={2}
+          dot={true}
+        />
+      </LineChart>
     </ChartContainer>
   );
 }
