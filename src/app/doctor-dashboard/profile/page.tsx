@@ -10,7 +10,7 @@ import { doc } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AtSign, BriefcaseMedical, Building, Phone, User as UserIcon, Pencil, X, Save, Star, Activity, Languages, GraduationCap, FileBadge, Calendar, Clock, BookText, Stethoscope, Wallet, Globe, Video, ShieldCheck, FilePen, ExternalLink } from 'lucide-react';
+import { AtSign, BriefcaseMedical, Building, Phone, User as UserIcon, Pencil, X, Save, Star, Activity, Languages, GraduationCap, FileBadge, Calendar, Clock, BookText, Stethoscope, Wallet, Globe, Video, ShieldCheck, FilePen, ExternalLink, ArrowLeft } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
@@ -154,7 +154,7 @@ export default function DoctorProfilePage() {
         firstName: values.firstName,
         lastName: values.lastName,
         phoneNumber: values.phoneNumber,
-        specialty: values.specialty, // Also save specialty to user doc for role checks
+        specialty: values.specialty,
     };
     
     const publicProfileUpdate = {
@@ -166,12 +166,12 @@ export default function DoctorProfilePage() {
         biography: values.biography,
         qualifications: values.qualifications,
         licenseNumber: values.licenseNumber,
-        yearsOfExperience: values.yearsOfExperience,
+        yearsOfExperience: values.yearsOfExperience || null,
         designation: values.designation,
         registrationDetails: {
             registrationNumber: values.registrationNumber,
             issuingCouncil: values.issuingCouncil,
-            issuedYear: values.issuedYear
+            issuedYear: values.issuedYear || null
         },
         treatmentsAndProcedures: values.treatmentsAndProcedures,
         conditionsHandled: values.conditionsHandled,
@@ -180,11 +180,11 @@ export default function DoctorProfilePage() {
         availability: {
             workingHours: values.workingHours,
             availableDays: values.availableDays,
-            appointmentDuration: values.appointmentDuration,
+            appointmentDuration: values.appointmentDuration || null,
         },
         pricing: {
-            clinicFee: values.clinicFee,
-            onlineFee: values.onlineFee,
+            clinicFee: values.clinicFee || null,
+            onlineFee: values.onlineFee || null,
         },
     }
 
@@ -227,6 +227,7 @@ export default function DoctorProfilePage() {
 
   return (
     <div className="container mx-auto max-w-5xl px-6 py-12">
+        <BackButton />
         <div className="text-center mb-12">
             <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl">
                 Doctor Profile
@@ -469,3 +470,5 @@ export default function DoctorProfilePage() {
     </div>
   );
 }
+
+    
