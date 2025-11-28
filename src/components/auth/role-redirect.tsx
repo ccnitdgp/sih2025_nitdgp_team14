@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect } from 'react';
@@ -31,7 +32,9 @@ export function RoleRedirect() {
     if (user && userProfile) {
       const { role } = userProfile;
       
-      if (role === 'doctor') {
+      if (role === 'admin') {
+        router.replace('/admin-dashboard');
+      } else if (role === 'doctor') {
         router.replace('/doctor-dashboard');
       } else if (role === 'patient') {
         router.replace('/patient-dashboard');
