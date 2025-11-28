@@ -25,6 +25,7 @@ const footerLinks = [
   { href: "/contact", label: "Contact", i18n_key: "footer_contact" },
   { href: "/privacy-policy", label: "Privacy Policy", i18n_key: "footer_privacy_policy" },
   { href: "/terms-of-service", label: "Terms of Service", i18n_key: "footer_terms_of_service" },
+  { href: "/feedback", label: "Submit Feedback", i18n_key: "footer_feedback" },
 ];
 
 const serviceLinks = [
@@ -109,5 +110,3 @@ export function Footer() {
     </footer>
   );
 }
-
-    

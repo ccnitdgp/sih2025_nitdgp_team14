@@ -225,5 +225,18 @@ service cloud.firestore {
         allow update, delete: if isSignedIn() && (isOwner(resource.data.authorId) || isAdmin());
       }
     }
+    
+    // ============================================================
+    // Feedback collection
+    // ============================================================
+    
+    match /feedback/{feedbackId} {
+        // Any authenticated user can create their own feedback.
+        allow create: if isSignedIn()
+            && request.resource.data.userId == request.auth.uid;
+        
+        // Only admins can read, update, or delete feedback.
+        allow get, list, update, delete: if isAdmin();
+    }
   }
 }

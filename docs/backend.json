@@ -420,6 +420,23 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "postId", "content", "authorId", "authorName", "createdAt"]
+    },
+    "Feedback": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Feedback",
+      "type": "object",
+      "description": "Represents user feedback for the application.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "feedbackType": { "type": "string", "enum": ["General Feedback", "Bug Report", "Feature Request"] },
+        "message": { "type": "string" },
+        "rating": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["New", "In Progress", "Resolved"] }
+      },
+      "required": ["id", "userId", "userName", "feedbackType", "message", "createdAt", "status"]
     }
   },
   "auth": {
@@ -568,8 +585,17 @@
             { "name": "replyId", "description": "The unique identifier for the reply." }
           ]
         }
+      },
+      {
+        "path": "/feedback/{feedbackId}",
+        "definition": {
+          "entityName": "Feedback",
+          "schema": { "$ref": "#/backend/entities/Feedback" },
+          "description": "A collection for storing user feedback.",
+          "params": [{ "name": "feedbackId", "description": "The unique identifier for the feedback entry." }]
+        }
       }
     ],
-    "reasoning": "The Firestore data structure has been redesigned for clarity and security. The core change is the introduction of a public `/doctors` collection, which is separate from the private `/users` collection. The `/doctors` collection stores only non-sensitive information necessary for patients to find and view doctor profiles. The `/users` collection holds all private data for both patients and doctors, strictly secured by user UID. This separation prevents permission errors when listing doctors and adheres to security best practices by not exposing the entire user base. Added ForumPost and ForumReply collections for community discussion feature."
+    "reasoning": "The Firestore data structure has been redesigned for clarity and security. The core change is the introduction of a public `/doctors` collection, which is separate from the private `/users` collection. The `/doctors` collection stores only non-sensitive information necessary for patients to find and view doctor profiles. The `/users` collection holds all private data for both patients and doctors, strictly secured by user UID. This separation prevents permission errors when listing doctors and adheres to security best practices by not exposing the entire user base. Added ForumPost and ForumReply collections for community discussion feature. Added a Feedback collection to store user feedback."
   }
 }
