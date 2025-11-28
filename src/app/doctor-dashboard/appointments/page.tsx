@@ -217,7 +217,7 @@ export default function DoctorAppointmentsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Appointment Details</CardTitle>
-          <CardDescription>For {patientDisplayName} (ID: {patientDisplayId})</CardDescription>
+          <CardDescription>For {patientDisplayName}{patientDisplayId && ` (ID: ${patientDisplayId})`}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="p-4 border rounded-lg">
@@ -430,5 +430,3 @@ export default function DoctorAppointmentsPage() {
     </div>
   );
 }
-
-    
