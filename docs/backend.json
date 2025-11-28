@@ -1,6 +1,28 @@
 
 {
   "entities": {
+    "Appointment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Appointment",
+      "type": "object",
+      "description": "Represents an appointment between a patient and a doctor.",
+      "properties": {
+        "id": { "type": "string" },
+        "doctorId": { "type": "string" },
+        "patientId": { "type": "string", "description": "The UID of the patient." },
+        "patientDisplayId": { "type": "string", "description": "The user-facing patient ID (e.g., PT-XXXXXXXXXX)." },
+        "patientName": { "type": "string" },
+        "doctorName": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "time": { "type": "string" },
+        "type": { "type": "string", "enum": ["In-Person", "Virtual"] },
+        "specialty": { "type": "string" },
+        "location": { "type": "string" },
+        "status": { "type": "string", "enum": ["Scheduled", "Completed", "Canceled"] },
+        "reason": { "type": "string" }
+      },
+      "required": ["id", "doctorId", "patientId", "patientDisplayId", "patientName", "doctorName", "date", "time", "type", "status"]
+    },
     "DoctorProfile": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "DoctorProfile",
@@ -402,6 +424,15 @@
         }
       },
       {
+        "path": "/appointments/{appointmentId}",
+        "definition": {
+          "entityName": "Appointment",
+          "schema": { "$ref": "#/backend/entities/Appointment" },
+          "description": "A collection storing all appointments. Security rules will enforce that only involved parties (patient, doctor) or an admin can access a document.",
+          "params": [{ "name": "appointmentId", "description": "The unique identifier for the appointment." }]
+        }
+      },
+      {
         "path": "/users/{doctorId}/patients/{patientId}",
         "definition": {
           "entityName": "PatientLink",
@@ -489,5 +520,3 @@
     "reasoning": "The Firestore data structure has been redesigned for clarity and security. The core change is the introduction of a public `/doctors` collection, which is separate from the private `/users` collection. The `/doctors` collection stores only non-sensitive information necessary for patients to find and view doctor profiles. The `/users` collection holds all private data for both patients and doctors, strictly secured by user UID. This separation prevents permission errors when listing doctors and adheres to security best practices by not exposing the entire user base."
   }
 }
-
-    

@@ -46,18 +46,6 @@ export default function DoctorAppointmentsPage() {
   }, [user, firestore]);
 
   const { data: appointments, isLoading: isLoadingAppointments } = useCollection(appointmentsQuery);
-
-  const usersQuery = useMemoFirebase(() => {
-    if(!firestore) return null;
-    return collection(firestore, 'users');
-  }, [firestore]);
-
-  const { data: allUsers, isLoading: isLoadingUsers } = useCollection(usersQuery);
-
-  const patientIdMap = useMemo(() => {
-    if (!allUsers) return new Map();
-    return new Map(allUsers.map(u => [u.id, u.patientId]));
-  }, [allUsers]);
   
   const upcomingAppointments = useMemo(() => {
     if (!appointments) return [];
@@ -206,7 +194,7 @@ export default function DoctorAppointmentsPage() {
     }
     
     const patientDisplayName = patientProfile ? `${patientProfile.firstName} ${patientProfile.lastName}` : appointment.patientName;
-    const patientDisplayId = patientProfile?.patientId;
+    const patientDisplayId = appointment.patientDisplayId;
 
     return (
       <Card>
@@ -281,7 +269,7 @@ export default function DoctorAppointmentsPage() {
   }
 
   const AppointmentListItem = ({ appointment, onSelect, isSelected }) => {
-    const patientDisplayId = patientIdMap.get(appointment.patientId);
+    const patientDisplayId = appointment.patientDisplayId;
     return (
         <button
             key={appointment.id}
@@ -319,7 +307,7 @@ export default function DoctorAppointmentsPage() {
                                 <CardDescription>You have {upcomingAppointments?.length || 0} appointments scheduled.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-2 p-2">
-                                {(isLoadingAppointments || isLoadingUsers) ? <p>Loading...</p> : upcomingAppointments?.map(appt => (
+                                {isLoadingAppointments ? <p>Loading...</p> : upcomingAppointments?.map(appt => (
                                     <AppointmentListItem 
                                         key={appt.id}
                                         appointment={appt}
@@ -337,7 +325,7 @@ export default function DoctorAppointmentsPage() {
                                 <CardDescription>{pastAppointments?.length || 0} appointments completed.</CardDescription>
                             </CardHeader>
                              <CardContent className="space-y-2 p-2">
-                                {(isLoadingAppointments || isLoadingUsers) ? <p>Loading...</p> : pastAppointments?.map(appt => (
+                                {isLoadingAppointments ? <p>Loading...</p> : pastAppointments?.map(appt => (
                                       <AppointmentListItem 
                                         key={appt.id}
                                         appointment={appt}

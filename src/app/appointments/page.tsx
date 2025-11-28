@@ -277,6 +277,7 @@ const FindDoctors = ({ t, userProfile }) => {
         id: newAppointmentRef.id,
         doctorId: selectedDoctor.id,
         patientId: user.uid,
+        patientDisplayId: userProfile.patientId, // Store the user-facing patient ID
         patientName: patientName,
         date: format(selectedDate, 'yyyy-MM-dd'),
         time: selectedTime,
