@@ -293,10 +293,13 @@ export default function DoctorProfilePage() {
                                 </Card>
                                 
                                 <Card>
-                                    <CardHeader><CardTitle className="flex items-center gap-2"><FilePen/> Registration Details</CardTitle></CardHeader>
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2"><FilePen/> Registration Details</CardTitle>
+                                        <CardDescription>Details for online verification. This information will be cross-checked with the official medical council registry.</CardDescription>
+                                    </CardHeader>
                                     <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6">
                                          <FormField control={form.control} name="registrationNumber" render={({ field }) => (<FormItem><FormLabel>Registration Number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                         <FormField control={form.control} name="issuingCouncil" render={({ field }) => (<FormItem><FormLabel>Issuing Council (e.g. NMC)</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                         <FormField control={form.control} name="issuingCouncil" render={({ field }) => (<FormItem><FormLabel>Issuing Council (e.g. NMC)</FormLabel><FormControl><Input placeholder="National Medical Commission" {...field} /></FormControl><FormMessage /></FormItem>)} />
                                          <FormField control={form.control} name="issuedYear" render={({ field }) => (<FormItem><FormLabel>Year of Issue</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
                                     </CardContent>
                                 </Card>
