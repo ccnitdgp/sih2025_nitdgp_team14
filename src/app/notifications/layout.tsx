@@ -10,6 +10,7 @@ import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
 import te from '@/lib/locales/te.json';
 import mr from '@/lib/locales/mr.json';
+import { BackButton } from '@/components/layout/back-button';
 
 const languageFiles = { hi, bn, ta, te, mr };
 
@@ -56,6 +57,7 @@ export default function NotificationsLayout({
 
   return (
     <div className="container mx-auto max-w-5xl px-6 py-12">
+        <BackButton />
         <div className="text-center mb-12">
             <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl">
                 {t('my_notifications_page_title', 'My Notifications')}

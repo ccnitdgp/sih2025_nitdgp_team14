@@ -21,6 +21,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { MessageSquare, PlusCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AuthDialog } from '@/components/auth/auth-dialog';
+import { BackButton } from '@/components/layout/back-button';
 
 const newPostSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters long.'),
@@ -94,6 +95,7 @@ export default function ForumPage() {
 
   return (
     <div className="container mx-auto max-w-4xl px-6 py-12">
+      <BackButton />
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl">Community Forum</h1>

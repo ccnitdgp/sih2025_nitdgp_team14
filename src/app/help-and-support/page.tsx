@@ -17,6 +17,7 @@ import ta from '@/lib/locales/ta.json';
 import te from '@/lib/locales/te.json';
 import mr from '@/lib/locales/mr.json';
 import en from '@/lib/locales/en.json';
+import { BackButton } from "@/components/layout/back-button";
 
 const languageFiles = { hi, bn, ta, te, mr, en };
 
@@ -74,6 +75,7 @@ export default function HelpAndSupportPage() {
 
   return (
     <div className="container mx-auto max-w-4xl px-6 py-12">
+      <BackButton />
       <div className="text-center mb-12">
         <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl">
           {t('help_support_title', 'Help & Support')}
