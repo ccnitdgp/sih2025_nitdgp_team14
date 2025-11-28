@@ -85,7 +85,7 @@ export default function DoctorAppointmentsPage() {
   };
   
  const handleGenerateBill = (values: z.infer<typeof billSchema>) => {
-    if (!selectedAppointment?.patientId || !firestore) return;
+    if (!selectedAppointment?.patientId || !firestore || !user) return;
     
     const billsRef = collection(firestore, 'users', selectedAppointment.patientId, 'healthRecords');
     const newBillRef = doc(billsRef);
@@ -95,7 +95,7 @@ export default function DoctorAppointmentsPage() {
       recordType: 'bill',
       dateCreated: serverTimestamp(),
       userId: selectedAppointment.patientId,
-      addedBy: user?.uid,
+      addedBy: user.uid,
       details: {
         title: values.description,
         category: values.category,
