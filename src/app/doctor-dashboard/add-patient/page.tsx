@@ -46,7 +46,7 @@ const addPatientSchema = z.object({
 });
 
 const generatePatientId = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const chars = '0123456789';
     let result = 'PT-';
     for (let i = 0; i < 10; i++) {
         result += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -306,5 +306,3 @@ export default function AddPatientPage() {
     </div>
   )
 }
-
-    
