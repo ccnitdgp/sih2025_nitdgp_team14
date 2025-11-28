@@ -47,6 +47,7 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 
 
 const languageFiles = { hi, bn, ta, te, mr };
