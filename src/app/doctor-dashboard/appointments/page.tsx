@@ -21,7 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { useUser, useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking, useDoc, addDocumentNonBlocking } from '@/firebase';
 import { collection, query, where, doc, serverTimestamp } from 'firebase/firestore';
-import { differenceInYears, parse, addMinutes } from 'date-fns';
+import { differenceInYears, parse, addMinutes, parseISO } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 
@@ -49,18 +49,13 @@ export default function DoctorAppointmentsPage() {
 
   const usersQuery = useMemoFirebase(() => {
     if(!firestore) return null;
-    // This query fetches all users. In a real-world large-scale app, 
-    // this would be inefficient. A better approach might be to denormalize 
-    // the patient's custom ID into the appointment document itself upon creation.
-    // For the scope of this project, this is acceptable.
     return collection(firestore, 'users');
   }, [firestore]);
 
-  const { data: allUsers } = useCollection(usersQuery);
+  const { data: allUsers, isLoading: isLoadingUsers } = useCollection(usersQuery);
 
   const patientIdMap = useMemo(() => {
     if (!allUsers) return new Map();
-    // Creates a map of: { patientAuthUid => customPatientId }
     return new Map(allUsers.map(u => [u.id, u.patientId]));
   }, [allUsers]);
   
@@ -191,7 +186,7 @@ export default function DoctorAppointmentsPage() {
 
     const getAge = (dob) => {
         if (!dob) return 'N/A';
-        const date = dob.toDate ? dob.toDate() : new Date(dob);
+        const date = dob.toDate ? dob.toDate() : parseISO(dob);
         try {
             return differenceInYears(new Date(), date);
         } catch (e) {
@@ -286,7 +281,7 @@ export default function DoctorAppointmentsPage() {
   }
 
   const AppointmentListItem = ({ appointment, onSelect, isSelected }) => {
-
+    const patientDisplayId = patientIdMap.get(appointment.patientId);
     return (
         <button
             key={appointment.id}
@@ -299,7 +294,7 @@ export default function DoctorAppointmentsPage() {
             <div className="flex justify-between items-start">
                 <div className="space-y-1">
                     <p className="font-semibold">{appointment.patientName}</p>
-                    <p className="text-xs text-muted-foreground">{patientIdMap.get(appointment.patientId)}</p>
+                    {patientDisplayId && <p className="text-xs text-muted-foreground">{patientDisplayId}</p>}
                     <p className="text-sm text-muted-foreground">{appointment.type} on {new Date(appointment.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
                 </div>
                 <p className="font-medium text-sm">{appointment.time}</p>
@@ -324,7 +319,7 @@ export default function DoctorAppointmentsPage() {
                                 <CardDescription>You have {upcomingAppointments?.length || 0} appointments scheduled.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-2 p-2">
-                                {upcomingAppointments?.map(appt => (
+                                {(isLoadingAppointments || isLoadingUsers) ? <p>Loading...</p> : upcomingAppointments?.map(appt => (
                                     <AppointmentListItem 
                                         key={appt.id}
                                         appointment={appt}
@@ -342,7 +337,7 @@ export default function DoctorAppointmentsPage() {
                                 <CardDescription>{pastAppointments?.length || 0} appointments completed.</CardDescription>
                             </CardHeader>
                              <CardContent className="space-y-2 p-2">
-                                {pastAppointments?.map(appt => (
+                                {(isLoadingAppointments || isLoadingUsers) ? <p>Loading...</p> : pastAppointments?.map(appt => (
                                       <AppointmentListItem 
                                         key={appt.id}
                                         appointment={appt}
