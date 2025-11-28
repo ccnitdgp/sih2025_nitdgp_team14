@@ -569,7 +569,7 @@ const MyAppointments = ({ t }) => {
                         {appt.type === 'Virtual' && (
                             <div className="flex justify-end pt-4 border-t">
                                 <Button asChild>
-                                    <Link href="https://meet.google.com" target="_blank"><Video className="mr-2 h-4 w-4" />Join Call</Link>
+                                    <Link href={`/video-call/${appt.id}`}><Video className="mr-2 h-4 w-4" />Join Call</Link>
                                 </Button>
                             </div>
                         )}

@@ -227,7 +227,7 @@ export default function DoctorAppointmentsPage() {
           <div className="flex flex-wrap gap-2 pt-4 border-t">
              {appointment.type === 'Virtual' && (
               <Button asChild>
-                <Link href="https://meet.google.com" target="_blank"><Video className="mr-2 h-4 w-4"/>Join Video Call</Link>
+                <Link href={`/video-call/${appointment.id}`}><Video className="mr-2 h-4 w-4"/>Join Video Call</Link>
               </Button>
             )}
             <Button onClick={handleMarkAsComplete} disabled={appointment.status !== 'Scheduled'}><CheckCircle />Mark as Complete</Button>
@@ -385,5 +385,3 @@ export default function DoctorAppointmentsPage() {
     </div>
   );
 }
-
-    
