@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -131,7 +130,7 @@ export default function BillingPage() {
 
   return (
     <div className="container mx-auto max-w-5xl px-6 py-12">
-       <Button variant="ghost" asChild className="mb-4">
+       <Button variant="ghost" asChild className="mb-4 -ml-4">
             <Link href="/patient-dashboard">
                 <ArrowLeft className="mr-2 h-4 w-4"/>
                 Back to Dashboard

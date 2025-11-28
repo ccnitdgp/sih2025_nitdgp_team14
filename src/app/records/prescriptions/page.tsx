@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -20,6 +19,7 @@ import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
 import te from '@/lib/locales/te.json';
 import mr from '@/lib/locales/mr.json';
+import { dummyPdfContent } from '@/lib/dummy-pdf';
 
 const languageFiles = { hi, bn, ta, te, mr };
 
@@ -54,6 +54,15 @@ export default function PrescriptionsPage() {
   }, [user, firestore]);
   
   const { data: prescriptions, isLoading } = useCollection(prescriptionsQuery);
+
+  const handleDownload = (prescription: any) => {
+    const link = document.createElement('a');
+    link.href = dummyPdfContent;
+    link.download = `prescription-${prescription.details.medication.replace(/\s+/g, '-')}-${prescription.details.date}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const SkeletonLoader = () => (
     <div className="space-y-4">
@@ -98,7 +107,7 @@ export default function PrescriptionsPage() {
                         {item.details?.dosage} - {t('prescribed_by_text', 'Prescribed by')} {item.details?.doctor} {t('on_date_text', 'on')} {item.details?.date}
                     </p>
                 </div>
-                <Button variant="outline" size="sm" disabled>
+                <Button variant="outline" size="sm" onClick={() => handleDownload(item)}>
                     <FileDown className="mr-2 h-4 w-4"/>
                     {t('download_button', 'Download')}
                 </Button>

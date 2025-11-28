@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -12,7 +11,7 @@ import {
 import { BookUser, FileDown, PlusCircle, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useFirestore, useCollection, useMemoFirebase, useUser, addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser, addDocumentNonBlocking, deleteDocumentNonBlocking, useDoc } from '@/firebase';
 import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useForm } from 'react-hook-form';
@@ -22,6 +21,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { dummyPdfContent } from '@/lib/dummy-pdf';
 
 const prescriptionSchema = z.object({
   medication: z.string().min(1, 'Medication name is required.'),
@@ -35,6 +35,13 @@ export function PrescriptionsTab({ patientId }: { patientId: string }) {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [isAdding, setIsAdding] = useState(false);
+  
+  const userDocRef = useMemoFirebase(() => {
+    if (!doctorUser || !firestore) return null;
+    return doc(firestore, 'users', doctorUser.uid);
+  }, [doctorUser, firestore]);
+
+  const { data: userProfile } = useDoc(userDocRef);
 
   const form = useForm<z.infer<typeof prescriptionSchema>>({
     resolver: zodResolver(prescriptionSchema),
@@ -54,14 +61,14 @@ export function PrescriptionsTab({ patientId }: { patientId: string }) {
   const { data: prescriptions, isLoading } = useCollection(prescriptionsRef);
 
   const onSubmit = (values: z.infer<typeof prescriptionSchema>) => {
-    if (!prescriptionsRef || !doctorUser) return;
+    if (!prescriptionsRef || !doctorUser || !userProfile) return;
 
     setIsAdding(true);
     const prescriptionData = {
         recordType: 'prescription',
         details: {
             ...values,
-            doctor: `Dr. ${doctorUser.displayName || 'Unknown'}`,
+            doctor: `Dr. ${userProfile.firstName} ${userProfile.lastName}`,
         },
         dateCreated: serverTimestamp(),
         userId: patientId,
@@ -70,7 +77,12 @@ export function PrescriptionsTab({ patientId }: { patientId: string }) {
     
     addDocumentNonBlocking(prescriptionsRef, prescriptionData);
     toast({ title: "Prescription Added" });
-    form.reset();
+    form.reset({
+      medication: '',
+      dosage: '',
+      date: new Date().toISOString().split('T')[0],
+      status: 'Active',
+    });
     setIsAdding(false);
   };
 
@@ -80,6 +92,16 @@ export function PrescriptionsTab({ patientId }: { patientId: string }) {
     deleteDocumentNonBlocking(docRef);
     toast({ title: 'Prescription removed.' });
   }
+
+  const handleDownload = (prescription) => {
+    const link = document.createElement('a');
+    link.href = dummyPdfContent;
+    link.download = `prescription-${prescription.details.medication.replace(/\s+/g, '-')}-${prescription.details.date}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
 
   const SkeletonLoader = () => (
     <div className="space-y-4">
@@ -179,7 +201,7 @@ export function PrescriptionsTab({ patientId }: { patientId: string }) {
                         <Button variant="ghost" size="icon" onClick={() => handleDelete(item.id)}>
                             <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" onClick={() => handleDownload(item)}>
                             <FileDown className="mr-2 h-4 w-4"/>
                             Download
                         </Button>
