@@ -1,16 +1,16 @@
 
 'use client';
 
-import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CalendarPlus, Receipt, ScanText, Mic, ArrowRight, Sparkles, Bot, BookUser, FlaskConical, History, ShieldCheck, FileText, ChevronRight, ChevronsUpDown, Volume2, Loader2, Play } from 'lucide-react';
-import { doc } from 'firebase/firestore';
+import { doc, collection, query, where } from 'firebase/firestore';
 import Link from 'next/link';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { getHealthInformation, type HealthAssistantOutput } from '@/ai/flows/health-assistant-flow';
 import { textToSpeech, type TextToSpeechOutput } from '@/ai/flows/text-to-speech-flow';
 import { useToast } from '@/hooks/use-toast';
@@ -22,6 +22,7 @@ import ta from '@/lib/locales/ta.json';
 import te from '@/lib/locales/te.json';
 import mr from '@/lib/locales/mr.json';
 import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const languageFiles = { hi, bn, ta, te, mr };
 
@@ -53,6 +54,21 @@ export default function PatientDashboardPage() {
   }, [user, firestore]);
 
   const { data: userProfile } = useDoc(userDocRef);
+
+  const billsQuery = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return query(
+        collection(firestore, `users/${user.uid}/healthRecords`),
+        where('recordType', '==', 'bill')
+    );
+  }, [user, firestore]);
+
+  const { data: bills, isLoading: isLoadingBills } = useCollection(billsQuery);
+
+  const recentBills = useMemo(() => {
+    if (!bills) return [];
+    return bills.sort((a,b) => b.dateCreated?.toMillis() - a.dateCreated?.toMillis()).slice(0,3);
+  }, [bills]);
 
   useEffect(() => {
     if (userProfile?.preferredLanguage && languageFiles[userProfile.preferredLanguage]) {
@@ -376,24 +392,28 @@ export default function PatientDashboardPage() {
                     <CardDescription>{t('my_bills_card_desc', 'A summary of your recent medical expenses.')}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <ul className="space-y-3">
-                        <li className="flex justify-between items-center">
-                            <span className="text-muted-foreground">{t('doctors_fees_bill', 'Doctor\'s Fees')}</span>
-                            <span className="font-semibold">{t('currency_symbol', 'Rs.')} 1,500</span>
-                        </li>
-                        <li className="flex justify-between items-center">
-                            <span className="text-muted-foreground">{t('medicines_bill', 'Medicines')}</span>
-                            <span className="font-semibold">{t('currency_symbol', 'Rs.')} 3,250</span>
-                        </li>
-                         <li className="flex justify-between items-center">
-                            <span className="text-muted-foreground">{t('lab_reports_bill', 'Lab Reports & X-Rays')}</span>
-                            <span className="font-semibold">{t('currency_symbol', 'Rs.')} 5,800</span>
-                        </li>
-                         <li className="flex justify-between items-center">
-                            <span className="text-muted-foreground">{t('operation_fee_bill', 'Operation Fee')}</span>
-                            <span className="font-semibold">{t('currency_symbol', 'Rs.')} 85,000</span>
-                        </li>
-                    </ul>
+                    {isLoadingBills ? (
+                         <div className="space-y-4">
+                            {[...Array(3)].map((_, i) => (
+                                <div key={i} className="flex justify-between items-center">
+                                    <Skeleton className="h-4 w-2/4" />
+                                    <Skeleton className="h-4 w-1/4" />
+                                </div>
+                            ))}
+                        </div>
+                    ) : recentBills.length > 0 ? (
+                        <ul className="space-y-3">
+                            {recentBills.map(bill => (
+                                <li key={bill.id} className="flex justify-between items-center">
+                                    <span className="text-muted-foreground">{bill.details.title}</span>
+                                    <span className="font-semibold">{t('currency_symbol', 'Rs.')} {bill.details.amount.toLocaleString()}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <p className="text-muted-foreground text-center py-4">No recent bills.</p>
+                    )}
+
                      <Button variant="link" asChild className="mt-4 text-primary p-0 h-auto">
                         <Link href="/billing">{t('view_all_bills_link', 'View All Bills')} <ChevronRight className="ml-1 h-4 w-4" /></Link>
                     </Button>
@@ -405,5 +425,3 @@ export default function PatientDashboardPage() {
     </div>
   );
 }
-
-    
