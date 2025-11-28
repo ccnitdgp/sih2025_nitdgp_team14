@@ -26,6 +26,7 @@ const footerLinks = [
   { href: "/privacy-policy", label: "Privacy Policy", i18n_key: "footer_privacy_policy" },
   { href: "/terms-of-service", label: "Terms of Service", i18n_key: "footer_terms_of_service" },
   { href: "/feedback", label: "Submit Feedback", i18n_key: "footer_feedback" },
+  { href: "/help-and-support", label: "Help & Support", i18n_key: "footer_help_support" },
 ];
 
 const serviceLinks = [

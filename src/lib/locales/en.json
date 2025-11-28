@@ -388,5 +388,21 @@
     "announcement_3_title": "Public Health Notice: Contaminated Water Supply",
     "announcement_3_details": "A recent report indicates potential contamination of the water supply in Sector 15. Residents are advised to boil water before drinking or use a reliable water purifier. The local authorities are working to resolve the issue.",
     "announcement_4_title": "Flu Vaccination Campaign",
-    "announcement_4_details": "A free flu vaccination drive is being organized next week. Getting vaccinated is the best way to protect yourself and others from the flu. Details about locations and times will be announced shortly."
+    "announcement_4_details": "A free flu vaccination drive is being organized next week. Getting vaccinated is the best way to protect yourself and others from the flu. Details about locations and times will be announced shortly.",
+    "footer_feedback": "Submit Feedback",
+    "forum_link": "Forum",
+    "medical_details_link": "Medical Details",
+    "help_support_title": "Help & Support",
+    "help_support_desc": "Find answers to frequently asked questions about using Swasthya.",
+    "faq_q1": "How do I book an appointment?",
+    "faq_a1": "You can book an appointment by navigating to the 'Book Appointment' page. From there, you can use the AI Symptom Checker to find a specialist or browse through the list of available doctors. Select a doctor, choose an available date and time slot, and confirm your booking.",
+    "faq_q2": "Where can I see my medical records?",
+    "faq_a2": "Your medical records, including medical history, prescriptions, lab reports, and vaccination records, are available in the 'My Health Records' section of your patient dashboard. You can also access them through the main navigation under 'Records'.",
+    "faq_q3": "How do I change my password?",
+    "faq_a3": "You can change your password by going to the 'Settings' page, which is accessible from the user menu in the top-right corner. Under 'Account & Personal Settings', you will find an option to 'Change Password'.",
+    "faq_q4": "How does the AI Prescription Analyzer work?",
+    "faq_a4": "Navigate to 'Analyze Prescription' from your dashboard. Upload a clear photo of your prescription, and our AI tool will automatically extract details like the doctor's name, date, and a list of medications with their dosage and use. Please note this is for informational purposes and is not a substitute for professional medical advice.",
+    "faq_q5": "How do I change the application language?",
+    "faq_a5": "You can change the application language from the 'Settings' page. Look for the 'Language Selection' option under 'Account & Personal Settings' and choose your preferred language from the dropdown menu.",
+    "footer_help_support": "Help & Support"
 }
