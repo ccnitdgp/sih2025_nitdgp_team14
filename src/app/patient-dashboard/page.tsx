@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CalendarPlus, Receipt, ScanText, Mic, ArrowRight, Sparkles, Bot, BookUser, FlaskConical, History, ShieldCheck, FileText, ChevronRight, ChevronsUpDown, Volume2, Loader2, Play } from 'lucide-react';
+import { CalendarPlus, Receipt, ScanText, Mic, ArrowRight, Sparkles, Bot, BookUser, FlaskConical, History, ShieldCheck, FileText, ChevronRight, ChevronsUpDown, Volume2, Loader2, Play, MessageSquare } from 'lucide-react';
 import { doc, collection, query, where } from 'firebase/firestore';
 import Link from 'next/link';
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -355,7 +355,7 @@ export default function PatientDashboardPage() {
               </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
             <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle>{t('my_health_records_card_title', 'My Health Records')}</CardTitle>
@@ -418,6 +418,23 @@ export default function PatientDashboardPage() {
                     </Button>
                 </CardContent>
             </Card>
+
+            <Card className="shadow-sm">
+                <CardHeader>
+                    <CardTitle>Community Forum</CardTitle>
+                    <CardDescription>Ask questions and connect with others.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex items-center gap-3 p-3 rounded-md hover:bg-muted">
+                        <MessageSquare className="h-5 w-5 text-primary"/>
+                        <span className="font-medium">Join the conversation</span>
+                    </div>
+                     <Button variant="link" asChild className="mt-4 text-primary p-0 h-auto">
+                        <Link href="/forum">Go to Forum <ChevronRight className="ml-1 h-4 w-4" /></Link>
+                    </Button>
+                </CardContent>
+            </Card>
+
           </div>
         </div>
       </div>
@@ -425,4 +442,3 @@ export default function PatientDashboardPage() {
   );
 }
 
-    
