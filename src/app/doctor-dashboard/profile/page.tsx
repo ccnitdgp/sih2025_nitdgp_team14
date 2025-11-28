@@ -10,7 +10,7 @@ import { doc } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AtSign, BriefcaseMedical, Building, Phone, User as UserIcon, Pencil, X, Save, Star, Activity, Languages, GraduationCap, FileBadge, Calendar, Clock, BookText, Stethoscope, Wallet, Globe, Video, ShieldCheck, FilePen } from 'lucide-react';
+import { AtSign, BriefcaseMedical, Building, Phone, User as UserIcon, Pencil, X, Save, Star, Activity, Languages, GraduationCap, FileBadge, Calendar, Clock, BookText, Stethoscope, Wallet, Globe, Video, ShieldCheck, FilePen, ExternalLink } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
@@ -388,7 +388,16 @@ export default function DoctorProfilePage() {
                                     </Card>
 
                                      <Card className="hover:shadow-lg transition-shadow">
-                                        <CardHeader><CardTitle className="flex items-center gap-2"><FilePen/> Registration Details</CardTitle></CardHeader>
+                                        <CardHeader>
+                                            <div className="flex items-center justify-between">
+                                                <CardTitle className="flex items-center gap-2"><FilePen/> Registration Details</CardTitle>
+                                                <Button variant="outline" size="sm" asChild>
+                                                    <a href="https://www.nmc.org.in/information-desk/indian-medical-register/" target="_blank" rel="noopener noreferrer">
+                                                        Check IMR Online <ExternalLink className="ml-2 h-4 w-4"/>
+                                                    </a>
+                                                </Button>
+                                            </div>
+                                        </CardHeader>
                                         <CardContent className="space-y-6 pt-6">
                                             <ProfileDetail icon={FilePen} label="Registration Number" value={publicProfile?.registrationDetails?.registrationNumber} />
                                             <ProfileDetail icon={Building} label="Issuing Council" value={publicProfile?.registrationDetails?.issuingCouncil} />
