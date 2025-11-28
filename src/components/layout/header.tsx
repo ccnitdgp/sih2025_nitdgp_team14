@@ -33,7 +33,6 @@ const languageFiles = { hi, bn, ta, te, mr };
 
 const generalNavLinks = [
     { href: "/", label: "Home", i18n_key: "home_link" },
-    { href: "/forum", label: "Forum", i18n_key: "forum_link" },
     { href: "/vaccination", label: "Vaccination Drive", i18n_key: "vaccination_drive_link" },
     { href: "/camps", label: "Visiting Camps", i18n_key: "visiting_camps_link" },
     { href: "/announcements", label: "Announcements", i18n_key: "announcements_link" },
@@ -46,6 +45,7 @@ const patientNavLinks = [
     { href: "/billing", label: "Pay Bill", i18n_key: "pay_bill_link" },
     { href: "/patient-dashboard#health-assistant", label: "Health Assistant", i18n_key: "health_assistant_link" },
     { href: "/notifications", label: "Notifications", i18n_key: "my_notifications_page_title" },
+    { href: "/forum", label: "Forum", i18n_key: "forum_link" },
 ]
 
 const doctorNavLinks = [
