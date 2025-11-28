@@ -49,6 +49,10 @@ export default function DoctorAppointmentsPage() {
 
   const usersQuery = useMemoFirebase(() => {
     if(!firestore) return null;
+    // This query fetches all users. In a real-world large-scale app, 
+    // this would be inefficient. A better approach might be to denormalize 
+    // the patient's custom ID into the appointment document itself upon creation.
+    // For the scope of this project, this is acceptable.
     return collection(firestore, 'users');
   }, [firestore]);
 
@@ -56,6 +60,7 @@ export default function DoctorAppointmentsPage() {
 
   const patientIdMap = useMemo(() => {
     if (!allUsers) return new Map();
+    // Creates a map of: { patientAuthUid => customPatientId }
     return new Map(allUsers.map(u => [u.id, u.patientId]));
   }, [allUsers]);
   
