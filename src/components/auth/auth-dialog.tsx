@@ -199,8 +199,21 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
   async function onSignupSubmit(values: z.infer<typeof signupSchema>) {
     try {
         const usersRef = collection(firestore, 'users');
-        const q = query(usersRef, where("email", "==", values.email));
-        const querySnapshot = await getDocs(q);
+        
+        // Check if phone number already exists
+        const phoneQuery = query(usersRef, where("phoneNumber", "==", values.phoneNumber));
+        const phoneQuerySnapshot = await getDocs(phoneQuery);
+        if (!phoneQuerySnapshot.empty) {
+            toast({
+                variant: "destructive",
+                title: "Sign up failed",
+                description: "This phone number is already associated with another account.",
+            });
+            return;
+        }
+
+        const emailQuery = query(usersRef, where("email", "==", values.email));
+        const emailQuerySnapshot = await getDocs(emailQuery);
 
         let userProfileData: any = {
             id: '', // Will be set later
@@ -238,7 +251,7 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
             });
         }
 
-        if (!querySnapshot.empty) {
+        if (!emailQuerySnapshot.empty) {
             // Email exists, this user was likely pre-registered by a doctor.
             // We'll update their record with a new auth UID.
             const userCredential = await initiateEmailSignUp(auth, values.email, values.password);
@@ -247,7 +260,7 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
             const batch = writeBatch(firestore);
 
             // Delete the old, un-owned document
-            const oldDocRef = querySnapshot.docs[0].ref;
+            const oldDocRef = emailQuerySnapshot.docs[0].ref;
             batch.delete(oldDocRef);
 
             // Create a new document with the correct UID
