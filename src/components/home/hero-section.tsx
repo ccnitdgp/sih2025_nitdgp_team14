@@ -52,8 +52,8 @@ export function HeroSection() {
 
     const encodedQuery = encodeURIComponent(query);
     
-    const campKeywords = ['camp', 'camps', 'check-up', 'checkup', 'health camp'];
-    const vaccinationKeywords = ['vaccine', 'vaccination', 'drive', 'polio', 'mmr', 'covid', 'booster', 'immunization', 'td', 'tetanus', 'hepatitis'];
+    const campKeywords = ['camp', 'camps', 'check-up', 'checkup', 'health camp', 'medical camp'];
+    const vaccinationKeywords = ['vaccine', 'vaccination', 'drive', 'polio', 'mmr', 'covid', 'booster', 'immunization', 'td', 'tetanus', 'hepatitis', 'shot'];
 
     const isCampSearch = campKeywords.some(keyword => query.includes(keyword));
     const isVaccinationSearch = vaccinationKeywords.some(keyword => query.includes(keyword));
@@ -62,8 +62,10 @@ export function HeroSection() {
       router.push(`/camps?search=${encodedQuery}`);
     } else if (isVaccinationSearch) {
       router.push(`/vaccination?search=${encodedQuery}`);
-    } 
-    // No redirect if no keywords match
+    } else {
+      // Fallback to a general announcements search if no specific keywords are met
+      router.push(`/announcements?search=${encodedQuery}`);
+    }
   };
 
   return (
