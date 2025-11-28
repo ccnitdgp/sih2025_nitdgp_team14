@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
@@ -9,6 +10,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { getAuth, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
+import { useTheme } from "next-themes"
+
 
 import {
   Bell,
@@ -52,6 +55,7 @@ import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
 import te from '@/lib/locales/te.json';
 import mr from '@/lib/locales/mr.json';
+import { ModeToggle } from '@/components/mode-toggle';
 
 
 const languageFiles = {
@@ -106,6 +110,7 @@ export default function SettingsPage() {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
+    const { theme, setTheme } = useTheme();
 
     const userDocRef = useMemoFirebase(() => {
         if (!user || !firestore) return null;
@@ -233,6 +238,12 @@ export default function SettingsPage() {
               title={t('change_password_title')}
               description={t('change_password_description')}
               control={<Button variant="outline" onClick={() => setIsPasswordDialogOpen(true)}>{t('change_password_button')}</Button>}
+            />
+             <SettingItem
+              icon={Palette}
+              title="Theme"
+              description="Choose your preferred interface appearance."
+              control={<ModeToggle />}
             />
             <SettingItem
               icon={User}
@@ -493,5 +504,3 @@ const SettingsSkeleton = () => (
         </div>
     </div>
 )
-
-    

@@ -27,6 +27,7 @@ import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
 import te from '@/lib/locales/te.json';
 import mr from '@/lib/locales/mr.json';
+import { ModeToggle } from "../mode-toggle";
 
 const languageFiles = { hi, bn, ta, te, mr };
 
@@ -152,50 +153,54 @@ export function Header() {
                   <Skeleton className="h-8 w-8 rounded-full" />
               </div>
             ) : user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.photoURL ?? ""} alt={user.displayName ?? "User"} />
-                      <AvatarFallback>
-                        {userProfile?.firstName?.charAt(0).toUpperCase() ?? user.email?.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                   <DropdownMenuItem onClick={() => router.push(getDashboardPath())}>
-                    <LayoutDashboard className="mr-2 h-4 w-4" />
-                    <span>{t('dashboard_link', 'Dashboard')}</span>
-                  </DropdownMenuItem>
-                  {isAdmin && (
-                    <DropdownMenuItem onClick={() => router.push('/admin-dashboard')}>
-                        <Shield className="mr-2 h-4 w-4" />
-                        <span>Admin Dashboard</span>
+              <>
+                <ModeToggle />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={user.photoURL ?? ""} alt={user.displayName ?? "User"} />
+                        <AvatarFallback>
+                          {userProfile?.firstName?.charAt(0).toUpperCase() ?? user.email?.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuItem onClick={() => router.push(getDashboardPath())}>
+                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                      <span>{t('dashboard_link', 'Dashboard')}</span>
                     </DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem disabled>
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{userProfile?.firstName ? `${userProfile.firstName} ${userProfile.lastName}` : 'Welcome'}</p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        {user.email}
-                      </p>
-                    </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => router.push('/settings')}>
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>{t('settings_link', 'Settings')}</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleLogout}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>{t('logout_link', 'Log out')}</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    {isAdmin && (
+                      <DropdownMenuItem onClick={() => router.push('/admin-dashboard')}>
+                          <Shield className="mr-2 h-4 w-4" />
+                          <span>Admin Dashboard</span>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem disabled>
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{userProfile?.firstName ? `${userProfile.firstName} ${userProfile.lastName}` : 'Welcome'}</p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                          {user.email}
+                        </p>
+                      </div>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => router.push('/settings')}>
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>{t('settings_link', 'Settings')}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleLogout}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>{t('logout_link', 'Log out')}</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
             ) : (
                 <div className="hidden sm:flex items-center gap-2">
+                  <ModeToggle />
                   <AuthDialog trigger={<Button variant="outline">{t('login_button', 'Login')}</Button>} />
                   <AuthDialog trigger={<Button>{t('signup_button', 'Sign Up')}</Button>} defaultTab="signup" />
                 </div>
@@ -226,6 +231,9 @@ export function Header() {
                     <div className="py-4">
                         <div className="mt-8">
                           <NavContent isMobile />
+                           <div className="mt-4">
+                            <ModeToggle />
+                          </div>
                           {!user && !isUserLoading && (
                             <div className="mt-6 flex flex-col gap-3">
                                 <AuthDialog trigger={<Button variant="outline" className="w-full">{t('login_button', 'Login')}</Button>} onOpenChange={(isOpen) => !isOpen && setIsMobileMenuOpen(false)} />
