@@ -6,6 +6,7 @@ import {
   signInWithEmailAndPassword,
   UserCredential,
   sendPasswordResetEmail,
+  updateProfile,
 } from 'firebase/auth';
 
 /** Initiate anonymous sign-in (non-blocking). */
@@ -13,10 +14,16 @@ export function initiateAnonymousSignIn(authInstance: Auth): void {
   signInAnonymously(authInstance);
 }
 
-/** Initiate email/password sign-up (non-blocking). */
-export function initiateEmailSignUp(authInstance: Auth, email: string, password: string): Promise<UserCredential> {
-  return createUserWithEmailAndPassword(authInstance, email, password);
+/** Initiate email/password sign-up and update profile (non-blocking). */
+export async function initiateEmailSignUp(authInstance: Auth, email: string, password: string, displayName: string): Promise<UserCredential> {
+  const userCredential = await createUserWithEmailAndPassword(authInstance, email, password);
+  // After creating the user, update their profile with the display name.
+  if (userCredential.user) {
+    await updateProfile(userCredential.user, { displayName });
+  }
+  return userCredential;
 }
+
 
 /** 
  * Initiates an email and password sign-in.

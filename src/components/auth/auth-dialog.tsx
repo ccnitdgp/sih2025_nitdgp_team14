@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { CalendarIcon, Eye, EyeOff, User, Stethoscope } from "lucide-react";
 import { useAuth } from "@/firebase";
-import { initiateEmailSignIn, initiateEmailSignUp, sendPasswordReset } from "@/firebase/non-blocking-login";
+import { initiateEmailSignUp, initiateEmailSignIn, sendPasswordReset } from "@/firebase/non-blocking-login";
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { doc, collection, query, where, getDocs, writeBatch } from 'firebase/firestore';
 import { useFirestore } from "@/firebase";
@@ -251,10 +251,12 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
             });
         }
 
+        const fullName = `${values.firstName} ${values.lastName}`;
+
         if (!emailQuerySnapshot.empty) {
             // Email exists, this user was likely pre-registered by a doctor.
             // We'll update their record with a new auth UID.
-            const userCredential = await initiateEmailSignUp(auth, values.email, values.password);
+            const userCredential = await initiateEmailSignUp(auth, values.email, values.password, fullName);
             const user = userCredential.user;
             
             const batch = writeBatch(firestore);
@@ -272,7 +274,7 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
 
         } else {
             // This is a brand new user.
-            const userCredential = await initiateEmailSignUp(auth, values.email, values.password);
+            const userCredential = await initiateEmailSignUp(auth, values.email, values.password, fullName);
             const user = userCredential.user;
             
             userProfileData.id = user.uid; // Set the correct ID
