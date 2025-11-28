@@ -540,32 +540,36 @@ const MyAppointments = ({ t }) => {
             <CardContent className="space-y-4">
                 {isLoading ? <p>Loading appointments...</p> : 
                  upcomingAppointments && upcomingAppointments.length > 0 ? upcomingAppointments.map(appt => (
-                    <Card key={appt.id} className="p-4 flex flex-col sm:flex-row items-start gap-4">
-                         <Avatar className="h-16 w-16">
-                            <AvatarImage src={`https://picsum.photos/seed/${appt.doctorId}/200`} />
-                            <AvatarFallback>{appt.doctorName.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-grow">
-                             <h3 className="font-bold text-lg">{appt.doctorName}</h3>
-                            <p className="text-sm text-muted-foreground">{appt.specialty}</p>
-                            <div className="flex items-center gap-2 mt-2 text-sm">
-                                <CalendarIcon className="h-4 w-4" />
-                                <span>{format(new Date(appt.date), 'PPP')} at {appt.time}</span>
+                    <Card key={appt.id} className="p-4 flex flex-col gap-4">
+                        <div className="flex flex-col sm:flex-row items-start gap-4">
+                            <Avatar className="h-16 w-16">
+                                <AvatarImage src={`https://picsum.photos/seed/${appt.doctorId}/200`} />
+                                <AvatarFallback>{appt.doctorName.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-grow">
+                                <h3 className="font-bold text-lg">{appt.doctorName}</h3>
+                                <p className="text-sm text-muted-foreground">{appt.specialty}</p>
+                                <div className="flex items-center gap-2 mt-2 text-sm">
+                                    <CalendarIcon className="h-4 w-4" />
+                                    <span>{format(new Date(appt.date), 'PPP')} at {appt.time}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm">
+                                    {appt.type === 'Virtual' ? <Video className="h-4 w-4" /> : <MapPin className="h-4 w-4" />}
+                                    <span>{appt.type === 'Virtual' ? 'Virtual Consultation' : appt.location}</span>
+                                </div>
                             </div>
-                             <div className="flex items-center gap-2 text-sm">
-                                {appt.type === 'Virtual' ? <Video className="h-4 w-4" /> : <MapPin className="h-4 w-4" />}
-                                <span>{appt.type === 'Virtual' ? 'Virtual Consultation' : appt.location}</span>
+                            <div className="flex flex-col sm:flex-row gap-2 self-start sm:self-center">
+                                <Button variant="outline" onClick={() => setAppointmentToReschedule(appt)}>{t('reschedule_button', 'Reschedule')}</Button>
+                                <Button variant="destructive" onClick={() => setAppointmentToCancel(appt)}>{t('cancel_button', 'Cancel')}</Button>
                             </div>
                         </div>
-                        <div className="flex flex-col sm:flex-row gap-2 self-start sm:self-center">
-                            {appt.type === 'Virtual' && (
-                              <Button asChild>
-                                <Link href="https://meet.google.com" target="_blank"><Video className="mr-2 h-4 w-4" />Join Call</Link>
-                              </Button>
-                            )}
-                            <Button variant="outline" onClick={() => setAppointmentToReschedule(appt)}>{t('reschedule_button', 'Reschedule')}</Button>
-                            <Button variant="destructive" onClick={() => setAppointmentToCancel(appt)}>{t('cancel_button', 'Cancel')}</Button>
-                        </div>
+                        {appt.type === 'Virtual' && (
+                            <div className="flex justify-end pt-4 border-t">
+                                <Button asChild>
+                                    <Link href="https://meet.google.com" target="_blank"><Video className="mr-2 h-4 w-4" />Join Call</Link>
+                                </Button>
+                            </div>
+                        )}
                     </Card>
                 )) : <p>No upcoming appointments.</p>}
             </CardContent>
@@ -808,5 +812,3 @@ export default function AppointmentsPage() {
     </div>
   );
 }
-
-    
