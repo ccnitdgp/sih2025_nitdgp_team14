@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Logo } from "@/components/logo";
 import { AuthDialog } from "@/components/auth/auth-dialog";
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
@@ -55,6 +55,10 @@ const doctorNavLinks = [
     { href: "/doctor-dashboard/upload-documents", label: "Upload Documents", i18n_key: "upload_documents_link" },
 ];
 
+const adminNavLinks = [
+    { href: "/admin-dashboard", label: "Dashboard", i18n_key: "dashboard_link" },
+];
+
 
 export function Header() {
   const { user, isUserLoading } = useUser();
@@ -88,10 +92,14 @@ export function Header() {
   const isAdmin = userProfile?.role === 'admin';
 
   let navLinks = generalNavLinks;
-  if (user && isDoctor) {
-    navLinks = doctorNavLinks;
-  } else if (user && isPatient) {
-    navLinks = patientNavLinks;
+  if (user) {
+    if (isDoctor) {
+      navLinks = doctorNavLinks;
+    } else if (isPatient) {
+      navLinks = patientNavLinks;
+    } else if (isAdmin) {
+      navLinks = adminNavLinks;
+    }
   }
 
 
