@@ -63,11 +63,12 @@ export function useCollection<T = any>(
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
   useEffect(() => {
+    // Definitive guard: If the query is not valid, do nothing.
     if (!memoizedTargetRefOrQuery) {
       setData(null);
-      setIsLoading(false);
+      setIsLoading(false); // Set loading to false as we are not fetching.
       setError(null);
-      return;
+      return; // Early exit
     }
 
     setIsLoading(true);
@@ -86,13 +87,6 @@ export function useCollection<T = any>(
         setIsLoading(false);
       },
       (error: FirestoreError) => {
-        // Guard against creating an error for a null/undefined query
-        if (!memoizedTargetRefOrQuery) {
-          setError(error);
-          setIsLoading(false);
-          return;
-        }
-
         // This logic extracts the path from either a ref or a query
         let path: string;
         if (memoizedTargetRefOrQuery.type === 'collection') {
