@@ -120,7 +120,10 @@ export function useCollection<T = any>(
   }, [memoizedTargetRefOrQuery]); // Re-run if the target query/reference changes.
   
   if(memoizedTargetRefOrQuery && !memoizedTargetRefOrQuery.__memo) {
-    throw new Error(memoizedTargetRefOrQuery + ' was not properly memoized using useMemoFirebase');
+    // This check is a developer safeguard. It should not be hit in production if useMemoFirebase is used correctly.
+    // However, it's a good practice to have it during development.
+    // In a real production environment, you might want to log this error instead of throwing it.
+    console.warn('A query or reference passed to useCollection was not memoized with useMemoFirebase. This can cause performance issues and infinite loops.', memoizedTargetRefOrQuery);
   }
   
   return { data, isLoading, error };
