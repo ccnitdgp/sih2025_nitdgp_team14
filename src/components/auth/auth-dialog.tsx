@@ -159,7 +159,7 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
     defaultValues: {
       firstName: "",
       lastName: "",
-      gender: undefined,
+      gender: "",
       phoneNumber: "",
       email: "",
       password: "",
@@ -169,7 +169,7 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
       state: "",
       country: "",
       pinCode: "",
-      bloodGroup: undefined,
+      bloodGroup: "",
       emergencyContactName: "",
       emergencyContactPhone: "",
       emergencyContactRelation: "",

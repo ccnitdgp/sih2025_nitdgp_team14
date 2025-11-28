@@ -82,6 +82,27 @@ export default function DoctorProfilePage() {
 
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      phoneNumber: '',
+      languagesKnown: '',
+      biography: '',
+      specialty: '',
+      qualifications: '',
+      licenseNumber: '',
+      yearsOfExperience: undefined,
+      designation: '',
+      clinic: '',
+      treatmentsAndProcedures: '',
+      conditionsHandled: '',
+      teleconsultation: false,
+      workingHours: '',
+      availableDays: '',
+      appointmentDuration: undefined,
+      clinicFee: undefined,
+      onlineFee: undefined,
+    }
   });
 
   useEffect(() => {
