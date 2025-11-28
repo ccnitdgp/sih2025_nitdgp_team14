@@ -123,7 +123,30 @@ export const visitingCamps = [
     }
 ];
 
-export const testimonials = [];
+export const testimonials = [
+  {
+    id: 1,
+    name: "Priya Sharma",
+    title: "Working Mother",
+    quote: "Swasthya has been a lifesaver. I can manage my kids' vaccination schedules and my parents' appointments all in one place. The AI health assistant is surprisingly helpful for quick questions!",
+    avatarId: "testimonial-1",
+  },
+  {
+    id: 2,
+    name: "Amit Singh",
+    title: "Construction Worker",
+    quote: "Finding the free health camps through this app has helped me and my co-workers get regular check-ups without worrying about the cost. It's a very valuable service for our community.",
+    avatarId: "testimonial-2",
+  },
+  {
+    id: 3,
+    name: "Ananya Gupta",
+    title: "College Student",
+    quote: "I used the AI feature to analyze my grandmother's prescription, and it broke down all the medical terms into simple language. It made understanding her treatment so much easier. Highly recommend!",
+    avatarId: "testimonial-3",
+  },
+];
+
 
 export const medicalHistory = [];
 
