@@ -15,11 +15,11 @@ export function initiateAnonymousSignIn(authInstance: Auth): void {
 }
 
 /** Initiate email/password sign-up and update profile (non-blocking). */
-export async function initiateEmailSignUp(authInstance: Auth, email: string, password: string, displayName: string): Promise<UserCredential> {
+export async function initiateEmailSignUp(authInstance: Auth, email: string, password: string, displayName: string, phoneNumber?: string): Promise<UserCredential> {
   const userCredential = await createUserWithEmailAndPassword(authInstance, email, password);
-  // After creating the user, update their profile with the display name.
+  // After creating the user, update their profile with the display name and phone number.
   if (userCredential.user) {
-    await updateProfile(userCredential.user, { displayName });
+    await updateProfile(userCredential.user, { displayName, phoneNumber });
   }
   return userCredential;
 }

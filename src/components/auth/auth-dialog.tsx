@@ -256,7 +256,7 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
         if (!emailQuerySnapshot.empty) {
             // Email exists, this user was likely pre-registered by a doctor.
             // We'll update their record with a new auth UID.
-            const userCredential = await initiateEmailSignUp(auth, values.email, values.password, fullName);
+            const userCredential = await initiateEmailSignUp(auth, values.email, values.password, fullName, values.phoneNumber);
             const user = userCredential.user;
             
             const batch = writeBatch(firestore);
@@ -274,7 +274,7 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
 
         } else {
             // This is a brand new user.
-            const userCredential = await initiateEmailSignUp(auth, values.email, values.password, fullName);
+            const userCredential = await initiateEmailSignUp(auth, values.email, values.password, fullName, values.phoneNumber);
             const user = userCredential.user;
             
             userProfileData.id = user.uid; // Set the correct ID
