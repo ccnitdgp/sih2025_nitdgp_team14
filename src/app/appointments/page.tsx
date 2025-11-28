@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { Calendar } from '@/components/ui/calendar';
-import { format, addDays, startOfDay, addMinutes, getDay, setHours, setMinutes } from 'date-fns';
+import { format, addDays, startOfDay, addMinutes, getDay, setHours, setMinutes, parse } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUser, useDoc, useFirestore, useMemoFirebase, useCollection, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase';
 import { doc, collection, query, where } from 'firebase/firestore';
@@ -48,6 +48,7 @@ import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 
 const languageFiles = { hi, bn, ta, te, mr };
@@ -533,6 +534,47 @@ const MyAppointments = ({ t }) => {
         setAppointmentToReschedule(null);
     };
 
+    const JoinCallButton = ({ appt }) => {
+        const [isJoinable, setIsJoinable] = useState(false);
+    
+        useEffect(() => {
+          const checkTime = () => {
+            const now = new Date();
+            const apptDateTime = parse(`${appt.date} ${appt.time}`, 'yyyy-MM-dd hh:mm a', new Date());
+            const fifteenMinutesBefore = addMinutes(apptDateTime, -15);
+            setIsJoinable(now >= fifteenMinutesBefore);
+          };
+    
+          checkTime();
+          const interval = setInterval(checkTime, 60000); // Check every minute
+    
+          return () => clearInterval(interval);
+        }, [appt.date, appt.time]);
+    
+        const button = (
+            <Button asChild disabled={!isJoinable}>
+                <Link href={`/video-call/${appt.id}`}><Video className="mr-2 h-4 w-4" />Join Call</Link>
+            </Button>
+        );
+
+        if (!isJoinable) {
+            return (
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                           <span>{button}</span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>You can join the call 15 minutes before the scheduled time.</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            );
+        }
+    
+        return button;
+    };
+
     return (
         <>
         <Card>
@@ -568,9 +610,7 @@ const MyAppointments = ({ t }) => {
                         </div>
                         {appt.type === 'Virtual' && (
                             <div className="flex justify-end pt-4 border-t">
-                                <Button asChild>
-                                    <Link href={`/video-call/${appt.id}`}><Video className="mr-2 h-4 w-4" />Join Call</Link>
-                                </Button>
+                                <JoinCallButton appt={appt} />
                             </div>
                         )}
                     </Card>

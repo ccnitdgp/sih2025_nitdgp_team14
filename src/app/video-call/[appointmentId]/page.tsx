@@ -9,11 +9,14 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Video, PhoneOff, Mic, MicOff, VideoOff, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { useFirestore, updateDocumentNonBlocking } from '@/firebase';
+import { doc } from 'firebase/firestore';
 
 export default function VideoCallPage() {
   const router = useRouter();
   const params = useParams();
   const { appointmentId } = params;
+  const firestore = useFirestore();
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
@@ -56,6 +59,12 @@ export default function VideoCallPage() {
       const stream = videoRef.current.srcObject as MediaStream;
       stream.getTracks().forEach(track => track.stop());
     }
+
+    if (firestore && appointmentId) {
+        const apptRef = doc(firestore, 'appointments', appointmentId as string);
+        updateDocumentNonBlocking(apptRef, { status: 'Completed' });
+    }
+
     router.back();
   };
 

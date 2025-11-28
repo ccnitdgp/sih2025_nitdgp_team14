@@ -21,7 +21,8 @@ import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { useUser, useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking, useDoc, addDocumentNonBlocking } from '@/firebase';
 import { collection, query, where, doc, serverTimestamp } from 'firebase/firestore';
-import { differenceInYears, parseISO } from 'date-fns';
+import { differenceInYears, parse, addMinutes } from 'date-fns';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 
 const billSchema = z.object({
@@ -61,14 +62,14 @@ export default function DoctorAppointmentsPage() {
   const upcomingAppointments = useMemo(() => {
     if (!appointments) return [];
     return appointments
-      .filter(a => new Date(a.date) >= new Date())
+      .filter(a => a.status === 'Scheduled')
       .sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [appointments]);
 
   const pastAppointments = useMemo(() => {
     if (!appointments) return [];
     return appointments
-      .filter(a => new Date(a.date) < new Date())
+      .filter(a => a.status !== 'Scheduled')
       .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [appointments]);
 
@@ -133,6 +134,47 @@ export default function DoctorAppointmentsPage() {
     toast({ title: "Appointment marked as complete."});
   }
 
+  const JoinCallButton = ({ appointment }) => {
+    const [isJoinable, setIsJoinable] = useState(false);
+
+    useEffect(() => {
+        const checkTime = () => {
+        const now = new Date();
+        const apptDateTime = parse(`${appointment.date} ${appointment.time}`, 'yyyy-MM-dd hh:mm a', new Date());
+        const fifteenMinutesBefore = addMinutes(apptDateTime, -15);
+        setIsJoinable(now >= fifteenMinutesBefore);
+        };
+
+        checkTime();
+        const interval = setInterval(checkTime, 60000); 
+
+        return () => clearInterval(interval);
+    }, [appointment.date, appointment.time]);
+    
+    const button = (
+        <Button asChild disabled={!isJoinable}>
+            <Link href={`/video-call/${appointment.id}`}><Video className="mr-2 h-4 w-4"/>Join Video Call</Link>
+        </Button>
+    );
+
+     if (!isJoinable) {
+        return (
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                       <span>{button}</span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>You can join the call 15 minutes before the scheduled time.</p>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+        );
+    }
+
+    return button;
+  };
+
 
   const AppointmentDetails = ({ appointment }: { appointment: any | null }) => {
     const firestore = useFirestore();
@@ -191,7 +233,7 @@ export default function DoctorAppointmentsPage() {
               </div>
             </div>
              <div className="mt-4 flex justify-end">
-                <Badge variant={appointment.status === 'Scheduled' ? 'secondary' : 'default'}>{appointment.status}</Badge>
+                <Badge variant={appointment.status === 'Scheduled' ? 'secondary' : (appointment.status === 'Canceled' ? 'destructive' : 'default')}>{appointment.status}</Badge>
             </div>
           </div>
 
@@ -225,10 +267,8 @@ export default function DoctorAppointmentsPage() {
           </div>
 
           <div className="flex flex-wrap gap-2 pt-4 border-t">
-             {appointment.type === 'Virtual' && (
-              <Button asChild>
-                <Link href={`/video-call/${appointment.id}`}><Video className="mr-2 h-4 w-4"/>Join Video Call</Link>
-              </Button>
+             {appointment.type === 'Virtual' && appointment.status === 'Scheduled' && (
+              <JoinCallButton appointment={appointment} />
             )}
             <Button onClick={handleMarkAsComplete} disabled={appointment.status !== 'Scheduled'}><CheckCircle />Mark as Complete</Button>
             <Button variant="outline" onClick={handleWritePrescription}><Pencil />Write Prescription</Button>
