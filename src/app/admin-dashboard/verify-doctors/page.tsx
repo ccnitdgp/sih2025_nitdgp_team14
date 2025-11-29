@@ -257,9 +257,9 @@ export default function VerifyDoctorsPage() {
                     <DialogTitle>Document Viewer</DialogTitle>
                     <DialogDescription>Review the uploaded document below.</DialogDescription>
                 </DialogHeader>
-                 {viewingDocumentUrl && (
+                 {viewingDocumentUrl && viewingDocumentUrl.startsWith('http') && (
                     <div className="mt-4 flex-grow h-full">
-                        {viewingDocumentUrl.includes('.pdf') ? (
+                        {viewingDocumentUrl.toLowerCase().includes('.pdf') ? (
                              <iframe
                                 src={viewingDocumentUrl}
                                 className="h-full w-full"

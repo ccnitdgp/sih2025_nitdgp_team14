@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef } from 'react';
@@ -9,7 +8,7 @@ import { Upload, CheckCircle, Clock, XCircle, FileText, ShieldCheck, QrCode, Loa
 import { useToast } from '@/hooks/use-toast';
 import { useFirebaseApp } from '@/firebase';
 import { DocumentReference, updateDoc } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
 const verificationItems = [
     { id: 'medicalDegree', label: 'Medical Degree Certificate', required: true },
@@ -85,44 +84,61 @@ export function VerificationCenter({ publicProfile, doctorPublicProfileRef }: { 
         setCurrentUploadingDoc(docType);
 
         const storage = getStorage(firebaseApp);
-        const storageRef = ref(storage, `doctor-verification/${doctorPublicProfileRef.id}/${docType}-${file.name}`);
+        const storageRef = ref(storage, `doctor-verification/${doctorPublicProfileRef.id}/${docType}-${Date.now()}-${file.name}`);
         
         toast({
             title: 'Uploading Document...',
             description: `${file.name} is being uploaded.`,
         });
 
-        try {
-            // Step 1: Wait for the file to upload to Firebase Storage
-            const snapshot = await uploadBytes(storageRef, file);
-            
-            // Step 2: Wait to get the download URL from the uploaded file
-            const downloadURL = await getDownloadURL(snapshot.ref);
+        const uploadTask = uploadBytesResumable(storageRef, file);
 
-            // Step 3: Wait to update the Firestore document with the correct URL
-            const updateData = {
-                [`verification.${docType}`]: {
-                    status: 'Pending',
-                    url: downloadURL,
+        uploadTask.on(
+            'state_changed',
+            (snapshot) => {
+                 const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                 console.log(`Upload is ${progress}% done`);
+            },
+            (error) => {
+                console.error("Upload failed:", error);
+                toast({
+                    variant: "destructive",
+                    title: "Upload Failed",
+                    description: "Could not upload the selected file. Please try again.",
+                });
+                setIsUploading(false);
+                setCurrentUploadingDoc(null);
+            },
+            async () => {
+                try {
+                    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                    
+                    const updateData = {
+                        [`verification.${docType}`]: {
+                            status: 'Pending',
+                            url: downloadURL,
+                        }
+                    };
+
+                    await updateDoc(doctorPublicProfileRef, updateData);
+                    
+                    toast({
+                        title: 'Document Submitted',
+                        description: `${file.name} has been submitted for verification.`,
+                    });
+                } catch (error) {
+                    console.error("Failed to get download URL or update Firestore:", error);
+                     toast({
+                        variant: "destructive",
+                        title: "Update Failed",
+                        description: "File uploaded, but failed to update profile. Please contact support.",
+                    });
+                } finally {
+                    setIsUploading(false);
+                    setCurrentUploadingDoc(null);
                 }
-            };
-            await updateDoc(doctorPublicProfileRef, updateData);
-            
-            toast({
-                title: 'Document Submitted',
-                description: `${file.name} has been submitted for verification.`,
-            });
-        } catch (error) {
-            console.error("Upload failed:", error);
-            toast({
-                variant: "destructive",
-                title: "Upload Failed",
-                description: "Could not upload the selected file. Please try again.",
-            });
-        } finally {
-            setIsUploading(false);
-            setCurrentUploadingDoc(null);
-        }
+            }
+        );
     };
 
     return (
