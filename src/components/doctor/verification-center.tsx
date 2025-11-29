@@ -122,23 +122,34 @@ export function VerificationCenter({ publicProfile, doctorPublicProfileRef }: { 
 
     const handleUpload = (docType: string, file: File) => {
         if (!doctorPublicProfileRef) return;
-        // In a real app, this would upload the file to Firebase Storage and get a URL.
-        // For now, we'll just update the status to "Pending".
-        console.log(`Uploading ${file.name} for ${docType}`);
         
-        const updateData = {
-            [`verification.${docType}`]: {
-                status: 'Pending',
-                url: '#placeholder', // URL from storage would go here
-            }
-        };
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+            const dataUri = reader.result as string;
 
-        updateDocumentNonBlocking(doctorPublicProfileRef, updateData);
-        
-        toast({
-            title: 'Document Uploaded',
-            description: `${file.name} has been submitted for verification.`,
-        });
+            const updateData = {
+                [`verification.${docType}`]: {
+                    status: 'Pending',
+                    url: dataUri,
+                }
+            };
+
+            updateDocumentNonBlocking(doctorPublicProfileRef, updateData);
+            
+            toast({
+                title: 'Document Uploaded',
+                description: `${file.name} has been submitted for verification.`,
+            });
+        };
+        reader.onerror = (error) => {
+            console.error("Error reading file:", error);
+            toast({
+                variant: "destructive",
+                title: "File Read Error",
+                description: "Could not read the selected file.",
+            });
+        };
     };
 
     return (
