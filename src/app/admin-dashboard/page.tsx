@@ -21,6 +21,7 @@ import {
   Shield,
   Settings,
   FlaskConical,
+  GanttChart,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DiseaseTrendChart } from '@/components/admin/disease-trend-chart';
@@ -168,6 +169,24 @@ export default function AdminDashboardPage() {
                  <Button asChild>
                   <Link href="/admin-dashboard/labs-reports">
                     View Analytics
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <GanttChart />
+                   Security &amp; Compliance
+                </CardTitle>
+                <CardDescription>
+                    Monitor login activity and access logs.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                 <Button asChild>
+                  <Link href="/admin-dashboard/security-compliance">
+                    View Security
                   </Link>
                 </Button>
               </CardContent>
