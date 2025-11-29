@@ -206,12 +206,7 @@ export default function DoctorPrescriptionsPage() {
                                     <FormItem>
                                         <FormLabel>{t('medication_name_label', 'Medication Name')}</FormLabel>
                                         <FormControl>
-                                            <Combobox
-                                                options={medications}
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                placeholder={t('search_medication_placeholder', 'Search medication...')}
-                                            />
+                                            <Input placeholder={t('search_medication_placeholder', 'Search medication...')} {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
