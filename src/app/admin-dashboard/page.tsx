@@ -15,13 +15,12 @@ import {
   BarChart,
   Clock,
   Heart,
-  Activity,
   Syringe,
   User,
   Shield,
-  Settings,
   FlaskConical,
   GanttChart,
+  Wallet,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DiseaseTrendChart } from '@/components/admin/disease-trend-chart';
@@ -173,6 +172,24 @@ export default function AdminDashboardPage() {
                 </Button>
               </CardContent>
             </Card>
+             <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Wallet />
+                   Billing &amp; Financials
+                </CardTitle>
+                <CardDescription>
+                    Revenue, dues, and financial performance.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                 <Button asChild>
+                  <Link href="/admin-dashboard/billing-financial">
+                    View Financials
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
@@ -234,7 +251,7 @@ export default function AdminDashboardPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Activity />
+                  <BarChart />
                   Disease &amp; Symptom Trends
                 </CardTitle>
                 <CardDescription>
