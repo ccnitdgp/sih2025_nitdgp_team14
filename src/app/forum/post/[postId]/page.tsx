@@ -64,7 +64,6 @@ export default function PostPage() {
     }
     setIsSubmitting(true);
     
-    // Correctly generate a new document reference within the 'replies' subcollection
     const newReplyRef = doc(collection(firestore, 'forumPosts', postId, 'replies'));
 
     const newReply = {
