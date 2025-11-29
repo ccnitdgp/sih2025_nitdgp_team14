@@ -171,19 +171,18 @@ service cloud.firestore {
         // Create: Only a doctor can create a prescription for a patient.
         allow create: if isDoctorForNewPrescription();
         
-        // Read: The involved patient or doctor.
+        // Read: The involved patient or doctor, or an admin.
         allow get: if isSignedIn() && (
             isOwner(resource.data.patientId) || 
             isOwner(resource.data.doctorId) ||
             isAdmin()
         );
         
-        // List: Allow a logged-in user to list prescriptions if their query
-        // is constrained by patientId or doctorId matching their own UID.
+        // List: Allow a logged-in doctor to list prescriptions but ONLY if
+        // their query is constrained to their own doctorId.
         allow list: if isSignedIn() &&
           (
-            (request.query.limit <= 10 && request.query.where.size() > 0 && 'patientId' in request.query.where && request.query.where.patientId == request.auth.uid) ||
-            (isDoctor() && request.query.limit <= 10 && request.query.where.size() > 0 && 'doctorId' in request.query.where && request.query.where.doctorId == request.auth.uid) ||
+            (isDoctor() && request.query.where.doctorId == request.auth.uid) ||
             isAdmin()
           );
 
@@ -221,7 +220,23 @@ service cloud.firestore {
 
         // Only the author or an admin can update/delete their own post.
         // This is a simplified version. Let's separate like/view updates.
-        allow update, delete: if isSignedIn() && (isOwner(resource.data.authorId) || isAdmin());
+        allow update: if isSignedIn() && 
+          (
+            (isOwner(resource.data.authorId) || isAdmin()) ||
+            (
+              // Allow anyone to increment like/view counts and add to likedBy
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount', 'viewCount', 'likedBy']) &&
+              request.resource.data.likeCount == resource.data.likeCount + 1 &&
+              request.resource.data.likedBy.hasAll(resource.data.likedBy) &&
+              request.resource.data.likedBy.size() == resource.data.likedBy.size() + 1
+            ) ||
+            (
+                request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount']) &&
+                request.resource.data.viewCount == resource.data.viewCount + 1
+            )
+          );
+        
+        allow delete: if isSignedIn() && (isOwner(resource.data.authorId) || isAdmin());
         
         // --- /forumPosts/{postId}/replies/{replyId} ---
         match /replies/{replyId} {
