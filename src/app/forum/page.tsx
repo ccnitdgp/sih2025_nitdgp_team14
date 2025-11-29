@@ -23,10 +23,6 @@ import { AuthDialog } from '@/components/auth/auth-dialog';
 import { BackButton } from '@/components/layout/back-button';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { PostRepliesPreview } from '@/components/forum/post-replies-preview';
-
 
 const newPostSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters long.'),
@@ -215,9 +211,7 @@ export default function ForumPage() {
           posts.map((post) => {
             const hasLiked = user && post.likedBy?.includes(user.uid);
             return (
-            <HoverCard key={post.id} openDelay={200} closeDelay={100}>
-              <HoverCardTrigger asChild>
-                <Link href={`/forum/post/${post.id}`} className="block">
+                <Link key={post.id} href={`/forum/post/${post.id}`} className="block">
                   <Card className="hover:bg-muted/50 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
                       <CardContent className="p-4 flex gap-4">
                           <div className="hidden sm:flex flex-col items-center space-y-2 p-2 bg-muted/50 rounded-lg">
@@ -247,48 +241,6 @@ export default function ForumPage() {
                       </CardContent>
                   </Card>
                 </Link>
-              </HoverCardTrigger>
-                <HoverCardContent className="w-96 max-h-[80vh] overflow-y-auto" side="right" align="start">
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Avatar className="h-6 w-6">
-                                <AvatarImage src={`https://picsum.photos/seed/${post.authorId}/40`} />
-                                <AvatarFallback>{post.authorName?.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <span>Posted by <span className="font-medium text-foreground">{post.authorName}</span></span>
-                            <span>•</span>
-                            <span>{post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : '...'}</span>
-                        </div>
-                        <h4 className="font-bold text-lg">{post.title}</h4>
-                        <p className="text-sm text-foreground whitespace-pre-wrap">{post.content}</p>
-                        <div className="flex items-center gap-4 pt-2 border-t">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                disabled={hasLiked || !user}
-                                onClick={(e) => handleLike(e, post.id)}
-                                className="flex items-center gap-1.5 text-muted-foreground"
-                            >
-                                <Heart className={cn("h-4 w-4", hasLiked && "text-destructive fill-destructive")} />
-                                <span className="text-sm font-medium">{post.likeCount || 0}</span>
-                            </Button>
-                            
-                             <Popover>
-                                <PopoverTrigger asChild>
-                                    <button className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors">
-                                        <PostStat icon={MessageSquare} count={post.replyCount} />
-                                    </button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-80">
-                                   <PostRepliesPreview postId={post.id} />
-                                </PopoverContent>
-                            </Popover>
-
-                            <PostStat icon={Eye} count={post.viewCount} />
-                        </div>
-                    </div>
-                </HoverCardContent>
-            </HoverCard>
           )})
         ) : (
           <Card className="text-center p-8">
