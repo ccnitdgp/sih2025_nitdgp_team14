@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -21,6 +22,8 @@ import {
   FlaskConical,
   GanttChart,
   Wallet,
+  Activity,
+  Server,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DiseaseTrendChart } from '@/components/admin/disease-trend-chart';
@@ -211,6 +214,25 @@ export default function AdminDashboardPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
+                  <Server />
+                   System Health
+                </CardTitle>
+                <CardDescription>
+                    API status, queue sizes, and error logs.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                 <Button asChild>
+                  <Link href="/admin-dashboard/system-health">
+                    View Health
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
                   <Syringe />
                   Manage Drives
                 </CardTitle>
@@ -251,7 +273,7 @@ export default function AdminDashboardPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <BarChart />
+                  <Activity />
                   Disease &amp; Symptom Trends
                 </CardTitle>
                 <CardDescription>
