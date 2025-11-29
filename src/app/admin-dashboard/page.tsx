@@ -184,21 +184,6 @@ export default function AdminDashboardPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Calendar />
-                  Appointment Volume
-                </CardTitle>
-                <CardDescription>
-                  Appointment volume over the last 7 days.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <AppointmentTrendChart />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
                   <Syringe />
                   Vaccination Coverage
                 </CardTitle>
