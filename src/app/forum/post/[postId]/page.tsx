@@ -6,8 +6,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useUser, useFirestore, useDoc, useCollection, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
-import { collection, doc, query, orderBy, serverTimestamp, increment, addDoc, updateDoc } from 'firebase/firestore';
+import { useUser, useFirestore, useDoc, useCollection, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
+import { collection, doc, query, orderBy, serverTimestamp, increment, addDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { format } from 'date-fns';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -16,9 +16,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Heart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
 
 const replySchema = z.object({
   content: z.string().min(1, 'Reply cannot be empty.'),
@@ -77,10 +78,8 @@ export default function PostPage() {
     try {
         const newReplyDocRef = await addDoc(repliesColRef, newReply);
         
-        // ✅ Reply doc update
         await updateDoc(newReplyDocRef, { id: newReplyDocRef.id });
 
-        // ✅ Parent post replyCount update
         await updateDoc(postRef, { replyCount: increment(1) });
         
         toast({ title: 'Reply Posted' });
@@ -91,6 +90,17 @@ export default function PostPage() {
     } finally {
         setIsSubmitting(false);
     }
+  };
+
+  const handleLike = () => {
+    if (!user || !postRef) {
+        toast({ variant: "destructive", title: "Please log in to like posts."});
+        return;
+    };
+    updateDocumentNonBlocking(postRef, {
+        likeCount: increment(1),
+        likedBy: arrayUnion(user.uid)
+    });
   };
 
   const PostSkeleton = () => (
@@ -108,6 +118,8 @@ export default function PostPage() {
       </CardContent>
     </Card>
   );
+  
+  const hasLiked = user && post?.likedBy?.includes(user.uid);
 
   return (
     <div className="container mx-auto max-w-3xl px-6 py-12">
@@ -131,6 +143,18 @@ export default function PostPage() {
             </CardHeader>
             <CardContent>
               <p className="whitespace-pre-wrap">{post.content}</p>
+               <div className="mt-6 flex items-center gap-2 pt-4 border-t">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={hasLiked || !user}
+                    onClick={handleLike}
+                  >
+                    <Heart className={cn("mr-2 h-4 w-4", hasLiked && "fill-destructive text-destructive")} />
+                    Like
+                  </Button>
+                  <span className="text-sm text-muted-foreground">{post.likeCount || 0} likes</span>
+                </div>
             </CardContent>
           </Card>
         ) : (

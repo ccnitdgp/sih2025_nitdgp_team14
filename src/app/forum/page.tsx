@@ -7,8 +7,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, query, orderBy, serverTimestamp, doc, addDoc } from 'firebase/firestore';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, updateDocumentNonBlocking } from '@/firebase';
+import { collection, query, orderBy, serverTimestamp, doc, addDoc, arrayUnion, increment } from 'firebase/firestore';
 import { formatDistanceToNow } from 'date-fns';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -18,10 +18,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MessageSquare, PlusCircle } from 'lucide-react';
+import { MessageSquare, PlusCircle, Heart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AuthDialog } from '@/components/auth/auth-dialog';
 import { BackButton } from '@/components/layout/back-button';
+import { cn } from '@/lib/utils';
 
 const newPostSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters long.'),
@@ -72,12 +73,12 @@ export default function ForumPage() {
           authorName: `${userProfile.firstName} ${userProfile.lastName}`,
           createdAt: serverTimestamp(),
           replyCount: 0,
+          likeCount: 0,
+          likedBy: [],
         };
 
-        const docRef = await addDoc(collection(firestore, 'forumPosts'), newPost);
-        // Optionally update the new doc with its own ID, if your rules/logic need it
-        // await updateDoc(docRef, { id: docRef.id });
-
+        await addDoc(collection(firestore, 'forumPosts'), newPost);
+        
         toast({ title: 'Post Created', description: 'Your post has been added to the forum.' });
         form.reset();
         setIsDialogOpen(false);
@@ -87,6 +88,18 @@ export default function ForumPage() {
     } finally {
         setIsSubmitting(false);
     }
+  };
+
+  const handleLike = (postId: string) => {
+    if (!user || !firestore) {
+        toast({ variant: "destructive", title: "Please log in to like posts."});
+        return;
+    };
+    const postRef = doc(firestore, 'forumPosts', postId);
+    updateDocumentNonBlocking(postRef, {
+        likeCount: increment(1),
+        likedBy: arrayUnion(user.uid)
+    });
   };
 
   const PostsSkeleton = () => (
@@ -172,23 +185,37 @@ export default function ForumPage() {
         {isLoading ? (
           <PostsSkeleton />
         ) : posts && posts.length > 0 ? (
-          posts.map((post) => (
+          posts.map((post) => {
+            const hasLiked = user && post.likedBy?.includes(user.uid);
+            return (
             <Card key={post.id} className="hover:shadow-md transition-shadow">
               <CardContent className="p-4">
-                <Link href={`/forum/post/${post.id}`} className="block">
+                <Link href={`/forum/post/${post.id}`} className="block mb-2">
                   <h3 className="font-bold text-lg text-primary hover:underline">{post.title}</h3>
-                  <div className="text-sm text-muted-foreground mt-2 flex items-center gap-4">
+                </Link>
+                <div className="text-sm text-muted-foreground flex items-center gap-4 flex-wrap">
                     <span>By {post.authorName}</span>
                     <span>{post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : '...'}</span>
                     <div className="flex items-center gap-1">
                         <MessageSquare className="h-4 w-4"/>
                         <span>{post.replyCount || 0} replies</span>
                     </div>
-                  </div>
-                </Link>
+                </div>
+                 <div className="mt-4 flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={hasLiked || !user}
+                        onClick={() => handleLike(post.id)}
+                      >
+                        <Heart className={cn("mr-2 h-4 w-4", hasLiked && "fill-destructive text-destructive")} />
+                        Like
+                      </Button>
+                      <span className="text-sm text-muted-foreground">{post.likeCount || 0} likes</span>
+                 </div>
               </CardContent>
             </Card>
-          ))
+          )})
         ) : (
           <Card className="text-center p-8">
             <CardTitle>No Posts Yet</CardTitle>
