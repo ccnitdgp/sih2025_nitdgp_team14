@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Upload, CheckCircle, Clock, XCircle, FileText, ShieldCheck, QrCode, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useFirebaseApp, updateDocumentNonBlocking } from '@/firebase';
+import { useFirebaseApp } from '@/firebase';
 import { DocumentReference, updateDoc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
@@ -93,17 +93,19 @@ export function VerificationCenter({ publicProfile, doctorPublicProfileRef }: { 
         });
 
         try {
+            // Step 1: Await the file upload to complete
             const snapshot = await uploadBytes(storageRef, file);
+            
+            // Step 2: Await getting the download URL
             const downloadURL = await getDownloadURL(snapshot.ref);
 
+            // Step 3: Await the Firestore document update with the correct URL
             const updateData = {
                 [`verification.${docType}`]: {
                     status: 'Pending',
                     url: downloadURL,
                 }
             };
-
-            // Use the standard `updateDoc` and await it to ensure completion
             await updateDoc(doctorPublicProfileRef, updateData);
             
             toast({
