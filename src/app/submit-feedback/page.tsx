@@ -49,7 +49,9 @@ const FeedbackCard = ({ feedback }) => (
         </CardHeader>
         <CardContent>
             <p className="text-muted-foreground italic">&quot;{feedback.message}&quot;</p>
-            <p className="text-xs text-muted-foreground mt-4">{new Date(feedback.createdAt.seconds * 1000).toLocaleDateString()}</p>
+            <p className="text-xs text-muted-foreground mt-4">
+              {feedback.createdAt ? new Date(feedback.createdAt.seconds * 1000).toLocaleDateString() : 'Just now'}
+            </p>
         </CardContent>
     </Card>
 );
