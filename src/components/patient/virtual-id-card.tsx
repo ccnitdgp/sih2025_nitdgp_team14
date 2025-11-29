@@ -127,17 +127,19 @@ export function VirtualIdCard({ user, userProfile, t }) {
   return (
     <Card className="shadow-sm w-full max-w-lg mx-auto">
         <CardContent className="pt-6 relative">
-            <div className={cn("transition-transform duration-700", isFlipped ? '[transform:rotateY(180deg)]' : '')} style={{ transformStyle: 'preserve-3d'}}>
-                <div className="absolute w-full h-full top-0 left-0" style={{backfaceVisibility: 'hidden'}}>
-                     <VirtualIdCardFront user={user} userProfile={userProfile} t={t}/>
+            <div className="relative">
+                <div className={cn("transition-transform duration-700 w-full", isFlipped ? '[transform:rotateY(180deg)]' : '')} style={{ transformStyle: 'preserve-3d'}}>
+                    <div className="absolute w-full h-full top-0 left-0" style={{backfaceVisibility: 'hidden'}}>
+                         <VirtualIdCardFront user={user} userProfile={userProfile} t={t}/>
+                    </div>
+                     <div className="absolute w-full h-full top-0 left-0 [transform:rotateY(180deg)]" style={{backfaceVisibility: 'hidden'}}>
+                        <VirtualIdCardBack userProfile={userProfile} t={t}/>
+                    </div>
                 </div>
-                 <div className="absolute w-full h-full top-0 left-0 [transform:rotateY(180deg)]" style={{backfaceVisibility: 'hidden'}}>
-                    <VirtualIdCardBack userProfile={userProfile} t={t}/>
+                {/* Placeholder to maintain height */}
+                <div className="opacity-0">
+                    <VirtualIdCardFront user={user} userProfile={userProfile} t={t} />
                 </div>
-            </div>
-             {/* Placeholder to maintain height */}
-            <div className="opacity-0">
-                <VirtualIdCardFront user={user} userProfile={userProfile} t={t} />
             </div>
 
             <Button onClick={() => setIsFlipped(!isFlipped)} variant="outline" className="w-full mt-4">
