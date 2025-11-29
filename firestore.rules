@@ -120,144 +120,26 @@ service cloud.firestore {
     }
 
 
-    // ============================================================
-    // /doctors/{doctorId}  (DoctorProfile - public)
-    // ============================================================
-
-    match /doctors/{doctorId} {
-      // Anybody (even not signed in) can read individual doctor profiles.
-      allow get: if true;
-
-      // Doctor creates/updates their own public profile, or admin.
-      allow create, update: if isSignedIn()
-        && (
-          (request.auth.uid == doctorId && isDoctor()) ||
-          isAdmin()
-        );
-
-      // Only admin can delete.
-      allow delete: if isAdmin();
-    }
-    
-    // This rule allows anybody to list the entire /doctors collection.
-    match /doctors {
-        allow list: if true;
-    }
-
-
-    // ============================================================
-    // /appointments/{appointmentId}  (top-level)
-    // ============================================================
-
-    match /appointments/{appointmentId} {
-
-      // Helper: who is allowed to create this appointment?
-      function canCreateAppointment() {
-        let patientId = request.resource.data.patientId;
-        let doctorId  = request.resource.data.doctorId;
-
-        return
-          // patient booking for themselves
-          (isPatient() && patientId == request.auth.uid)
-          ||
-          // doctor creating for a linked patient
-          (isDoctor()
-            && doctorId == request.auth.uid
-            && exists(
-              /databases/$(database)/documents/users/$(doctorId)/patients/$(patientId)
-            ))
-          ||
-          // admin can do anything
-          isAdmin();
-      }
-
-      allow create: if isSignedIn() && canCreateAppointment();
-
-      // Read/list/update: patient, doctor involved, or admin.
-      allow get, list, update: if isSignedIn() && (
-        resource.data.patientId == request.auth.uid ||
-        resource.data.doctorId  == request.auth.uid ||
-        isAdmin()
-      );
-
-      // Only admin can delete appointments.
-      allow delete: if isAdmin();
-    }
-
-    // ============================================================
-    // /prescriptions/{prescriptionId}  (top-level)
-    // ============================================================
-    match /prescriptions/{prescriptionId} {
-        // Create: Only a doctor can create a prescription, and they must be the doctor on record.
-        allow create: if isDoctor() && request.resource.data.doctorId == request.auth.uid;
-
-        // Read, List, Update: The patient who it belongs to, the doctor who wrote it, or an admin.
-        allow get, list, update: if isSignedIn() && (
-            resource.data.patientId == request.auth.uid ||
-            resource.data.doctorId == request.auth.uid ||
-            isAdmin()
-        );
-
-        // Delete: Only the doctor who wrote it or an admin.
-        allow delete: if isSignedIn() && (
-            resource.data.doctorId == request.auth.uid ||
-            isAdmin()
-        );
-    }
-
-
-    // ============================================================
-    // Public event collections
-    // ============================================================
-
-    match /vaccinationDrives/{vaccinationDriveId} {
-      allow get, list: if true;          // public read
-      allow create, update, delete: if isAdmin();
-    }
-
-    match /healthCamps/{healthCampId} {
-      allow get, list: if true;          // public read
-      allow create, update, delete: if isAdmin();
-    }
-    
-    // ============================================================
-    // Forum collections
-    // ============================================================
-
-    match /forumPosts/{postId} {
-      // Any signed-in user can read.
-      allow get, list: if isSignedIn();
-
-      // Only patients can create posts. authorId must be their own.
-      allow create: if isPatient() && request.resource.data.authorId == request.auth.uid;
-      
-      // Only the author or an admin can update/delete.
-      allow update, delete: if isSignedIn() && (isOwner(resource.data.authorId) || isAdmin());
-
-      // --- Replies subcollection ---
-      match /replies/{replyId} {
-        // Any signed-in user can read.
-        allow get, list: if isSignedIn();
-        
-        // Only patients can create replies. authorId must be their own.
-        allow create: if isPatient() && request.resource.data.authorId == request.auth.uid;
-
-        // Only the author or an admin can update/delete.
-        allow update, delete: if isSignedIn() && (isOwner(resource.data.authorId) || isAdmin());
-      }
-    }
-    
-    // ============================================================
-    // Feedback collection
-    // ============================================================
-    
-    match /feedback/{feedbackId} {
-        // Any authenticated user can create their own feedback.
-        allow create: if isSignedIn()
-            && request.resource.data.userId == request.auth.uid;
-        
-        // Only admins can read, update, or delete feedback.
-        allow get, list, update, delete: if isAdmin();
-    }
-  }
+    // =400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
+      </head>
+      <body className="font-body antialiased">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          disableTransitionOnChange
+        >
+          <FirebaseClientProvider>
+            <div className="flex flex-col min-h-screen">
+              <Header />
+              <main className="flex-grow">{children}</main>
+              <Footer />
+            </div>
+            <Toaster />
+          </FirebaseClientProvider>
+        </ThemeProvider>
+      </body>
+    </html>
+  );
 }
+
+    
