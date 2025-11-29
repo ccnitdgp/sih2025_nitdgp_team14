@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -15,6 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Star, MessageSquare, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AuthDialog } from '@/components/auth/auth-dialog';
+import { BackButton } from '@/components/layout/back-button';
 
 const feedbackSchema = z.object({
   feedbackType: z.enum(["General Feedback", "Bug Report", "Feature Request"]),
@@ -51,10 +53,9 @@ export default function SubmitFeedbackPage() {
     if (!user || !userProfile || !firestore) return;
     
     setIsSubmitting(true);
-    const newFeedbackRef = doc(collection(firestore, 'feedback'));
+    const feedbackColRef = collection(firestore, 'feedback');
 
     const feedbackData = {
-        id: newFeedbackRef.id,
         userId: user.uid,
         userName: `${userProfile.firstName} ${userProfile.lastName}`,
         feedbackType: values.feedbackType,
@@ -64,7 +65,16 @@ export default function SubmitFeedbackPage() {
         status: "New"
     };
 
-    addDocumentNonBlocking(newFeedbackRef, feedbackData);
+    addDocumentNonBlocking(feedbackColRef, feedbackData)
+      .then((docRef) => {
+        // The id is now available on the returned docRef
+        // In a non-blocking pattern, we might not need it here, but it's good practice.
+      })
+      .catch((error) => {
+        // The error is already handled globally by the non-blocking function,
+        // but you could add specific UI feedback here if needed.
+      });
+
     toast({
         title: "Feedback Submitted",
         description: "Thank you for your feedback! We appreciate you taking the time to help us improve.",
@@ -75,6 +85,7 @@ export default function SubmitFeedbackPage() {
 
   return (
     <div className="container mx-auto max-w-2xl px-6 py-12">
+        <BackButton />
         <div className="text-center mb-12">
             <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl">
                 Submit Feedback
