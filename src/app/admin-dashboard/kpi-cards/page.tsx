@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -21,6 +22,7 @@ import { collection, query, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BackButton } from '@/components/layout/back-button';
 import { getMonth, getYear, parseISO } from 'date-fns';
+import { DashboardFilters } from '@/components/admin/dashboard-filters';
 
 
 type StatCardProps = {
@@ -96,6 +98,8 @@ export default function KpiCardsPage() {
                 A high-level overview of the platform's core metrics.
               </p>
             </div>
+            
+            <DashboardFilters />
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <StatCard

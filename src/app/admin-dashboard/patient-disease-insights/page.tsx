@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -21,6 +22,7 @@ import { AgeDistributionChart } from '@/components/admin/age-distribution-chart'
 import { GenderDistributionChart } from '@/components/admin/gender-distribution-chart';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
+import { DashboardFilters } from '@/components/admin/dashboard-filters';
 
 
 type StatCardProps = {
@@ -66,6 +68,8 @@ export default function PatientDiseaseInsightsPage() {
                 Demographic and epidemiological data analytics.
               </p>
             </div>
+            
+            <DashboardFilters />
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <StatCard

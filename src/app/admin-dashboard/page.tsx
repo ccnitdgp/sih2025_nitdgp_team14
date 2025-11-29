@@ -24,6 +24,7 @@ import {
   Wallet,
   Activity,
   Server,
+  Calendar,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DiseaseTrendChart } from '@/components/admin/disease-trend-chart';
@@ -35,6 +36,7 @@ import Link from 'next/link';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
+import { DashboardFilters } from '@/components/admin/dashboard-filters';
 
 export default function AdminDashboardPage() {
   const firestore = useFirestore();
@@ -81,6 +83,8 @@ export default function AdminDashboardPage() {
               Export Report
             </Button>
           </div>
+          
+          <DashboardFilters />
 
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
              <Card>

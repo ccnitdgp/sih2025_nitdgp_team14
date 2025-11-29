@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -19,6 +20,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { BackButton } from '@/components/layout/back-button';
 import { AppointmentTrendChart } from '@/components/admin/appointment-trend-chart';
+import { DashboardFilters } from '@/components/admin/dashboard-filters';
 
 
 type StatCardProps = {
@@ -57,6 +59,8 @@ export default function AppointmentsUtilizationPage() {
                 Analytics for appointment scheduling, no-shows, and doctor utilization.
               </p>
             </div>
+            
+            <DashboardFilters />
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <StatCard

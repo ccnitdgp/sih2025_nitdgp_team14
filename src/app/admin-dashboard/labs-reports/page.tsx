@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BackButton } from '@/components/layout/back-button';
+import { DashboardFilters } from '@/components/admin/dashboard-filters';
 
 type StatCardProps = {
   title: string;
@@ -54,6 +55,8 @@ export default function LabsReportsPage() {
                 Metrics for diagnostic turnaround times and results.
               </p>
             </div>
+            
+            <DashboardFilters />
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <StatCard

@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { BackButton } from '@/components/layout/back-button';
+import { DashboardFilters } from '@/components/admin/dashboard-filters';
 
 const ServiceStatusCard = ({ serviceName, status, icon: Icon }) => (
   <Card>
@@ -64,6 +65,8 @@ export default function SystemHealthPage() {
                 Live status of platform services, queues, and error rates.
               </p>
             </div>
+            
+            <DashboardFilters />
 
             <div className="space-y-4">
                 <h2 className="text-xl font-semibold">API &amp; Service Status</h2>
