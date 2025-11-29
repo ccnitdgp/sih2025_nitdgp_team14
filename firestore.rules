@@ -52,7 +52,7 @@ service cloud.firestore {
       allow get, update: if isOwner(userId);
 
       // Admins can delete, public can query for patient count.
-      allow list: if request.query.where.role == 'patient';
+      allow list: if request.query.where.role == 'patient' || isAdmin();
       allow delete: if isAdmin();
 
 
@@ -258,14 +258,8 @@ service cloud.firestore {
         // Any signed-in user can create feedback.
         allow create: if isSignedIn();
 
-        // Public can list feedback for testimonials if they query for high ratings.
-        allow list: if (
-            request.query.where.rating >= 4 &&
-            request.query.where.feedbackType == 'General Feedback'
-          ) || isAdmin();
-        
-        // Admins can get, update, or delete any feedback.
-        allow get, update, delete: if isAdmin();
+        // Admins can get, list, update, or delete any feedback.
+        allow get, list, update, delete: if isAdmin();
     }
   }
 }
