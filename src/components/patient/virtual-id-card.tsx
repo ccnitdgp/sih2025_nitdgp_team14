@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -36,7 +35,7 @@ const BackField = ({ label, value }) => (
 
 
 const VirtualIdCardFront = ({ user, userProfile, t }) => {
-    const qrCodeUrl = typeof window !== 'undefined' ? `${window.location.origin}/doctor-dashboard/patient/${user.uid}` : '';
+    const qrCodeUrl = typeof window !== 'undefined' ? `${window.location.origin}/doctor-dashboard/patients?patientId=${userProfile?.patientId}` : '';
 
     return (
         <div className="w-full h-[280px] bg-white rounded-lg p-4 border-2 border-gray-300 flex flex-col justify-between">
@@ -123,7 +122,9 @@ export function VirtualIdCard({ user, userProfile, t }) {
             <CardContent className="pt-6 space-y-4">
                  <Skeleton className="h-8 w-3/4" />
                  <Skeleton className="h-4 w-1/2" />
-                 <Skeleton className="h-44 w-full" />
+                 <div className="relative h-[280px]">
+                    <Skeleton className="h-full w-full" />
+                 </div>
                  <Skeleton className="h-10 w-full" />
             </CardContent>
         </Card>
@@ -133,19 +134,18 @@ export function VirtualIdCard({ user, userProfile, t }) {
   return (
     <Card className="shadow-sm w-full max-w-lg mx-auto">
         <CardContent className="pt-6 relative">
-             <div className="relative" style={{ perspective: '1000px' }}>
+             <div className="relative h-[280px]" style={{ perspective: '1000px' }}>
                 <div 
-                    className="relative w-full transition-transform duration-700"
+                    className="relative w-full h-full transition-transform duration-700"
                     style={{
-                        height: '280px',
                         transformStyle: 'preserve-3d',
                         transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
                     }}
                 >
-                    <div className="absolute w-full h-full top-0 left-0" style={{backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden'}}>
+                    <div className="absolute w-full h-full" style={{backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden'}}>
                          <VirtualIdCardFront user={user} userProfile={userProfile} t={t}/>
                     </div>
-                     <div className="absolute w-full h-full top-0 left-0 [transform:rotateY(180deg)]" style={{backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden'}}>
+                     <div className="absolute w-full h-full [transform:rotateY(180deg)]" style={{backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden'}}>
                         <VirtualIdCardBack userProfile={userProfile} t={t}/>
                     </div>
                 </div>

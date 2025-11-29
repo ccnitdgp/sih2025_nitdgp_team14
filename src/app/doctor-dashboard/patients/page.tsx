@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -8,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Bot, Loader2, Search, Sparkles, UserCheck, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { PatientProfileTab } from '@/components/doctor/patient-profile-tab';
@@ -23,8 +23,9 @@ export default function DoctorPatientsPage() {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
+  const searchParams = useSearchParams();
 
-  const [patientId, setPatientId] = useState('');
+  const [patientIdInput, setPatientIdInput] = useState('');
   const [otp, setOtp] = useState('');
   
   const [foundPatient, setFoundPatient] = useState(null);
@@ -33,6 +34,16 @@ export default function DoctorPatientsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [summary, setSummary] = useState<string | null>(null);
+
+  useEffect(() => {
+    const patientIdFromUrl = searchParams.get('patientId');
+    if (patientIdFromUrl) {
+      setPatientIdInput(patientIdFromUrl);
+      // Automatically trigger the search if the ID is in the URL
+      handleFindPatient(patientIdFromUrl);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const medicalHistoryQuery = useMemoFirebase(() => {
     if (!foundPatient?.id || !firestore) return null;
@@ -44,15 +55,16 @@ export default function DoctorPatientsPage() {
 
   const { data: medicalHistory } = useCollection(medicalHistoryQuery);
 
-  const handleFindPatient = async () => {
-    if (!patientId.trim()) {
+  const handleFindPatient = async (idToSearch?: string) => {
+    const searchId = idToSearch || patientIdInput;
+    if (!searchId.trim()) {
       toast({ variant: 'destructive', title: 'Patient ID is required.' });
       return;
     }
     setIsLoading(true);
     setFoundPatient(null);
     try {
-      const q = query(collection(firestore, 'users'), where('patientId', '==', patientId.trim()));
+      const q = query(collection(firestore, 'users'), where('patientId', '==', searchId.trim()));
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
@@ -123,11 +135,11 @@ export default function DoctorPatientsPage() {
               <div className="flex max-w-md items-center space-x-2">
                 <Input
                   placeholder="Enter Patient ID (e.g., PT-XXXXXXXXXX)"
-                  value={patientId}
-                  onChange={(e) => setPatientId(e.target.value)}
+                  value={patientIdInput}
+                  onChange={(e) => setPatientIdInput(e.target.value)}
                   disabled={isLoading}
                 />
-                <Button onClick={handleFindPatient} disabled={isLoading}>
+                <Button onClick={() => handleFindPatient()} disabled={isLoading}>
                   {isLoading ? <Loader2 className="mr-2 animate-spin" /> : <Search className="mr-2" />}
                   Find Patient
                 </Button>
@@ -151,7 +163,12 @@ export default function DoctorPatientsPage() {
                     Verify & View Records
                   </Button>
                 </div>
-                 <Button variant="link" onClick={() => setViewState('search')}>Search for another patient</Button>
+                 <Button variant="link" onClick={() => {
+                   setViewState('search');
+                   setPatientIdInput('');
+                   setFoundPatient(null);
+                   setOtp('');
+                 }}>Search for another patient</Button>
               </div>
             )}
           </CardContent>
