@@ -39,7 +39,7 @@ const VirtualIdCardFront = ({ user, userProfile, t }) => {
     const qrCodeUrl = typeof window !== 'undefined' ? `${window.location.origin}/doctor-dashboard/patient/${user.uid}` : '';
 
     return (
-        <div className="w-full bg-white rounded-lg p-4 border-2 border-gray-300">
+        <div className="w-full h-[280px] bg-white rounded-lg p-4 border-2 border-gray-300 flex flex-col justify-between">
              <div className="flex justify-between items-start border-b-2 border-gray-200 pb-2">
                 <Logo className="scale-90 -ml-2" />
                 <div className="text-right">
@@ -76,12 +76,12 @@ const VirtualIdCardFront = ({ user, userProfile, t }) => {
 };
 
 const VirtualIdCardBack = ({ userProfile, t }) => (
-    <div className="w-full bg-white rounded-lg p-3 border-2 border-gray-300 text-sm leading-tight text-gray-700">
+    <div className="w-full h-[280px] bg-white rounded-lg p-3 border-2 border-gray-300 text-sm leading-tight text-gray-700 flex flex-col justify-between">
         <div className="text-center border-b pb-2">
             <h4 className="font-bold text-base text-primary">{t('id_card_back_important_info', 'Important Information')}</h4>
         </div>
         
-        <div className="mt-2 space-y-3">
+        <div className="mt-2 space-y-3 flex-grow">
             <div>
                 <p className="font-semibold text-xs text-muted-foreground">{t('id_card_back_emergency_text_title', 'In case of emergency, please call:')}</p>
                 <p className="text-base font-bold">{userProfile?.emergencyContact?.phone || t('id_card_back_no_contact', 'Not Provided')}</p>
@@ -93,15 +93,9 @@ const VirtualIdCardBack = ({ userProfile, t }) => (
                 <p className="text-xs">{userProfile?.address?.fullAddress || t('id_card_back_no_address', 'No address on file.')}</p>
                  <p className="text-xs">{userProfile?.address?.cityStateCountry}</p>
             </div>
-            
-            <div className="border-t pt-2 space-y-1">
-                <p className="font-semibold text-xs text-muted-foreground">{t('id_card_back_contact_swasthya', 'Contact Swasthya:')}</p>
-                <p className="text-xs">{t('id_card_back_member_services', 'Member Services:')} +91 98765 43210</p>
-                <p className="text-xs">info@swasthya.example.com</p>
-            </div>
         </div>
 
-        <div className="text-center text-[10px] text-muted-foreground mt-4 pt-2 border-t">
+        <div className="text-center text-[10px] text-muted-foreground mt-2 pt-2 border-t">
             {t('id_card_back_is_not_insurance', 'This is not an insurance card.')}
         </div>
     </div>
@@ -127,10 +121,11 @@ export function VirtualIdCard({ user, userProfile, t }) {
   return (
     <Card className="shadow-sm w-full max-w-lg mx-auto">
         <CardContent className="pt-6 relative">
-             <div className="relative">
+             <div className="relative" style={{ perspective: '1000px' }}>
                 <div 
                     className="relative w-full transition-transform duration-700"
                     style={{
+                        height: '280px',
                         transformStyle: 'preserve-3d',
                         transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
                     }}
@@ -141,15 +136,6 @@ export function VirtualIdCard({ user, userProfile, t }) {
                      <div className="absolute w-full h-full top-0 left-0 [transform:rotateY(180deg)]" style={{backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden'}}>
                         <VirtualIdCardBack userProfile={userProfile} t={t}/>
                     </div>
-                </div>
-
-                {/* Conditional placeholders to reserve space and prevent overlap */}
-                <div className="opacity-0 pointer-events-none">
-                    {isFlipped ? (
-                        <VirtualIdCardBack userProfile={userProfile} t={t}/>
-                    ) : (
-                        <VirtualIdCardFront user={user} userProfile={userProfile} t={t}/>
-                    )}
                 </div>
             </div>
 
