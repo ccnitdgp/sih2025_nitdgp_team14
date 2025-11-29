@@ -164,27 +164,22 @@ service cloud.firestore {
     // /prescriptions/{prescriptionId} (Prescription)
     // ============================================================
     match /prescriptions/{prescriptionId} {
-      // Allow both get + query (list) for:
-      // - the patient on the prescription
-      // - the doctor on the prescription
-      // - admins
-      allow read: if isSignedIn()
-        && (
-          resource.data.patientId == request.auth.uid ||
-          resource.data.doctorId == request.auth.uid ||
-          isAdmin()
-        );
+      // READ: A user can read a single prescription doc if they are the patient or doctor on it.
+      allow get: if isSignedIn() && (resource.data.patientId == request.auth.uid || resource.data.doctorId == request.auth.uid || isAdmin());
+      
+      // LIST (QUERY): A user can query prescriptions only if they filter by their OWN patientId or doctorId.
+      // This prevents a user from listing all prescriptions in the database.
+      allow list: if isSignedIn() && (
+        (request.query.where.doctorId == request.auth.uid && isDoctor()) ||
+        (request.query.where.patientId == request.auth.uid && isPatient()) ||
+        isAdmin()
+      );
 
-      // (Optional) example create rule:
-      allow create: if isSignedIn()
-        && (
-          // doctors can create prescriptions where they are the doctor
-          (isDoctor() &&
-           request.resource.data.doctorId == request.auth.uid)
-        );
+      // CREATE: A doctor can create a prescription if they are the doctor listed on it.
+      allow create: if isSignedIn() && isDoctor() && request.resource.data.doctorId == request.auth.uid;
 
-        // Update/Delete: Only the prescribing doctor or an admin.
-        allow update, delete: if isOwner(resource.data.doctorId) || isAdmin();
+      // UPDATE/DELETE: Only the prescribing doctor or an admin can modify/delete it.
+      allow update, delete: if isSignedIn() && (isOwner(resource.data.doctorId) || isAdmin());
     }
 
 
