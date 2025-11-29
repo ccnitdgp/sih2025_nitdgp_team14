@@ -3,7 +3,7 @@
 
 import { useEffect } from 'react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { doc } from 'firebase/firestore';
 
 export function RoleRedirect() {
@@ -11,6 +11,7 @@ export function RoleRedirect() {
   const firestore = useFirestore();
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const userDocRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
@@ -30,6 +31,12 @@ export function RoleRedirect() {
     }
 
     if (user && userProfile) {
+      const redirectPath = searchParams.get('redirect');
+      if (redirectPath) {
+        router.replace(redirectPath);
+        return;
+      }
+      
       const { role } = userProfile;
       
       if (role === 'admin') {
@@ -46,7 +53,7 @@ export function RoleRedirect() {
         // If the user is not logged in, send them to the homepage.
         router.replace('/');
     }
-  }, [user, userProfile, isUserLoading, isProfileLoading, router, pathname]);
+  }, [user, userProfile, isUserLoading, isProfileLoading, router, pathname, searchParams]);
 
   return null; // This component does not render anything
 }

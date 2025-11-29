@@ -41,7 +41,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -145,6 +145,7 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
   const firestore = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
+  const pathname = usePathname();
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -181,12 +182,20 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
 
   const selectedRole = signupForm.watch("role");
 
+  const getRedirectUrl = () => {
+      const dashboardPaths = ['/patient-dashboard', '/doctor-dashboard', '/admin-dashboard'];
+      if (pathname === '/' || dashboardPaths.some(p => pathname.startsWith(p))) {
+        return '/login-redirect';
+      }
+      return `/login-redirect?redirect=${pathname}`;
+  }
+
   async function onLoginSubmit(values: z.infer<typeof loginSchema>) {
     try {
       await initiateEmailSignIn(auth, values.email, values.password);
       setOpen(false);
       onOpenChange?.(false);
-      router.push('/login-redirect');
+      router.push(getRedirectUrl());
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -299,7 +308,7 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
         
         setOpen(false);
         onOpenChange?.(false);
-        router.push('/login-redirect');
+        router.push(getRedirectUrl());
         
     } catch (error: any) {
         let errorMessage = error.message;
