@@ -30,11 +30,15 @@ const newPostSchema = z.object({
   content: z.string().min(10, 'Post content must be at least 10 characters long.'),
 });
 
-const PostStat = ({ icon: Icon, count }) => {
+const PostStat = ({ icon: Icon, count, children }) => {
     return (
         <div className="flex items-center gap-1.5 text-muted-foreground transition-colors">
-            <Icon className="h-4 w-4" />
-            <span className="text-sm font-medium">{count || 0}</span>
+            {children || (
+                <>
+                    <Icon className="h-4 w-4" />
+                    <span className="text-sm font-medium">{count || 0}</span>
+                </>
+            )}
         </div>
     );
 };
@@ -105,7 +109,6 @@ export default function ForumPage() {
   };
 
   const handleToggleLike = (e: React.MouseEvent, post: any) => {
-    e.preventDefault();
     e.stopPropagation();
     if (!user || !firestore) {
         toast({ variant: "destructive", title: "Please log in to like posts."});
@@ -226,42 +229,44 @@ export default function ForumPage() {
             const hasLiked = user && post.likedBy?.includes(user.uid);
             return (
               <AccordionItem value={post.id} key={post.id} className="border-none">
-                <Card className="hover:bg-muted/50 transition-colors">
-                  <AccordionTrigger className="p-0 w-full hover:no-underline" hideChevron>
-                  <CardContent className="p-4 flex gap-4 w-full text-left">
-                      <div className="flex-1">
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                              <Avatar className="h-6 w-6">
-                                  <AvatarImage src={`https://picsum.photos/seed/${post.authorId}/40`} />
-                                  <AvatarFallback>{post.authorName?.charAt(0)}</AvatarFallback>
-                              </Avatar>
-                              <span>Posted by <span className="font-medium text-foreground">{post.authorName}</span></span>
-                              <span>•</span>
-                              <span>{post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : '...'}</span>
-                          </div>
-                          <h3 className="font-bold text-lg text-primary">{post.title}</h3>
-                          <p className="text-sm text-muted-foreground line-clamp-2 my-2">{post.content}</p>
-                          <div className="flex items-center gap-4 mt-3">
-                              <div className="flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-primary">
-                                    <MessageSquare className="h-4 w-4" />
-                                    <span className="text-sm font-medium">{post.replyCount || 0}</span>
-                              </div>
-                              <PostStat icon={Eye} count={post.viewCount} />
-                               <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="flex items-center gap-1.5 text-muted-foreground p-1 h-auto -ml-1"
-                                  disabled={!user}
-                                  onClick={(e) => handleToggleLike(e, post)}
-                                >
-                                <Heart className={cn("h-4 w-4", hasLiked && "text-destructive fill-destructive")} />
-                                <span className="text-sm font-medium">{post.likeCount || 0}</span>
-                              </Button>
-                          </div>
+                 <Card className="hover:bg-muted/50 transition-colors">
+                    <CardContent className="p-4 flex flex-col gap-3">
+                      <AccordionTrigger className="w-full text-left p-0 hover:no-underline" hideChevron>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                            <Avatar className="h-6 w-6">
+                                <AvatarImage src={`https://picsum.photos/seed/${post.authorId}/40`} />
+                                <AvatarFallback>{post.authorName?.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <span>Posted by <span className="font-medium text-foreground">{post.authorName}</span></span>
+                            <span>•</span>
+                            <span>{post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : '...'}</span>
+                        </div>
+                        <h3 className="font-bold text-lg text-primary">{post.title}</h3>
+                        <p className="text-sm text-muted-foreground line-clamp-2 my-2">{post.content}</p>
+                      </AccordionTrigger>
+                      <div className="flex items-center gap-4 mt-2">
+                          <PostStat count={post.replyCount}>
+                            <AccordionTrigger className="flex items-center gap-1.5 p-0 hover:no-underline text-muted-foreground transition-colors hover:text-primary" hideChevron>
+                              <MessageSquare className="h-4 w-4" />
+                              <span className="text-sm font-medium">{post.replyCount || 0}</span>
+                            </AccordionTrigger>
+                          </PostStat>
+                          <PostStat icon={Eye} count={post.viewCount} />
+                           <PostStat>
+                             <Button
+                                variant="ghost"
+                                size="sm"
+                                className="flex items-center gap-1.5 text-muted-foreground p-1 h-auto -ml-1 hover:text-primary"
+                                disabled={!user}
+                                onClick={(e) => handleToggleLike(e, post)}
+                              >
+                              <Heart className={cn("h-4 w-4", hasLiked && "text-destructive fill-destructive")} />
+                              <span className="text-sm font-medium">{post.likeCount || 0}</span>
+                            </Button>
+                          </PostStat>
                       </div>
-                  </CardContent>
-                  </AccordionTrigger>
-                </Card>
+                    </CardContent>
+                 </Card>
                  <AccordionContent>
                     <div className="pl-4 pr-2 pt-2 pb-4">
                       <PostReplies postId={post.id} />
@@ -279,3 +284,4 @@ export default function ForumPage() {
     </div>
   );
 }
+
