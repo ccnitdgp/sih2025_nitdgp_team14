@@ -25,7 +25,6 @@ const StatCard = ({ title, value, icon: Icon, description }) => (
   </Card>
 );
 
-
 export default function AdminDashboardPage() {
     
   const handleExport = () => {
@@ -45,7 +44,7 @@ export default function AdminDashboardPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  }
+  };
 
   return (
     <div className="bg-muted/40 min-h-screen">
