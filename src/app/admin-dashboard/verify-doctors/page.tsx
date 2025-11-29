@@ -23,7 +23,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import Image from 'next/image';
 
 const verificationItems = [
     { id: 'medicalDegree', label: 'Medical Degree Certificate' },
@@ -260,12 +259,11 @@ export default function VerifyDoctorsPage() {
                     <DialogDescription>Review the uploaded document below.</DialogDescription>
                 </DialogHeader>
                  {viewingDocumentUrl && (
-                    <div className="relative h-[80vh] w-full mt-4">
-                        <Image
+                    <div className="mt-4">
+                        <img
                             src={viewingDocumentUrl}
                             alt="Verification document"
-                            layout="fill"
-                            objectFit="contain"
+                            className="max-h-[80vh] w-full object-contain"
                         />
                     </div>
                  )}
@@ -279,4 +277,5 @@ export default function VerifyDoctorsPage() {
   );
 
     
-}
+
+    
