@@ -1,3 +1,4 @@
+
 'use client';
 import { Twitter, Facebook, Instagram } from "lucide-react";
 import Link from "next/link";
@@ -25,10 +26,12 @@ const footerLinks = [
   { href: "/privacy-policy", label: "Privacy Policy", i18n_key: "footer_privacy_policy" },
   { href: "/terms-of-service", label: "Terms of Service", i18n_key: "footer_terms_of_service" },
   { href: "/submit-feedback", label: "Submit Feedback", i18n_key: "footer_feedback" },
+  { href: "/feedback", label: "User Feedback", i18n_key: "footer_feedback" },
   { href: "/help-and-support", label: "Help & Support", i18n_key: "footer_help_support" },
 ];
 
 const serviceLinks = [
+    { href: "/#community-insights", label: "Insights", i18n_key: "insights_link" },
     { href: "/vaccination", label: "Vaccination Drives", i18n_key: "vaccination_drive_link" },
     { href: "/camps", label: "Health Camps", i18n_key: "visiting_camps_link" },
     { href: "/announcements", label: "Announcements", i18n_key: "announcements_link" },
