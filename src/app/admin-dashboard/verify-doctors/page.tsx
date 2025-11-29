@@ -253,18 +253,26 @@ export default function VerifyDoctorsPage() {
         </Dialog>
 
         <Dialog open={!!viewingDocumentUrl} onOpenChange={() => setViewingDocumentUrl(null)}>
-            <DialogContent className="max-w-3xl">
+            <DialogContent className="max-w-3xl h-[90vh]">
                 <DialogHeader>
                     <DialogTitle>Document Viewer</DialogTitle>
                     <DialogDescription>Review the uploaded document below.</DialogDescription>
                 </DialogHeader>
                  {viewingDocumentUrl && (
-                    <div className="mt-4">
-                        <img
-                            src={viewingDocumentUrl}
-                            alt="Verification document"
-                            className="max-h-[80vh] w-full object-contain"
-                        />
+                    <div className="mt-4 flex-grow">
+                        {viewingDocumentUrl.startsWith('data:application/pdf') ? (
+                             <iframe
+                                src={viewingDocumentUrl}
+                                className="h-full w-full"
+                                title="Document viewer"
+                            />
+                        ) : (
+                            <img
+                                src={viewingDocumentUrl}
+                                alt="Verification document"
+                                className="max-h-full w-full object-contain"
+                            />
+                        )}
                     </div>
                  )}
                 <DialogFooter>
@@ -276,6 +284,4 @@ export default function VerifyDoctorsPage() {
     </div>
   );
 
-    
-
-    
+}

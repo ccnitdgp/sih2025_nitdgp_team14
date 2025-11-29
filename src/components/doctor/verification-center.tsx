@@ -93,7 +93,7 @@ export function VerificationCenter({ publicProfile, doctorPublicProfileRef }: { 
             };
 
             // Use the non-blocking update
-            updateDocumentNonBlocking(doctorPublicProfileRef, updateData);
+            await updateDocumentNonBlocking(doctorPublicProfileRef, updateData);
             
             toast({
                 title: 'Document Submitted',
