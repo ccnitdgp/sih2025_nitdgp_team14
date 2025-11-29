@@ -29,7 +29,6 @@ import {
   UserCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { DoctorLoadChart } from '@/components/admin/doctor-load-chart';
 import { AgeDistributionChart } from '@/components/admin/age-distribution-chart';
 import { OutbreakHeatmap } from '@/components/admin/outbreak-heatmap';
 import Link from 'next/link';
@@ -333,36 +332,6 @@ export default function AdminDashboardPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users />
-                  Patient Demographics
-                </CardTitle>
-                <CardDescription>
-                  Age distribution of registered patients.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <AgeDistributionChart patients={patients} isLoading={isLoadingPatients}/>
-              </CardContent>
-            </Card>
-
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User />
-                  Doctor Workload
-                </CardTitle>
-                <CardDescription>
-                  Appointments handled per doctor this week.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <DoctorLoadChart />
-              </CardContent>
-            </Card>
-
-            <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle>Outbreak Heatmap</CardTitle>
                 <CardDescription>
