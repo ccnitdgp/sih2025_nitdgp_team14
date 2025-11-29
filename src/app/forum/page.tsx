@@ -1,16 +1,15 @@
+
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, updateDocumentNonBlocking } from '@/firebase';
 import { collection, query, orderBy, serverTimestamp, doc, addDoc, arrayUnion, increment } from 'firebase/firestore';
 import { formatDistanceToNow } from 'date-fns';
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -23,33 +22,26 @@ import { AuthDialog } from '@/components/auth/auth-dialog';
 import { BackButton } from '@/components/layout/back-button';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { PostRepliesDialog } from '@/components/forum/post-replies-dialog';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { PostReplies } from '@/components/forum/post-replies';
 
 const newPostSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters long.'),
   content: z.string().min(10, 'Post content must be at least 10 characters long.'),
 });
 
-const PostStat = ({ icon: Icon, count, postId, isReplies = false }) => {
-    const trigger = (
-        <div className="flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-primary">
+const PostStat = ({ icon: Icon, count }) => {
+    return (
+        <div className="flex items-center gap-1.5 text-muted-foreground transition-colors">
             <Icon className="h-4 w-4" />
             <span className="text-sm font-medium">{count || 0}</span>
         </div>
     );
-
-    if (isReplies) {
-        return (
-            <PostRepliesDialog postId={postId} replyCount={count} trigger={trigger} />
-        )
-    }
-
-    return trigger;
 };
 
 
 export default function ForumPage() {
-  const { user, isUserLoading } = useUser();
+  const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -215,43 +207,53 @@ export default function ForumPage() {
         </Dialog>
       </div>
 
-      <div className="space-y-4">
+      <Accordion type="single" collapsible className="w-full space-y-4">
         {isLoading ? (
           <PostsSkeleton />
         ) : posts && posts.length > 0 ? (
           posts.map((post) => {
             const hasLiked = user && post.likedBy?.includes(user.uid);
             return (
-                <Link key={post.id} href={`/forum/post/${post.id}`} className="block">
-                  <Card className="hover:bg-muted/50 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-                      <CardContent className="p-4 flex gap-4">
-                          <div className="hidden sm:flex flex-col items-center space-y-2 p-2 bg-muted/50 rounded-lg">
-                              <Button variant="ghost" size="icon" className="h-8 w-8" disabled={hasLiked || !user} onClick={(e) => handleLike(e, post.id)}>
-                                  <ArrowUp className={cn("h-5 w-5", hasLiked && "text-primary fill-primary")} />
-                              </Button>
-                              <span className="font-bold text-sm">{post.likeCount || 0}</span>
+              <AccordionItem value={post.id} key={post.id} className="border-none">
+                <Card className="hover:bg-muted/50 transition-colors">
+                  <CardContent className="p-4 flex gap-4">
+                      <div className="hidden sm:flex flex-col items-center space-y-2 p-2 bg-muted/50 rounded-lg">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" disabled={hasLiked || !user} onClick={(e) => handleLike(e, post.id)}>
+                              <ArrowUp className={cn("h-5 w-5", hasLiked && "text-primary fill-primary")} />
+                          </Button>
+                          <span className="font-bold text-sm">{post.likeCount || 0}</span>
+                      </div>
+                      <div className="flex-1">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                              <Avatar className="h-6 w-6">
+                                  <AvatarImage src={`https://picsum.photos/seed/${post.authorId}/40`} />
+                                  <AvatarFallback>{post.authorName?.charAt(0)}</AvatarFallback>
+                              </Avatar>
+                              <span>Posted by <span className="font-medium text-foreground">{post.authorName}</span></span>
+                              <span>•</span>
+                              <span>{post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : '...'}</span>
                           </div>
-                          <div className="flex-1">
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                                  <Avatar className="h-6 w-6">
-                                      <AvatarImage src={`https://picsum.photos/seed/${post.authorId}/40`} />
-                                      <AvatarFallback>{post.authorName?.charAt(0)}</AvatarFallback>
-                                  </Avatar>
-                                  <span>Posted by <span className="font-medium text-foreground">{post.authorName}</span></span>
-                                  <span>•</span>
-                                  <span>{post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : '...'}</span>
-                              </div>
-                              <h3 className="font-bold text-lg text-primary">{post.title}</h3>
-                              <p className="text-sm text-muted-foreground line-clamp-2 my-2">{post.content}</p>
-                              <div className="flex items-center gap-4 mt-3">
-                                  <PostStat icon={MessageSquare} count={post.replyCount} postId={post.id} isReplies={true} />
-                                  <PostStat icon={Eye} count={post.viewCount} />
-                                  <PostStat icon={Heart} count={post.likeCount} />
-                              </div>
+                          <h3 className="font-bold text-lg text-primary">{post.title}</h3>
+                          <p className="text-sm text-muted-foreground line-clamp-2 my-2">{post.content}</p>
+                          <div className="flex items-center gap-4 mt-3">
+                              <AccordionTrigger className="p-1 rounded-md hover:bg-accent -ml-1">
+                                <div className="flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-primary">
+                                    <MessageSquare className="h-4 w-4" />
+                                    <span className="text-sm font-medium">{post.replyCount || 0}</span>
+                                </div>
+                              </AccordionTrigger>
+                              <PostStat icon={Eye} count={post.viewCount} />
+                              <PostStat icon={Heart} count={post.likeCount} />
                           </div>
-                      </CardContent>
-                  </Card>
-                </Link>
+                      </div>
+                  </CardContent>
+                </Card>
+                 <AccordionContent>
+                    <div className="pl-4 pr-2 pt-2 pb-4">
+                      <PostReplies postId={post.id} />
+                    </div>
+                 </AccordionContent>
+              </AccordionItem>
           )})
         ) : (
           <Card className="text-center p-8">
@@ -259,7 +261,7 @@ export default function ForumPage() {
             <CardDescription>Be the first to start a conversation in the community forum!</CardDescription>
           </Card>
         )}
-      </div>
+      </Accordion>
     </div>
   );
 }
