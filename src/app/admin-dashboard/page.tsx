@@ -37,7 +37,6 @@ import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { DiseaseTrendChart } from '@/components/admin/disease-trend-chart';
 
 export default function AdminDashboardPage() {
   const firestore = useFirestore();
@@ -382,20 +381,6 @@ export default function AdminDashboardPage() {
               </CardHeader>
               <CardContent>
                 <OutbreakHeatmap />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity />
-                  Disease &amp; Symptom Trends
-                </CardTitle>
-                <CardDescription>
-                  Reported cases of Influenza over the last 7 days.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <DiseaseTrendChart />
               </CardContent>
             </Card>
           </div>
