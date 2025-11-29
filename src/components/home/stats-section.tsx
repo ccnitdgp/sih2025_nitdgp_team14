@@ -1,9 +1,9 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useState, useEffect, useMemo } from 'react';
+import { useUser, useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
+import { collection, doc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { stats } from "@/lib/data";
 import hi from '@/lib/locales/hi.json';
@@ -48,6 +48,13 @@ export function StatsSection() {
   }, [user, firestore]);
 
   const { data: userProfile } = useDoc(userDocRef);
+  
+  const drivesQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'vaccinationDrives');
+  }, [firestore]);
+  
+  const { data: drives } = useCollection(drivesQuery);
 
   useEffect(() => {
     if (userProfile?.preferredLanguage && languageFiles[userProfile.preferredLanguage]) {
@@ -59,7 +66,17 @@ export function StatsSection() {
 
   const t = (key: string, fallback: string) => translations[key] || fallback;
 
-  const displayStats = stats.length > 0 ? stats : staticStats;
+  const displayStats = useMemo(() => {
+    const dynamicStats = [...staticStats];
+    if (drives) {
+      const driveStatIndex = dynamicStats.findIndex(s => s.name === 'stat_vaccination_drives');
+      if (driveStatIndex !== -1) {
+        dynamicStats[driveStatIndex].value = `${drives.length}+`;
+      }
+    }
+    return dynamicStats;
+  }, [drives]);
+
 
   return (
     <section className="py-12 sm:py-24">

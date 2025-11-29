@@ -20,65 +20,24 @@ export const stats: Stat[] = [
   {
     id: 1,
     name: 'stat_vaccination_drives',
-    value: '12+',
+    value: '0+',
     icon: Syringe,
   },
   {
     id: 2,
     name: 'stat_health_camps',
-    value: '25+',
+    value: '0+',
     icon: Stethoscope,
   },
   {
     id: 3,
     name: 'stat_records_secured',
-    value: '10K+',
+    value: '0+',
     icon: HeartPulse,
   },
 ];
 
-export const vaccinationDrives = [
-    {
-        "id": 1,
-        "name": "COVID-19 Booster Dose Drive",
-        "location": "Community Hall, Near Labour Chowk",
-        "date": "25th August 2024",
-        "name_key": "vaccination_drive_1_name",
-        "location_key": "vaccination_drive_1_location",
-        "details_key": "vaccination_drive_1_details",
-        "details": "Free COVID-19 booster shots (Covishield & Covaxin) available for all eligible individuals. Please bring your previous vaccination certificate and Aadhar card for registration."
-    },
-    {
-        "id": 2,
-        "name": "Children's Immunization Camp (Polio & MMR)",
-        "location": "Anganwadi Center, Near Site 5",
-        "date": "28th August 2024",
-        "name_key": "vaccination_drive_2_name",
-        "location_key": "vaccination_drive_2_location",
-        "details_key": "vaccination_drive_2_details",
-        "details": "Free Polio and MMR vaccines for children under 5. Please bring the child's birth certificate and immunization card."
-    },
-    {
-        "id": 3,
-        "name": "Tetanus & Diphtheria (Td) Vaccination for Adults",
-        "location": "Sector 18 Community Center",
-        "date": "1st September 2024",
-        "name_key": "vaccination_drive_3_name",
-        "location_key": "vaccination_drive_3_location",
-        "details_key": "vaccination_drive_3_details",
-        "details": "Td vaccine for adults. Recommended for everyone, especially those with recent injuries. No prior registration required."
-    },
-    {
-        "id": 4,
-        "name": "Hepatitis B Vaccination Drive",
-        "location": "Govt. Primary School, Phase 3",
-        "date": "5th September 2024",
-        "name_key": "vaccination_drive_4_name",
-        "location_key": "vaccination_drive_4_location",
-        "details_key": "vaccination_drive_4_details",
-        "details": "First and second doses of Hepatitis B vaccine available. Open for all age groups."
-    }
-];
+export const vaccinationDrives = [];
 
 export const visitingCamps = [
     {
