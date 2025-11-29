@@ -243,7 +243,16 @@ export default function ForumPage() {
                                 </div>
                               </AccordionTrigger>
                               <PostStat icon={Eye} count={post.viewCount} />
-                              <PostStat icon={Heart} count={post.likeCount} />
+                               <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="flex items-center gap-1.5 text-muted-foreground p-1 h-auto -ml-1"
+                                  disabled={hasLiked || !user}
+                                  onClick={(e) => handleLike(e, post.id)}
+                                >
+                                <Heart className={cn("h-4 w-4", hasLiked && "text-destructive fill-destructive")} />
+                                <span className="text-sm font-medium">{post.likeCount || 0}</span>
+                              </Button>
                           </div>
                       </div>
                   </CardContent>
