@@ -1,15 +1,14 @@
 
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Upload, CheckCircle, Clock, XCircle, FileText, ShieldCheck, QrCode, Loader2, Camera, AlertTriangle } from 'lucide-react';
+import { Upload, CheckCircle, Clock, XCircle, FileText, ShieldCheck, QrCode } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { updateDocumentNonBlocking } from '@/firebase';
 import { DocumentReference } from 'firebase/firestore';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 const verificationItems = [
     { id: 'medicalDegree', label: 'Medical Degree Certificate', required: true },
@@ -29,8 +28,6 @@ const StatusBadge = ({ status }) => {
             return <Badge variant="secondary"><Clock className="mr-1 h-3 w-3" />Pending</Badge>;
         case 'Rejected':
             return <Badge variant="destructive"><XCircle className="mr-1 h-3 w-3" />Rejected</Badge>;
-        case 'Suspended':
-            return <Badge variant="default" className="bg-yellow-500 hover:bg-yellow-600 text-yellow-foreground"><AlertTriangle className="mr-1 h-3 w-3" />Suspended</Badge>;
         default:
             return <Badge variant="outline">Not Uploaded</Badge>;
     }
@@ -62,98 +59,61 @@ const VerificationItem = ({ label, status, onUpload, isRequired }) => {
     );
 };
 
-
-const QrScannerDialog = ({ isOpen, onOpenChange }) => {
-    const [scanState, setScanState] = useState<'scanning' | 'failed' | 'success'>('scanning');
-
-    useEffect(() => {
-        if (isOpen) {
-            setScanState('scanning');
-            // Simulate scanning process
-            const timer = setTimeout(() => {
-                // Simulate a failure for demonstration purposes
-                setScanState(Math.random() > 0.5 ? 'failed' : 'success');
-            }, 3000);
-            return () => clearTimeout(timer);
-        }
-    }, [isOpen]);
-
-    return (
-        <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2"><QrCode/> Scan Certificate QR Code</DialogTitle>
-                    <DialogDescription>Position the QR code on the certificate within the frame.</DialogDescription>
-                </DialogHeader>
-                <div className="aspect-square w-full rounded-lg bg-black flex items-center justify-center p-4">
-                    {scanState === 'scanning' && (
-                        <div className="flex flex-col items-center gap-4 text-white">
-                            <Camera className="h-16 w-16" />
-                            <p>Simulating camera view...</p>
-                            <Loader2 className="h-8 w-8 animate-spin"/>
-                        </div>
-                    )}
-                    {scanState === 'failed' && (
-                         <div className="flex flex-col items-center gap-4 text-center text-white">
-                            <AlertTriangle className="h-16 w-16 text-destructive" />
-                            <p className="font-semibold">QR Code Verification Failed</p>
-                            <p className="text-sm text-muted-foreground">Could not verify the document automatically. Please proceed with a manual document upload.</p>
-                             <Button onClick={() => onOpenChange(false)}>Close</Button>
-                        </div>
-                    )}
-                    {scanState === 'success' && (
-                         <div className="flex flex-col items-center gap-4 text-center text-white">
-                            <CheckCircle className="h-16 w-16 text-green-500" />
-                            <p className="font-semibold">Verification Successful!</p>
-                            <p className="text-sm text-muted-foreground">The document details have been automatically fetched and updated.</p>
-                             <Button onClick={() => onOpenChange(false)}>Done</Button>
-                        </div>
-                    )}
-                </div>
-            </DialogContent>
-        </Dialog>
-    )
+// This is a placeholder function. In a real application, you would
+// upload the file to a service like Firebase Storage and return the URL.
+async function uploadFileToStorage(file: File): Promise<string> {
+    // Simulate upload delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // For this prototype, we'll read the file as a data URI.
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = (error) => reject(error);
+    });
 }
-
 
 export function VerificationCenter({ publicProfile, doctorPublicProfileRef }: { publicProfile: any, doctorPublicProfileRef: DocumentReference | null }) {
     const { toast } = useToast();
-    const [isScannerOpen, setIsScannerOpen] = useState(false);
 
-    const handleUpload = (docType: string, file: File) => {
+    const handleUpload = async (docType: string, file: File) => {
         if (!doctorPublicProfileRef) return;
         
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => {
-            const dataUri = reader.result as string;
+        toast({
+            title: 'Uploading Document...',
+            description: `${file.name} is being uploaded.`,
+        });
+
+        try {
+            // Use the placeholder upload function
+            const fileUrl = await uploadFileToStorage(file);
 
             const updateData = {
                 [`verification.${docType}`]: {
                     status: 'Pending',
-                    url: dataUri,
+                    url: fileUrl, // Use the returned URL
                 }
             };
 
+            // Use the non-blocking update
             updateDocumentNonBlocking(doctorPublicProfileRef, updateData);
             
             toast({
-                title: 'Document Uploaded',
+                title: 'Document Submitted',
                 description: `${file.name} has been submitted for verification.`,
             });
-        };
-        reader.onerror = (error) => {
-            console.error("Error reading file:", error);
+        } catch (error) {
+            console.error("Upload failed:", error);
             toast({
                 variant: "destructive",
-                title: "File Read Error",
-                description: "Could not read the selected file.",
+                title: "Upload Failed",
+                description: "Could not upload the selected file.",
             });
-        };
+        }
     };
 
     return (
-        <>
         <Card>
             <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
@@ -165,7 +125,7 @@ export function VerificationCenter({ publicProfile, doctorPublicProfileRef }: { 
                         Submit your documents to get a verified badge on your profile. This builds trust with patients.
                     </CardDescription>
                 </div>
-                 <Button variant="default" onClick={() => setIsScannerOpen(true)}>
+                 <Button variant="default">
                     <QrCode className="mr-2 h-4 w-4" />
                     Scan QR Code
                 </Button>
@@ -182,7 +142,5 @@ export function VerificationCenter({ publicProfile, doctorPublicProfileRef }: { 
                 ))}
             </CardContent>
         </Card>
-        <QrScannerDialog isOpen={isScannerOpen} onOpenChange={setIsScannerOpen} />
-        </>
     );
 }
