@@ -5,8 +5,8 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Lightbulb, Users, BarChart, AreaChart, PieChart, ShieldAlert } from 'lucide-react';
-import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useUser, useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
+import { collection, doc, query, where } from 'firebase/firestore';
 import hi from '@/lib/locales/hi.json';
 import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
@@ -15,14 +15,18 @@ import mr from '@/lib/locales/mr.json';
 
 const languageFiles = { hi, bn, ta, te, mr };
 
-const InsightCard = ({ icon: Icon, title, value, description }) => (
+const InsightCard = ({ icon: Icon, title, value, description, isLoading }) => (
     <Card className="flex-1">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{title}</CardTitle>
             <Icon className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-            <div className="text-2xl font-bold">{value}</div>
+             {isLoading ? (
+                <div className="h-8 w-16 bg-muted rounded-md animate-pulse" />
+             ) : (
+                <div className="text-2xl font-bold">{value}</div>
+             )}
             <p className="text-xs text-muted-foreground">{description}</p>
         </CardContent>
     </Card>
@@ -38,8 +42,14 @@ export function CommunityInsightsSection() {
         if (!user || !firestore) return null;
         return doc(firestore, 'users', user.uid);
     }, [user, firestore]);
-
     const { data: userProfile } = useDoc(userDocRef);
+    
+    const patientsQuery = useMemoFirebase(() => {
+        if(!firestore) return null;
+        return query(collection(firestore, 'users'), where('role', '==', 'patient'));
+    }, [firestore]);
+    const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsQuery);
+
 
     useEffect(() => {
         if (userProfile?.preferredLanguage && languageFiles[userProfile.preferredLanguage]) {
@@ -66,8 +76,20 @@ export function CommunityInsightsSection() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                     <div className="space-y-6">
                         <div className="flex flex-col sm:flex-row gap-6">
-                            <InsightCard icon={BarChart} title={t('common_symptoms_card_title', 'Common Symptoms')} value={t('common_symptoms_card_value', 'Fever, Cough')} description={t('common_symptoms_card_desc', 'Reported this month')} />
-                             <InsightCard icon={Users} title={t('checkup_rate_card_title', 'Check-up Rate')} value="68%" description={t('checkup_rate_card_desc', 'Of patients had a follow-up')} />
+                            <InsightCard 
+                                icon={Users} 
+                                title="Registered Patients" 
+                                value={patients?.length ?? '0'} 
+                                description="Total members on the platform" 
+                                isLoading={isLoadingPatients}
+                            />
+                            <InsightCard 
+                                icon={BarChart} 
+                                title={t('common_symptoms_card_title', 'Common Symptoms')} 
+                                value={t('common_symptoms_card_value', 'Fever, Cough')} 
+                                description={t('common_symptoms_card_desc', 'Reported this month')} 
+                                isLoading={false}
+                            />
                         </div>
                         <Card>
                             <CardHeader>

@@ -51,8 +51,9 @@ service cloud.firestore {
       // User reads/updates their own profile.
       allow get, update: if isOwner(userId);
 
-      // Only admins can list or delete user profiles.
-      allow list, delete: if isAdmin();
+      // Admins can delete, public can query for patient count.
+      allow list: if request.query.where.role == 'patient';
+      allow delete: if isAdmin();
 
 
       // ----------------------------------------------
