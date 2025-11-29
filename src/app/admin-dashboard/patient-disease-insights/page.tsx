@@ -23,6 +23,7 @@ import { GenderDistributionChart } from '@/components/admin/gender-distribution-
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import { DashboardFilters } from '@/components/admin/dashboard-filters';
+import { DiseaseTrendChart } from '@/components/admin/disease-trend-chart';
 
 
 type StatCardProps = {
@@ -130,6 +131,20 @@ export default function PatientDiseaseInsightsPage() {
                   </CardHeader>
                   <CardContent className="flex justify-center items-center h-64 bg-muted rounded-md">
                      <p className="text-muted-foreground">[Top 5 Symptoms Bar Chart Placeholder]</p>
+                  </CardContent>
+                </Card>
+                <Card className="lg:col-span-2">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Activity />
+                      Disease &amp; Symptom Trends
+                    </CardTitle>
+                    <CardDescription>
+                      Reported cases of Influenza over the last 7 days.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <DiseaseTrendChart />
                   </CardContent>
                 </Card>
              </div>
