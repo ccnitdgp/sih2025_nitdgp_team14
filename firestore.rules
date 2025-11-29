@@ -172,11 +172,20 @@ service cloud.firestore {
         allow create: if isDoctorForNewPrescription();
         
         // Read: The involved patient or doctor.
-        allow get, list: if isSignedIn() && (
+        allow get: if isSignedIn() && (
             isOwner(resource.data.patientId) || 
             isOwner(resource.data.doctorId) ||
             isAdmin()
         );
+        
+        // List: Allow a logged-in user to list prescriptions if their query
+        // is constrained by patientId or doctorId matching their own UID.
+        allow list: if isSignedIn() &&
+          (
+            (request.query.limit <= 10 && request.query.where.size() > 0 && 'patientId' in request.query.where && request.query.where.patientId == request.auth.uid) ||
+            (isDoctor() && request.query.limit <= 10 && request.query.where.size() > 0 && 'doctorId' in request.query.where && request.query.where.doctorId == request.auth.uid) ||
+            isAdmin()
+          );
 
         // Update/Delete: Only the prescribing doctor.
         allow update, delete: if isOwner(resource.data.doctorId) || isAdmin();
@@ -211,30 +220,9 @@ service cloud.firestore {
         allow get, list: if true;
 
         // Only the author or an admin can update/delete their own post.
+        // This is a simplified version. Let's separate like/view updates.
         allow update, delete: if isSignedIn() && (isOwner(resource.data.authorId) || isAdmin());
         
-        function isLikingPost() {
-          let hasLiked = request.auth.uid in resource.data.likedBy;
-          let isAddingLike = !(request.auth.uid in resource.data.likedBy) && (request.auth.uid in request.resource.data.likedBy);
-          return isAddingLike && request.resource.data.likeCount == resource.data.likeCount + 1;
-        }
-
-        function isIncrementingViewCount() {
-            // Ensure viewCount exists or default to 0
-            let currentViews = resource.data.get('viewCount', 0);
-            return request.resource.data.viewCount == currentViews + 1;
-        }
-
-        function onlyAllowedFieldsUpdated() {
-            // A set of fields that can be updated.
-            let allowedFields = ['likeCount', 'likedBy', 'viewCount'];
-            // Check if the update request only affects the allowed fields.
-            return request.resource.data.diff(resource.data).affectedKeys().hasOnly(allowedFields);
-        }
-
-        // Allow updates only for liking or view count incrementing.
-        allow update: if isSignedIn() && (isLikingPost() || (isIncrementingViewCount() && onlyAllowedFieldsUpdated()));
-
         // --- /forumPosts/{postId}/replies/{replyId} ---
         match /replies/{replyId} {
              // Any signed-in user can create a reply.
@@ -261,5 +249,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
