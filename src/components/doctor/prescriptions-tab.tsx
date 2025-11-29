@@ -90,7 +90,7 @@ export function PrescriptionsTab({ patientId }: { patientId: string }) {
         status: values.status
     };
     
-    addDocumentNonBlocking(newPrescriptionRef, prescriptionData, {});
+    addDocumentNonBlocking(newPrescriptionRef, prescriptionData);
     toast({ title: "Prescription Added" });
     form.reset({
       medication: '',
@@ -222,5 +222,3 @@ export function PrescriptionsTab({ patientId }: { patientId: string }) {
     </Card>
   );
 }
-
-    

@@ -138,7 +138,7 @@ export default function DoctorPrescriptionsPage() {
         status: 'Active',
     };
 
-    addDocumentNonBlocking(newPrescriptionRef, prescriptionData, {});
+    addDocumentNonBlocking(newPrescriptionRef, prescriptionData);
     toast({ title: "Prescription Issued", description: `Prescription for ${values.medicationName} has been issued to the patient.` });
     form.reset({
         patientId: '',
@@ -328,5 +328,3 @@ export default function DoctorPrescriptionsPage() {
     </div>
   )
 }
-
-    
