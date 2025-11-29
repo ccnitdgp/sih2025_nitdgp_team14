@@ -60,7 +60,7 @@ const VerificationItem = ({ label, status, onUpload, isRequired }) => {
     );
 };
 
-// This function reads the file as a data URI for simulation purposes.
+// This function reads the file as a data URI.
 async function getFileDataUri(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
