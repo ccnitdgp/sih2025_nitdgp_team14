@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Upload, CheckCircle, Clock, XCircle, FileText, ShieldCheck, QrCode, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { updateDocumentNonBlocking, useFirebaseApp } from '@/firebase';
-import { DocumentReference } from 'firebase/firestore';
+import { useFirebaseApp, updateDocumentNonBlocking } from '@/firebase';
+import { DocumentReference, updateDoc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const verificationItems = [
@@ -103,7 +103,8 @@ export function VerificationCenter({ publicProfile, doctorPublicProfileRef }: { 
                 }
             };
 
-            await updateDocumentNonBlocking(doctorPublicProfileRef, updateData);
+            // Use the standard `updateDoc` and await it to ensure completion
+            await updateDoc(doctorPublicProfileRef, updateData);
             
             toast({
                 title: 'Document Submitted',
@@ -114,7 +115,7 @@ export function VerificationCenter({ publicProfile, doctorPublicProfileRef }: { 
             toast({
                 variant: "destructive",
                 title: "Upload Failed",
-                description: "Could not upload the selected file.",
+                description: "Could not upload the selected file. Please try again.",
             });
         } finally {
             setIsUploading(false);
