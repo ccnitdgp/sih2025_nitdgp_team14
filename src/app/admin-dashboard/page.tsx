@@ -100,7 +100,7 @@ export default function AdminDashboardPage() {
             title: `${unverifiedDoctors.length} Unverified Doctor(s)`,
             description: "New doctor profiles are awaiting verification.",
             actionText: "Verify Now",
-            href: "/doctor-dashboard/profile",
+            href: "/admin-dashboard/verify-doctors",
             icon: UserCheck
         });
     }
@@ -349,6 +349,26 @@ export default function AdminDashboardPage() {
                     </Button>
                 </CardContent>
                 </Card>
+
+                 <Card className="col-span-1 lg:col-span-2">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                        <UserCheck />
+                        Doctor Verification
+                        </CardTitle>
+                        <CardDescription>
+                        Review and approve new doctor registrations.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Button asChild>
+                        <Link href="/admin-dashboard/verify-doctors">
+                            Verify Doctors
+                        </Link>
+                        </Button>
+                    </CardContent>
+                </Card>
+
             </div>
            </div>
 

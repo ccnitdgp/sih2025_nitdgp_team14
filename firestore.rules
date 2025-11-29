@@ -128,9 +128,15 @@ service cloud.firestore {
         // Anyone can view a doctor's public profile.
         allow get, list: if true;
         
-        // Only the doctor themselves or an admin can create/update.
-        allow create, update: if isSignedIn()
-          && (isOwner(doctorId) || isAdmin());
+        // A doctor can create their own profile.
+        allow create: if isOwner(doctorId);
+
+        // Admins can update any field.
+        // Doctors can update any field EXCEPT isVerified and verificationNote.
+        allow update: if isSignedIn() && (
+            isAdmin() || 
+            (isOwner(doctorId) && !('isVerified' in request.resource.data) && !('verificationNote' in request.resource.data))
+        );
     }
     
 

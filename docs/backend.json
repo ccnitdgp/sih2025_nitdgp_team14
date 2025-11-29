@@ -45,6 +45,7 @@
         "yearsOfExperience": { "type": "number" },
         "designation": { "type": "string" },
         "isVerified": { "type": "boolean", "description": "Master flag indicating if the doctor's profile and documents are fully verified." },
+        "verificationNote": { "type": "string", "description": "Notes from the admin regarding the verification status (e.g., reason for rejection)." },
         "registrationDetails": {
           "type": "object",
           "properties": {
