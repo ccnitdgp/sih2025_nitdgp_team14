@@ -79,7 +79,7 @@ export default function VaccinationPreventiveCarePage() {
                         Vaccination Coverage
                         </CardTitle>
                         <CardDescription>
-                        Total vaccination coverage by age group.
+                        Total vaccination coverage by age group (static example).
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="flex justify-center">
@@ -102,7 +102,7 @@ export default function VaccinationPreventiveCarePage() {
                             <TableRow>
                                 <TableHead>Event</TableHead>
                                 <TableHead>Date</TableHead>
-                                <TableHead>Status</TableHead>
+                                <TableHead>Location</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -111,7 +111,7 @@ export default function VaccinationPreventiveCarePage() {
                                     <TableRow key={i}>
                                         <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                                         <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                                        <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                                     </TableRow>
                                 ))
                             ) : (
@@ -119,105 +119,13 @@ export default function VaccinationPreventiveCarePage() {
                                     <TableRow key={event.id}>
                                         <TableCell className="font-medium">{event.vaccineType || event.description}</TableCell>
                                         <TableCell>{new Date(event.date).toLocaleDateString()}</TableCell>
-                                        <TableCell>
-                                            <Badge>On Track</Badge>
-                                        </TableCell>
+                                        <TableCell>{event.location}</TableCell>
                                     </TableRow>
                                 ))
                             )}
                         </TableBody>
                         </Table>
                     </CardContent>
-                </Card>
-
-                 <Card className="lg:col-span-2">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Syringe />
-                      Drive Performance
-                    </CardTitle>
-                    <CardDescription>
-                      Breakdown of vaccination numbers and stock per drive.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                     <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Drive Name</TableHead>
-                                <TableHead>Target</TableHead>
-                                <TableHead>Actual</TableHead>
-                                <TableHead>Remaining Stock</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                         <TableBody>
-                            {isLoadingDrives ? (
-                                 [...Array(3)].map((_, i) => (
-                                    <TableRow key={i}>
-                                        <TableCell><Skeleton className="h-4 w-40" /></TableCell>
-                                        <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                                        <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                                    </TableRow>
-                                ))
-                            ) : (
-                                drives?.map(drive => (
-                                     <TableRow key={drive.id}>
-                                        <TableCell className="font-medium">{drive.vaccineType}</TableCell>
-                                        <TableCell>500</TableCell>
-                                        <TableCell>420</TableCell>
-                                        <TableCell>80</TableCell>
-                                    </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                     </Table>
-                  </CardContent>
-                </Card>
-
-                 <Card className="lg:col-span-2">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Tent />
-                      Camp Performance
-                    </CardTitle>
-                    <CardDescription>
-                      Breakdown of attendees and follow-ups per camp.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                     <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Camp Name</TableHead>
-                                <TableHead>Target Attendees</TableHead>
-                                <TableHead>Actual Attendees</TableHead>
-                                <TableHead>Follow-ups</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                         <TableBody>
-                            {isLoadingCamps ? (
-                                 [...Array(3)].map((_, i) => (
-                                    <TableRow key={i}>
-                                        <TableCell><Skeleton className="h-4 w-40" /></TableCell>
-                                        <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                                        <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                                    </TableRow>
-                                ))
-                            ) : (
-                                camps?.map(camp => (
-                                     <TableRow key={camp.id}>
-                                        <TableCell className="font-medium">{camp.description}</TableCell>
-                                        <TableCell>300</TableCell>
-                                        <TableCell>250</TableCell>
-                                        <TableCell>45</TableCell>
-                                    </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                     </Table>
-                  </CardContent>
                 </Card>
              </div>
         </div>

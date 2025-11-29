@@ -68,30 +68,6 @@ export default function PatientDiseaseInsightsPage() {
                 Demographic and epidemiological data analytics.
               </p>
             </div>
-            
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <StatCard
-                    title="Top Diagnosis"
-                    value="Hypertension"
-                    icon={Activity}
-                    description="Most common condition this month"
-                    isLoading={false}
-                />
-                <StatCard
-                    title="Chronic Disease Count"
-                    value="2,148"
-                    icon={Heart}
-                    description="Patients with diabetes or hypertension"
-                    isLoading={false}
-                />
-                <StatCard
-                    title="30-Day Readmission Rate"
-                    value="2.1%"
-                    icon={Repeat}
-                    description="Patients readmitted within 30 days"
-                    isLoading={false}
-                />
-            </div>
 
              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <Card>

@@ -53,7 +53,7 @@ export default function KpiCardsPage() {
     [firestore]
   );
   const doctorsQuery = useMemoFirebase(
-    () => (firestore ? query(collection(firestore, 'users'), where('role', '==', 'doctor')) : null),
+    () => (firestore ? collection(firestore, 'doctors') : null),
     [firestore]
   );
   const appointmentsQuery = useMemoFirebase(
@@ -110,7 +110,7 @@ export default function KpiCardsPage() {
                     title="Total Doctors"
                     value={doctors?.length.toLocaleString() || '0'}
                     icon={BriefcaseMedical}
-                    description="Total verified doctors"
+                    description="Total doctors on the platform"
                     isLoading={isLoadingDoctors}
                 />
                 <StatCard
@@ -131,14 +131,14 @@ export default function KpiCardsPage() {
                     title="Active Outbreak Signals"
                     value="2"
                     icon={TrendingUp}
-                    description="Flu & Dengue in Sector-15"
+                    description="Flu & Dengue in Sector-15 (Static Example)"
                     isLoading={false}
                  />
                  <StatCard
                     title="Critical Health Alerts"
                     value="5"
                     icon={ShieldAlert}
-                    description="Abnormal lab reports today"
+                    description="Abnormal lab reports today (Static Example)"
                     isLoading={false}
                     />
                 <StatCard

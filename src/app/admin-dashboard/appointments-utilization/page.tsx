@@ -70,7 +70,7 @@ export default function AppointmentsUtilizationPage() {
               </p>
             </div>
             
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
                 <StatCard
                     title="Cancellation Rate"
                     value={cancelRate}
@@ -78,27 +78,6 @@ export default function AppointmentsUtilizationPage() {
                     description="Percentage of canceled appointments"
                     isLoading={isLoading}
                 />
-                <StatCard
-                    title="Avg. Booking to Appt. Time"
-                    value="3.2 days"
-                    icon={Clock}
-                    description="Average time from booking to consultation"
-                    isLoading={false}
-                />
-                <StatCard
-                    title="Avg. Doctor Utilization"
-                    value="78%"
-                    icon={UserCheck}
-                    description="Percentage of available slots filled"
-                    isLoading={false}
-                />
-                 <StatCard
-                    title="Peak Booking Day"
-                    value="Monday"
-                    icon={Calendar}
-                    description="Most popular day for booking appointments"
-                    isLoading={false}
-                 />
             </div>
 
              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

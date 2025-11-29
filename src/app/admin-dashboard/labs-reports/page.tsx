@@ -65,27 +65,13 @@ export default function LabsReportsPage() {
               </p>
             </div>
             
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
                 <StatCard
                     title="Total Reports"
                     value={reports?.length.toString() || '0'}
                     icon={FileText}
                     description="Total lab and scan reports uploaded"
                     isLoading={isLoading}
-                />
-                <StatCard
-                    title="Pending Critical Reports"
-                    value="0"
-                    icon={AlertTriangle}
-                    description="Reports flagged as critical awaiting review"
-                    isLoading={false}
-                />
-                <StatCard
-                    title="Abnormal Result Rate"
-                    value="6.2%"
-                    icon={Percent}
-                    description="Percentage of results outside normal range"
-                    isLoading={false}
                 />
             </div>
 
