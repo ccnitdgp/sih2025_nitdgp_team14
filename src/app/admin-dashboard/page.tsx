@@ -9,19 +9,12 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import {
-  TrendingUp,
   Users,
-  Syringe,
-  Calendar,
-  User,
-  Activity,
   FileDown,
   Tent,
-  BriefcaseMedical,
-  FileText,
-  ShieldAlert,
   BarChart,
   Clock,
+  Heart,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DiseaseTrendChart } from '@/components/admin/disease-trend-chart';
@@ -33,29 +26,7 @@ import { OutbreakHeatmap } from '@/components/admin/outbreak-heatmap';
 import Link from 'next/link';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
-import { getMonth, getYear, parseISO } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
-
-type StatCardProps = {
-  title: string;
-  value: string;
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-  description: string;
-  isLoading: boolean;
-};
-
-const StatCard = ({ title, value, icon: Icon, description, isLoading }: StatCardProps) => (
-  <Card>
-    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-      <CardTitle className="text-sm font-medium">{title}</CardTitle>
-      <Icon className="h-4 w-4 text-muted-foreground" />
-    </CardHeader>
-    <CardContent>
-      {isLoading ? <Skeleton className="h-8 w-16" /> : <div className="text-2xl font-bold">{value}</div>}
-      <p className="text-xs text-muted-foreground">{description}</p>
-    </CardContent>
-  </Card>
-);
 
 export default function AdminDashboardPage() {
   const firestore = useFirestore();
@@ -97,52 +68,14 @@ export default function AdminDashboardPage() {
                 Aggregated public health insights and operational statistics.
               </p>
             </div>
-            <Button onClick={handleExport}>
+            <Button onClick={handleExport} disabled={isLoadingPatients}>
               <FileDown className="mr-2 h-4 w-4" />
               Export Report
             </Button>
           </div>
 
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Syringe />
-                  Manage Drives
-                </CardTitle>
-                <CardDescription>
-                  Add, edit, or remove vaccination drives.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button asChild>
-                  <Link href="/admin-dashboard/vaccination-drives">
-                    Go to Drives
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Tent />
-                  Manage Camps
-                </CardTitle>
-                <CardDescription>
-                  Add, edit, or remove health camps.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button asChild>
-                  <Link href="/admin-dashboard/health-camps">
-                    Go to Camps
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
+             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <BarChart />
@@ -160,7 +93,7 @@ export default function AdminDashboardPage() {
                 </Button>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
@@ -179,6 +112,52 @@ export default function AdminDashboardPage() {
                 </Button>
               </CardContent>
             </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Heart />
+                  Patient & Disease
+                </CardTitle>
+                <CardDescription>
+                  View patient demographics and disease trends.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild>
+                  <Link href="/admin-dashboard/patient-disease-insights">
+                    View Insights
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Tent />
+                  Camps & Drives
+                </CardTitle>
+                <CardDescription>
+                  Manage health camps and vaccination drives.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                 <div className="flex flex-col space-y-2">
+                    <Button asChild size="sm">
+                    <Link href="/admin-dashboard/health-camps">
+                        Manage Camps
+                    </Link>
+                    </Button>
+                     <Button asChild size="sm" variant="outline">
+                    <Link href="/admin-dashboard/vaccination-drives">
+                        Manage Drives
+                    </Link>
+                    </Button>
+                 </div>
+              </CardContent>
+            </Card>
+
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
