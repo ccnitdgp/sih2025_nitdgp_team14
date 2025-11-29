@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo } from 'react';
@@ -21,6 +20,7 @@ import {
   BriefcaseMedical,
   FileText,
   ShieldAlert,
+  BarChart,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DiseaseTrendChart } from '@/components/admin/disease-trend-chart';
@@ -146,20 +146,6 @@ export default function AdminDashboardPage() {
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <StatCard
-              title="Total Patients"
-              value={patients?.length.toLocaleString() || '0'}
-              icon={Users}
-              description="Total registered patients"
-              isLoading={isLoadingPatients}
-            />
-            <StatCard
-              title="Total Doctors"
-              value={doctors?.length.toLocaleString() || '0'}
-              icon={BriefcaseMedical}
-              description="Total verified doctors"
-              isLoading={isLoadingDoctors}
-            />
-            <StatCard
               title="Appointments (This Month)"
               value={thisMonthStats.appointmentsThisMonth.toLocaleString()}
               icon={Calendar}
@@ -173,8 +159,6 @@ export default function AdminDashboardPage() {
               description="Total prescriptions issued"
               isLoading={isLoadingPrescriptions}
             />
-          </div>
-           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
              <StatCard
               title="Vaccinations (This Month)"
               value={thisMonthStats.vaccinationsThisMonth.toLocaleString()}
@@ -189,23 +173,9 @@ export default function AdminDashboardPage() {
               description="Flu & Dengue in Sector-15"
               isLoading={false}
             />
-             <StatCard
-              title="Critical Health Alerts"
-              value="5"
-              icon={ShieldAlert}
-              description="Abnormal lab reports today"
-              isLoading={false}
-            />
-             <StatCard
-              title="System Status"
-              value="99.9% Uptime"
-              icon={Activity}
-              description="No incidents reported"
-              isLoading={false}
-            />
           </div>
 
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
@@ -239,6 +209,25 @@ export default function AdminDashboardPage() {
                 <Button asChild>
                   <Link href="/admin-dashboard/health-camps">
                     Go to Camps
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <BarChart />
+                  KPI Cards
+                </CardTitle>
+                <CardDescription>
+                  View key performance indicators for the platform.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild>
+                  <Link href="/admin-dashboard/kpi-cards">
+                    View KPIs
                   </Link>
                 </Button>
               </CardContent>
