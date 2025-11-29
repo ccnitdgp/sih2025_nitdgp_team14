@@ -56,6 +56,7 @@ const doctorNavLinks = [
     { href: "/doctor-dashboard/prescriptions", label: "Prescriptions", i18n_key: "prescriptions_link" },
     { href: "/doctor-dashboard/medical-info", label: "Medical Info", i18n_key: "medical_info_link"},
     { href: "/doctor-dashboard/upload-documents", label: "Upload Documents", i18n_key: "upload_documents_link" },
+    { href: "/forum", label: "Forum", i18n_key: "forum_link" },
 ];
 
 const adminNavLinks = [
@@ -253,3 +254,5 @@ export function Header() {
     </header>
   );
 }
+
+    
