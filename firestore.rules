@@ -229,6 +229,14 @@ service cloud.firestore {
         allow get, list: if true;
         allow create, update, delete: if isAdmin();
     }
+    
+    // ============================================================
+    // /announcements/{announcementId} (public)
+    // ============================================================
+    match /announcements/{announcementId} {
+        allow get, list: if true;
+        allow create, update, delete: if isAdmin();
+    }
 
     // ============================================================
     // /forumPosts/{postId} (ForumPost)

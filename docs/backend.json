@@ -1,6 +1,24 @@
 
 {
   "entities": {
+    "Announcement": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "Announcement",
+        "type": "object",
+        "description": "Represents a public announcement for display on the announcements page.",
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "details": { "type": "string" },
+          "category": { "type": "string", "enum": ["WEATHER ADVISORY", "DISEASE PREVENTION", "PUBLIC HEALTH", "VACCINATION"] },
+          "date": { "type": "string", "format": "date-time" },
+          "icon": { "type": "string" },
+          "color": { "type": "string" },
+          "bgColor": { "type": "string" },
+          "borderColor": { "type": "string" }
+        },
+        "required": ["id", "title", "details", "category", "date"]
+    },
     "Appointment": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Appointment",
@@ -643,6 +661,15 @@
         }
       },
       {
+        "path": "/announcements/{announcementId}",
+        "definition": {
+          "entityName": "Announcement",
+          "schema": { "$ref": "#/backend/entities/Announcement" },
+          "description": "Stores public announcements for all users.",
+          "params": [{ "name": "announcementId", "description": "The unique identifier for the announcement." }]
+        }
+      },
+      {
         "path": "/users/{userId}/notifications/{notificationId}",
         "definition": {
           "entityName": "MedicalNotification",
@@ -693,8 +720,6 @@
         }
       }
     ],
-    "reasoning": "The Firestore data structure has been redesigned for clarity and security. The core change is the introduction of a public `/doctors` collection, which is separate from the private `/users` collection. The `/doctors` collection stores only non-sensitive information necessary for patients to find and view doctor profiles. The `/users` collection holds all private data for both patients and doctors, strictly secured by user UID. This separation prevents permission errors when listing doctors and adheres to security best practices by not exposing the entire user base. Added ForumPost and ForumReply collections for community discussion feature. Added a Feedback collection to store user feedback. Added a dedicated `/prescriptions` collection for better data structure and security."
+    "reasoning": "The Firestore data structure has been redesigned for clarity and security. The core change is the introduction of a public `/doctors` collection, which is separate from the private `/users` collection. The `/doctors` collection stores only non-sensitive information necessary for patients to find and view doctor profiles. The `/users` collection holds all private data for both patients and doctors, strictly secured by user UID. This separation prevents permission errors when listing doctors and adheres to security best practices by not exposing the entire user base. Added ForumPost and ForumReply collections for community discussion feature. Added a Feedback collection to store user feedback. Added a dedicated `/prescriptions` collection for better data structure and security. Added a public `/announcements` collection for admin-managed public health advisories."
   }
 }
-
-  

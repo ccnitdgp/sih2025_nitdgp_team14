@@ -3,7 +3,6 @@
 
 import * as React from 'react';
 import { useSearchParams } from 'next/navigation';
-import { ChevronDown } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
@@ -12,11 +11,11 @@ import {
 } from '@/components/ui/accordion';
 import { Card, CardTitle, CardDescription } from '@/components/ui/card';
 import { medicalNotifications } from '@/lib/data';
-import { Calendar } from 'lucide-react';
+import { Calendar, Syringe, Info, TriangleAlert, ShieldCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useUser, useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
+import { doc, collection, query } from 'firebase/firestore';
 import hi from '@/lib/locales/hi.json';
 import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
@@ -25,8 +24,16 @@ import mr from '@/lib/locales/mr.json';
 import en from '@/lib/locales/en.json';
 import { Highlight } from '@/components/ui/highlight';
 import { BackButton } from '@/components/layout/back-button';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const languageFiles = { hi, bn, ta, te, mr, en };
+
+const categoryIcons = {
+    'WEATHER ADVISORY': TriangleAlert,
+    'DISEASE PREVENTION': ShieldCheck,
+    'PUBLIC HEALTH': Info,
+    'VACCINATION': Syringe,
+};
 
 export default function AnnouncementsPage() {
   const searchParams = useSearchParams();
@@ -39,8 +46,13 @@ export default function AnnouncementsPage() {
     if (!user || !firestore) return null;
     return doc(firestore, 'users', user.uid);
   }, [user, firestore]);
-
   const { data: userProfile } = useDoc(userDocRef);
+
+  const announcementsQuery = useMemoFirebase(() => {
+      if (!firestore) return null;
+      return query(collection(firestore, 'announcements'));
+  }, [firestore]);
+  const { data: announcements, isLoading } = useCollection(announcementsQuery);
 
   React.useEffect(() => {
     const lang = userProfile?.preferredLanguage || 'en';
@@ -49,13 +61,22 @@ export default function AnnouncementsPage() {
 
   const t = (key: string, fallback: string) => translations[key] || fallback;
   
-  const filteredNotifications = medicalNotifications.filter(notification => {
-    const title = t(notification.title_key, notification.title).toLowerCase();
-    const details = t(notification.details_key, notification.details).toLowerCase();
-    const category = t(notification.i18n_category_key, notification.category).toLowerCase();
-    const query = searchQuery.toLowerCase();
-    return title.includes(query) || details.includes(query) || category.includes(query);
-  });
+  const filteredNotifications = React.useMemo(() => {
+    if (!announcements) return [];
+    return announcements.filter(notification => {
+        const title = notification.title.toLowerCase();
+        const details = notification.details.toLowerCase();
+        const category = notification.category.toLowerCase();
+        const query = searchQuery.toLowerCase();
+        return title.includes(query) || details.includes(query) || category.includes(query);
+    });
+  }, [announcements, searchQuery]);
+
+  const AnnouncementSkeleton = () => (
+    <div className="space-y-4">
+        {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
+    </div>
+  );
 
   return (
     <div className="container mx-auto max-w-5xl px-6 py-12">
@@ -68,11 +89,12 @@ export default function AnnouncementsPage() {
                 {t('announcements_page_desc', 'Important health advisories and public announcements for the community.')}
             </p>
         </div>
-        {filteredNotifications.length > 0 ? (
+        {isLoading ? <AnnouncementSkeleton /> : filteredNotifications.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {filteredNotifications.map((notification) => {
               const notificationTitle = t(notification.title_key, notification.title);
               const notificationDetails = t(notification.details_key, notification.details);
+              const Icon = categoryIcons[notification.category] || Info;
 
               return (
               <Card key={notification.id} className={cn("w-full border-l-4", notification.borderColor)}>
@@ -80,18 +102,18 @@ export default function AnnouncementsPage() {
                   <AccordionItem value={`item-${notification.id}`} className="border-b-0">
                     <AccordionTrigger className="p-6 hover:no-underline text-left w-full">
                       <div className="flex items-start w-full gap-4">
-                        <notification.Icon className={cn("h-6 w-6 mt-1", notification.color)} />
+                        <Icon className={cn("h-6 w-6 mt-1", notification.color)} />
                         <div className="flex-1 space-y-2">
                           <h3 className="font-semibold text-lg text-left">
                             <Highlight text={notificationTitle} query={searchQuery} />
                           </h3>
                           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
                             <Badge variant="outline" className={cn("border-none text-xs font-bold", notification.color, notification.bgColor)}>
-                              <Highlight text={t(notification.i18n_category_key, notification.category)} query={searchQuery} />
+                              <Highlight text={t(notification.category.toLowerCase().replace(' ', '_'), notification.category)} query={searchQuery} />
                             </Badge>
                             <div className="flex items-center gap-2">
                               <Calendar className="h-4 w-4" />
-                              <span>{notification.date}</span>
+                              <span>{new Date(notification.date).toLocaleDateString()}</span>
                             </div>
                           </div>
                         </div>
@@ -112,7 +134,7 @@ export default function AnnouncementsPage() {
         ) : (
           <Card className="text-center p-8">
             <CardTitle>No Announcements Found</CardTitle>
-            <CardDescription>Your search for "{searchQuery}" did not match any announcements.</CardDescription>
+            <CardDescription>{searchQuery ? `Your search for "${searchQuery}" did not match any announcements.` : "There are currently no active announcements."}</CardDescription>
           </Card>
         )}
     </div>

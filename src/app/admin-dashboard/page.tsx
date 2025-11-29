@@ -29,6 +29,7 @@ import {
   UserCheck,
   FileText,
   BriefcaseMedical,
+  Megaphone,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { OutbreakHeatmap } from '@/components/admin/outbreak-heatmap';
@@ -331,7 +332,7 @@ export default function AdminDashboardPage() {
                 </CardContent>
                 </Card>
 
-                <Card className="col-span-1 lg:col-span-2">
+                <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-lg">
                     <Tent />
@@ -348,6 +349,25 @@ export default function AdminDashboardPage() {
                     </Link>
                     </Button>
                 </CardContent>
+                </Card>
+                
+                 <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                        <Megaphone />
+                        Announcements
+                        </CardTitle>
+                        <CardDescription>
+                        Create and manage public announcements.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Button asChild>
+                        <Link href="/admin-dashboard/manage-announcements">
+                            Manage Announcements
+                        </Link>
+                        </Button>
+                    </CardContent>
                 </Card>
 
                  <Card className="col-span-1 lg:col-span-2">
