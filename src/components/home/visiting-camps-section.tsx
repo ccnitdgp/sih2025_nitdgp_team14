@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { MapPin, CalendarDays, ArrowRight, Stethoscope } from "lucide-react";
 import Link from "next/link";
-import { useUser, useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
+import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { useState, useEffect } from 'react';
-import { doc, collection, query, limit } from 'firebase/firestore';
+import { doc } from 'firebase/firestore';
+import { visitingCamps } from "@/lib/data";
 import hi from '@/lib/locales/hi.json';
 import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
@@ -20,6 +21,7 @@ export function VisitingCampsSection() {
   const { user } = useUser();
   const firestore = useFirestore();
   const [translations, setTranslations] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
 
   const userDocRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
@@ -28,19 +30,15 @@ export function VisitingCampsSection() {
 
   const { data: userProfile } = useDoc(userDocRef);
 
-  const campsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'healthCamps'), limit(3));
-  }, [firestore]);
-
-  const { data: visitingCamps, isLoading } = useCollection(campsQuery);
-
   useEffect(() => {
     if (userProfile?.preferredLanguage && languageFiles[userProfile.preferredLanguage]) {
       setTranslations(languageFiles[userProfile.preferredLanguage]);
     } else {
       setTranslations({});
     }
+    // Simulate loading
+    const timer = setTimeout(() => setIsLoading(false), 500);
+    return () => clearTimeout(timer);
   }, [userProfile]);
 
   const t = (key: string, fallback: string) => translations[key] || fallback;
@@ -95,24 +93,24 @@ export function VisitingCampsSection() {
               <CampSkeleton />
             </>
           ) : visitingCamps && visitingCamps.length > 0 ? (
-            visitingCamps.map((camp) => (
+            visitingCamps.slice(0, 3).map((camp) => (
               <Card key={camp.id} className="flex flex-col transition-shadow hover:shadow-xl">
                 <CardHeader>
                   <div className="flex items-center gap-4">
                     <div className="p-3 bg-primary/10 rounded-full">
                       <Stethoscope className="h-6 w-6 text-primary" />
                     </div>
-                    <CardTitle>{camp.description}</CardTitle>
+                    <CardTitle>{t(camp.name_key, camp.name)}</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent className="flex-grow space-y-4">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <MapPin className="h-4 w-4" />
-                    <span>{camp.location}</span>
+                    <span>{t(camp.location_key, camp.location)}</span>
                   </div>
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <CalendarDays className="h-4 w-4" />
-                    <span>{new Date(camp.startTime).toLocaleDateString()}</span>
+                    <span>{camp.date}</span>
                   </div>
                 </CardContent>
                 <CardFooter>

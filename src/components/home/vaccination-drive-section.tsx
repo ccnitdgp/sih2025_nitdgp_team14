@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { MapPin, CalendarDays, ArrowRight, Syringe } from "lucide-react";
 import Link from "next/link";
-import { useUser, useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
+import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { AuthDialog } from "@/components/auth/auth-dialog";
 import { useState, useEffect } from 'react';
-import { doc, collection, query, limit } from 'firebase/firestore';
+import { doc } from 'firebase/firestore';
+import { vaccinationDrives } from "@/lib/data";
 import hi from '@/lib/locales/hi.json';
 import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
@@ -21,6 +22,7 @@ export function VaccinationDriveSection() {
   const { user } = useUser();
   const firestore = useFirestore();
   const [translations, setTranslations] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
 
   const userDocRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
@@ -29,19 +31,15 @@ export function VaccinationDriveSection() {
 
   const { data: userProfile } = useDoc(userDocRef);
 
-  const drivesQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'vaccinationDrives'), limit(3));
-  }, [firestore]);
-
-  const { data: vaccinationDrives, isLoading } = useCollection(drivesQuery);
-
   useEffect(() => {
     if (userProfile?.preferredLanguage && languageFiles[userProfile.preferredLanguage]) {
       setTranslations(languageFiles[userProfile.preferredLanguage]);
     } else {
       setTranslations({});
     }
+    // Simulate loading
+    const timer = setTimeout(() => setIsLoading(false), 500);
+    return () => clearTimeout(timer);
   }, [userProfile]);
 
   const t = (key: string, fallback: string) => translations[key] || fallback;
@@ -117,24 +115,24 @@ export function VaccinationDriveSection() {
                     <DriveSkeleton />
                 </>
             ) : vaccinationDrives && vaccinationDrives.length > 0 ? (
-                vaccinationDrives.map((drive) => (
+                vaccinationDrives.slice(0, 3).map((drive) => (
                 <Card key={drive.id} className="flex flex-col transition-shadow hover:shadow-xl">
                     <CardHeader>
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-primary/10 rounded-full">
                         <Syringe className="h-6 w-6 text-primary" />
                         </div>
-                        <CardTitle>{drive.vaccineType}</CardTitle>
+                        <CardTitle>{t(drive.name_key, drive.name)}</CardTitle>
                     </div>
                     </CardHeader>
                     <CardContent className="flex-grow space-y-4">
                     <div className="flex items-center gap-2 text-muted-foreground">
                         <MapPin className="h-4 w-4" />
-                        <span>{drive.location}</span>
+                        <span>{t(drive.location_key, drive.location)}</span>
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
                         <CalendarDays className="h-4 w-4" />
-                        <span>{new Date(drive.schedule).toLocaleDateString()}</span>
+                        <span>{drive.date}</span>
                     </div>
                     </CardContent>
                     <CardFooter>
