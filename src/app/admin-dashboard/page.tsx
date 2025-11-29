@@ -331,39 +331,20 @@ export default function AdminDashboardPage() {
                 </CardContent>
                 </Card>
 
-                <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                    <Syringe />
-                    Manage Drives
-                    </CardTitle>
-                    <CardDescription>
-                    Add, edit, or remove vaccination drives.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Button asChild>
-                    <Link href="/admin-dashboard/vaccination-drives">
-                        Go to Drives
-                    </Link>
-                    </Button>
-                </CardContent>
-                </Card>
-
-                <Card>
+                <Card className="col-span-1 lg:col-span-2">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-lg">
                     <Tent />
-                    Manage Camps
+                    Manage Events
                     </CardTitle>
                     <CardDescription>
-                    Add, edit, or remove health camps.
+                    Add, edit, or remove vaccination drives and health camps.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Button asChild>
-                    <Link href="/admin-dashboard/health-camps">
-                        Go to Camps
+                    <Link href="/admin-dashboard/manage-events">
+                        Go to Events
                     </Link>
                     </Button>
                 </CardContent>
