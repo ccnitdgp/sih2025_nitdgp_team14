@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -18,6 +19,8 @@ import { LabReportsTab } from '@/components/doctor/lab-reports-tab';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { summarizeMedicalHistory } from '@/ai/flows/summarize-medical-history-flow';
+import { MedicalDetailsTab } from '@/components/doctor/medical-details-tab';
+import { VaccinationRecordsTab } from '@/components/doctor/vaccination-records-tab';
 
 export default function DoctorPatientsPage() {
   const { user } = useUser();
@@ -34,26 +37,6 @@ export default function DoctorPatientsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [summary, setSummary] = useState<string | null>(null);
-
-  useEffect(() => {
-    const patientIdFromUrl = searchParams.get('patientId');
-    if (patientIdFromUrl) {
-      setPatientIdInput(patientIdFromUrl);
-      // Automatically trigger the search if the ID is in the URL
-      handleFindPatient(patientIdFromUrl);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
-
-  const medicalHistoryQuery = useMemoFirebase(() => {
-    if (!foundPatient?.id || !firestore) return null;
-    return query(
-      collection(firestore, `users/${foundPatient.id}/healthRecords`),
-      where('recordType', '==', 'medicalHistory')
-    );
-  }, [foundPatient, firestore]);
-
-  const { data: medicalHistory } = useCollection(medicalHistoryQuery);
 
   const handleFindPatient = async (idToSearch?: string) => {
     const searchId = idToSearch || patientIdInput;
@@ -82,6 +65,25 @@ export default function DoctorPatientsPage() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    const patientIdFromUrl = searchParams.get('patientId');
+    if (patientIdFromUrl && !foundPatient) { // Check !foundPatient to avoid re-searching
+      setPatientIdInput(patientIdFromUrl);
+      handleFindPatient(patientIdFromUrl);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, foundPatient]);
+
+  const medicalHistoryQuery = useMemoFirebase(() => {
+    if (!foundPatient?.id || !firestore) return null;
+    return query(
+      collection(firestore, `users/${foundPatient.id}/healthRecords`),
+      where('recordType', '==', 'medicalHistory')
+    );
+  }, [foundPatient, firestore]);
+
+  const { data: medicalHistory } = useCollection(medicalHistoryQuery);
 
   const handleVerifyOtp = () => {
     // In a real app, this would be a call to a backend service.
@@ -211,11 +213,13 @@ export default function DoctorPatientsPage() {
             )}
 
             <Tabs defaultValue="profile" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger value="profile">Profile</TabsTrigger>
                 <TabsTrigger value="history">Medical History</TabsTrigger>
+                <TabsTrigger value="details">Medical Details</TabsTrigger>
                 <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
                 <TabsTrigger value="reports">Lab Reports</TabsTrigger>
+                <TabsTrigger value="vaccinations">Vaccinations</TabsTrigger>
               </TabsList>
               <TabsContent value="profile" className="mt-6">
                   <PatientProfileTab patientId={foundPatient.id} patientProfile={foundPatient} isLoading={false} />
@@ -223,11 +227,17 @@ export default function DoctorPatientsPage() {
               <TabsContent value="history" className="mt-6">
                   <MedicalHistoryTab patientId={foundPatient.id} />
               </TabsContent>
+               <TabsContent value="details" className="mt-6">
+                 <MedicalDetailsTab patientId={foundPatient.id} />
+               </TabsContent>
               <TabsContent value="prescriptions" className="mt-6">
                   <PrescriptionsTab patientId={foundPatient.id} />
               </TabsContent>
               <TabsContent value="reports" className="mt-6">
                   <LabReportsTab patientId={foundPatient.id} />
+              </TabsContent>
+              <TabsContent value="vaccinations" className="mt-6">
+                <VaccinationRecordsTab patientId={foundPatient.id} />
               </TabsContent>
             </Tabs>
           </div>
