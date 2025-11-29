@@ -29,20 +29,6 @@ export function TestimonialsSection() {
 
   const { data: userProfile } = useDoc(userDocRef);
 
-  const feedbackQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(
-      collection(firestore, 'feedback'),
-      where('rating', '>=', 4),
-      where('feedbackType', '==', 'General Feedback'),
-      orderBy('createdAt', 'desc'),
-      limit(3)
-    );
-  }, [firestore]);
-
-  const { data: feedback, isLoading } = useCollection(feedbackQuery);
-
-
   useEffect(() => {
     if (userProfile?.preferredLanguage && languageFiles[userProfile.preferredLanguage]) {
       setTranslations(languageFiles[userProfile.preferredLanguage]);
@@ -84,28 +70,30 @@ export function TestimonialsSection() {
             {t('testimonials_desc', 'Real stories from our community members.')}
           </p>
         </div>
-        {isLoading ? <TestimonialSkeleton /> : feedback && feedback.length > 0 ? (
+        {testimonials && testimonials.length > 0 ? (
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {feedback.map((testimonial) => (
+            {testimonials.map((testimonial) => {
+              const avatarImage = PlaceHolderImages.find(p => p.id === testimonial.avatarId);
+              return (
               <Card key={testimonial.id} className="bg-card border-t-4 border-primary transition-shadow hover:shadow-xl">
                 <CardContent className="pt-8">
                   <blockquote className="text-lg italic text-foreground relative">
                     <span className="absolute -top-4 -left-4 text-6xl text-primary/20 font-serif">“</span>
-                    {testimonial.message}
+                    {testimonial.quote}
                   </blockquote>
                   <div className="mt-6 flex items-center gap-4">
                     <Avatar className="h-12 w-12 border-2 border-primary">
-                      <AvatarImage src={`https://picsum.photos/seed/${testimonial.userId}/100`} />
-                      <AvatarFallback>{testimonial.userName?.charAt(0)}</AvatarFallback>
+                      {avatarImage && <AvatarImage src={avatarImage.imageUrl} />}
+                      <AvatarFallback>{testimonial.name?.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-semibold">{testimonial.userName}</p>
-                      <p className="text-sm text-muted-foreground">{testimonial.feedbackType}</p>
+                      <p className="font-semibold">{testimonial.name}</p>
+                      <p className="text-sm text-muted-foreground">{testimonial.title}</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            ))}
+            )})}
           </div>
         ) : (
           <Card>
