@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -166,6 +167,51 @@ export default function VaccinationPreventiveCarePage() {
                                         <TableCell>500</TableCell>
                                         <TableCell>420</TableCell>
                                         <TableCell>80</TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                     </Table>
+                  </CardContent>
+                </Card>
+
+                 <Card className="lg:col-span-2">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Tent />
+                      Camp Performance
+                    </CardTitle>
+                    <CardDescription>
+                      Breakdown of attendees and follow-ups per camp.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                     <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Camp Name</TableHead>
+                                <TableHead>Target Attendees</TableHead>
+                                <TableHead>Actual Attendees</TableHead>
+                                <TableHead>Follow-ups</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                         <TableBody>
+                            {isLoadingCamps ? (
+                                 [...Array(3)].map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell><Skeleton className="h-4 w-40" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                camps?.map(camp => (
+                                     <TableRow key={camp.id}>
+                                        <TableCell className="font-medium">{camp.description}</TableCell>
+                                        <TableCell>300</TableCell>
+                                        <TableCell>250</TableCell>
+                                        <TableCell>45</TableCell>
                                     </TableRow>
                                 ))
                             )}
