@@ -11,19 +11,19 @@ import { Logo } from '../logo';
 import { Skeleton } from '../ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { format } from 'date-fns';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 
 const IdField = ({ label, value }) => (
   <div>
     <p className="text-xs text-gray-500">{label}</p>
     <p className="text-sm font-semibold text-gray-800">{value || 'N/A'}</p>
-  </div>
-);
-
-const IdFieldSmall = ({ label, value }) => (
-  <div>
-    <p className="text-[10px] text-gray-500">{label}</p>
-    <p className="text-xs font-mono text-gray-700">{value}</p>
   </div>
 );
 
@@ -66,9 +66,21 @@ const VirtualIdCardFront = ({ user, userProfile, t }) => {
                      <IdField label={t('id_card_issue_date', 'Date of Issue')} value="01/01/2024" />
                 </div>
                 <div className="col-span-1 flex justify-center items-center h-full">
-                    <div className="bg-white p-1 rounded-sm border">
-                         <QRCode value={qrCodeUrl} size={64} />
-                    </div>
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <div className="bg-white p-1 rounded-sm border cursor-pointer hover:scale-105 transition-transform">
+                                <QRCode value={qrCodeUrl} size={64} />
+                            </div>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-xs">
+                            <DialogHeader>
+                                <DialogTitle>Patient ID QR Code</DialogTitle>
+                            </DialogHeader>
+                            <div className="flex items-center justify-center p-4 bg-white">
+                                <QRCode value={qrCodeUrl} size={256} />
+                            </div>
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </div>
         </div>
