@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -258,14 +259,16 @@ export default function VerifyDoctorsPage() {
                     <DialogTitle>Document Viewer</DialogTitle>
                     <DialogDescription>Review the uploaded document below.</DialogDescription>
                 </DialogHeader>
-                 <div className="relative h-[80vh] w-full mt-4">
-                    <Image
-                        src={viewingDocumentUrl || ''}
-                        alt="Verification document"
-                        layout="fill"
-                        objectFit="contain"
-                    />
-                </div>
+                 {viewingDocumentUrl && (
+                    <div className="relative h-[80vh] w-full mt-4">
+                        <Image
+                            src={viewingDocumentUrl}
+                            alt="Verification document"
+                            layout="fill"
+                            objectFit="contain"
+                        />
+                    </div>
+                 )}
                 <DialogFooter>
                     <Button onClick={() => setViewingDocumentUrl(null)}>Close</Button>
                 </DialogFooter>
@@ -274,4 +277,5 @@ export default function VerifyDoctorsPage() {
 
     </div>
   );
-}
+
+    
