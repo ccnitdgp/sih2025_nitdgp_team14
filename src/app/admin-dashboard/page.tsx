@@ -19,6 +19,7 @@ import {
   Syringe,
   User,
   Shield,
+  Settings,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DiseaseTrendChart } from '@/components/admin/disease-trend-chart';
@@ -77,7 +78,7 @@ export default function AdminDashboardPage() {
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
              <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
@@ -148,6 +149,43 @@ export default function AdminDashboardPage() {
                  <Button asChild>
                   <Link href="/admin-dashboard/vaccination-preventive-care">
                     View Analytics
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Syringe />
+                  Manage Drives
+                </CardTitle>
+                <CardDescription>
+                  Add, edit, or remove vaccination drives.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild>
+                  <Link href="/admin-dashboard/vaccination-drives">
+                    Go to Drives
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Tent />
+                  Manage Camps
+                </CardTitle>
+                <CardDescription>
+                  Add, edit, or remove health camps.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild>
+                  <Link href="/admin-dashboard/health-camps">
+                    Go to Camps
                   </Link>
                 </Button>
               </CardContent>
