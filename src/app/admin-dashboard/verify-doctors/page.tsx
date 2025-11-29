@@ -22,6 +22,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import Image from 'next/image';
 
 const verificationItems = [
     { id: 'medicalDegree', label: 'Medical Degree Certificate' },
@@ -56,6 +57,7 @@ export default function VerifyDoctorsPage() {
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [actionType, setActionType] = useState<'reject' | 'suspend' | null>(null);
   const [reason, setReason] = useState('');
+  const [viewingDocumentUrl, setViewingDocumentUrl] = useState<string | null>(null);
 
   const doctorsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -126,7 +128,7 @@ export default function VerifyDoctorsPage() {
             </CardHeader>
             <CardContent>
                  <div className="border rounded-md">
-                    <div className="flex items-center justify-between p-4 font-medium text-muted-foreground border-b text-sm">
+                    <div className="hidden md:flex items-center justify-between p-4 font-medium text-muted-foreground border-b text-sm">
                         <span className="w-1/3">Doctor Name</span>
                         <div className="flex items-center justify-between w-2/3">
                             <span className="w-1/3">Specialty</span>
@@ -142,15 +144,15 @@ export default function VerifyDoctorsPage() {
                             {doctors.map(doctor => (
                                 <AccordionItem value={doctor.id} key={doctor.id} className="border-b last:border-b-0">
                                      <div className="flex items-center justify-between p-4">
-                                        <div className="flex items-center gap-2 w-1/3">
+                                        <div className="flex items-center gap-2 w-full md:w-1/3">
                                             <AccordionTrigger />
                                             <span className="font-medium">Dr. {doctor.firstName} {doctor.lastName}</span>
                                         </div>
-                                        <div className="flex items-center justify-between w-2/3">
+                                        <div className="hidden md:flex items-center justify-between w-2/3">
                                             <span className="text-sm w-1/3">{doctor.specialty || 'N/A'}</span>
                                             <span className="text-sm w-1/3">{doctor.registrationDetails?.registrationNumber || 'N/A'}</span>
                                             <div className="w-1/4 flex justify-center">
-                                                <StatusBadge status={doctor.isVerified ? 'Verified' : (doctor.verificationNote ? 'Rejected' : 'Pending')} />
+                                                <StatusBadge status={doctor.isVerified ? 'Verified' : (doctor.verificationNote ? (doctor.verificationNote.startsWith('[SUSPENDED]') ? 'Suspended' : 'Rejected') : 'Pending')} />
                                             </div>
                                             <div className="w-10">
                                                 <DropdownMenu>
@@ -195,10 +197,13 @@ export default function VerifyDoctorsPage() {
                                                                     <StatusBadge status={docInfo?.status} />
                                                                 </div>
                                                             </div>
-                                                            <Button asChild variant="secondary" size="sm" disabled={!docInfo?.url || docInfo.url === '#'}>
-                                                                <a href={docInfo?.url} target="_blank" rel="noopener noreferrer">
-                                                                    View <ExternalLink className="ml-2 h-4 w-4"/>
-                                                                </a>
+                                                            <Button 
+                                                                variant="secondary" 
+                                                                size="sm" 
+                                                                disabled={!docInfo?.url || docInfo.url === '#'}
+                                                                onClick={() => setViewingDocumentUrl(docInfo?.url)}
+                                                            >
+                                                                View <ExternalLink className="ml-2 h-4 w-4"/>
                                                             </Button>
                                                         </div>
                                                     )
@@ -243,6 +248,26 @@ export default function VerifyDoctorsPage() {
                     >
                         Confirm {actionType === 'reject' ? 'Rejection' : 'Suspension'}
                     </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
+        <Dialog open={!!viewingDocumentUrl} onOpenChange={() => setViewingDocumentUrl(null)}>
+            <DialogContent className="max-w-3xl">
+                <DialogHeader>
+                    <DialogTitle>Document Viewer</DialogTitle>
+                    <DialogDescription>Review the uploaded document below.</DialogDescription>
+                </DialogHeader>
+                 <div className="relative h-[80vh] w-full mt-4">
+                    <Image
+                        src={viewingDocumentUrl || ''}
+                        alt="Verification document"
+                        layout="fill"
+                        objectFit="contain"
+                    />
+                </div>
+                <DialogFooter>
+                    <Button onClick={() => setViewingDocumentUrl(null)}>Close</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
