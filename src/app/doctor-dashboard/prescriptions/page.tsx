@@ -109,8 +109,7 @@ export default function DoctorPrescriptionsPage() {
     if (!doctorUser || !firestore) return null;
     return query(
       collection(firestore, 'prescriptions'),
-      where('doctorId', '==', doctorUser.uid),
-      orderBy('date', 'desc')
+      where('doctorId', '==', doctorUser.uid)
     );
   }, [doctorUser, firestore]);
 
@@ -158,6 +157,11 @@ export default function DoctorPrescriptionsPage() {
     });
     return () => subscription.unsubscribe();
   }, [form]);
+
+  const sortedPrescriptions = useMemo(() => {
+    if (!issuedPrescriptions) return [];
+    return [...issuedPrescriptions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [issuedPrescriptions]);
 
 
   return (
@@ -305,8 +309,8 @@ export default function DoctorPrescriptionsPage() {
                                         <TableCell><Skeleton className="h-6 w-16"/></TableCell>
                                     </TableRow>
                                 ))
-                            ) : issuedPrescriptions && issuedPrescriptions.length > 0 ? (
-                                issuedPrescriptions.map(presc => (
+                            ) : sortedPrescriptions && sortedPrescriptions.length > 0 ? (
+                                sortedPrescriptions.map(presc => (
                                     <TableRow key={presc.id}>
                                         <TableCell className="font-medium">{presc.patientName || 'N/A'}</TableCell>
                                         <TableCell>{presc.medication}</TableCell>
