@@ -27,7 +27,6 @@ import { BackButton } from '@/components/layout/back-button';
 import { VaccinationCoverageChart } from '@/components/admin/vaccination-coverage-chart';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
-import { DashboardFilters } from '@/components/admin/dashboard-filters';
 
 
 export default function VaccinationPreventiveCarePage() {
@@ -72,8 +71,6 @@ export default function VaccinationPreventiveCarePage() {
               </p>
             </div>
             
-            <DashboardFilters />
-
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                  <Card>
                     <CardHeader>

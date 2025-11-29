@@ -22,7 +22,6 @@ import { collection, query, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BackButton } from '@/components/layout/back-button';
 import { getMonth, getYear, parseISO } from 'date-fns';
-import { DashboardFilters } from '@/components/admin/dashboard-filters';
 
 
 type StatCardProps = {
@@ -99,8 +98,6 @@ export default function KpiCardsPage() {
               </p>
             </div>
             
-            <DashboardFilters />
-
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <StatCard
                     title="Total Patients"

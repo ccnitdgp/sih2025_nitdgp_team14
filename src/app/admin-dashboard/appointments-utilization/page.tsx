@@ -20,7 +20,6 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { BackButton } from '@/components/layout/back-button';
 import { AppointmentTrendChart } from '@/components/admin/appointment-trend-chart';
-import { DashboardFilters } from '@/components/admin/dashboard-filters';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 
@@ -71,8 +70,6 @@ export default function AppointmentsUtilizationPage() {
               </p>
             </div>
             
-            <DashboardFilters />
-
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <StatCard
                     title="Cancellation Rate"
