@@ -29,7 +29,6 @@ import {
   UserCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { VaccinationCoverageChart } from '@/components/admin/vaccination-coverage-chart';
 import { DoctorLoadChart } from '@/components/admin/doctor-load-chart';
 import { AgeDistributionChart } from '@/components/admin/age-distribution-chart';
 import { OutbreakHeatmap } from '@/components/admin/outbreak-heatmap';
@@ -333,21 +332,6 @@ export default function AdminDashboardPage() {
            </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Syringe />
-                  Vaccination Coverage
-                </CardTitle>
-                <CardDescription>
-                  Total vaccination coverage by age group.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex justify-center">
-                <VaccinationCoverageChart />
-              </CardContent>
-            </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
