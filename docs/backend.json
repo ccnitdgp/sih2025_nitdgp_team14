@@ -455,6 +455,7 @@
         "createdAt": { "type": "string", "format": "date-time" },
         "topic": { "type": "string" },
         "replyCount": { "type": "number" },
+        "viewCount": { "type": "number", "description": "The number of times the post has been viewed." },
         "likeCount": { "type": "number", "description": "The number of likes on the post." },
         "likedBy": { "type": "array", "items": { "type": "string" }, "description": "List of user UIDs who liked the post." }
       },

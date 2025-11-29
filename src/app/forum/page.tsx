@@ -18,7 +18,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MessageSquare, PlusCircle, Heart } from 'lucide-react';
+import { MessageSquare, PlusCircle, Heart, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AuthDialog } from '@/components/auth/auth-dialog';
 import { BackButton } from '@/components/layout/back-button';
@@ -74,6 +74,7 @@ export default function ForumPage() {
           createdAt: serverTimestamp(),
           replyCount: 0,
           likeCount: 0,
+          viewCount: 0,
           likedBy: [],
         };
 
@@ -193,12 +194,17 @@ export default function ForumPage() {
                 <Link href={`/forum/post/${post.id}`} className="block mb-2">
                   <h3 className="font-bold text-lg text-primary hover:underline">{post.title}</h3>
                 </Link>
+                <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{post.content}</p>
                 <div className="text-sm text-muted-foreground flex items-center gap-4 flex-wrap">
                     <span>By {post.authorName}</span>
                     <span>{post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : '...'}</span>
                     <div className="flex items-center gap-1">
                         <MessageSquare className="h-4 w-4"/>
                         <span>{post.replyCount || 0} replies</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <Eye className="h-4 w-4"/>
+                        <span>{post.viewCount || 0} views</span>
                     </div>
                 </div>
                  <div className="mt-4 flex items-center gap-2">
@@ -226,3 +232,5 @@ export default function ForumPage() {
     </div>
   );
 }
+
+    

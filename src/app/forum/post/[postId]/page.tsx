@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,7 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Heart } from 'lucide-react';
+import { ArrowLeft, Heart, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
@@ -57,6 +57,14 @@ export default function PostPage() {
     resolver: zodResolver(replySchema),
     defaultValues: { content: '' },
   });
+
+  useEffect(() => {
+    if (postRef) {
+        updateDocumentNonBlocking(postRef, {
+            viewCount: increment(1)
+        });
+    }
+  }, [postRef]);
 
   const onSubmit = async (values: z.infer<typeof replySchema>) => {
     if (!user || !userProfile || !postRef || !firestore) {
@@ -133,12 +141,20 @@ export default function PostPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-3xl">{post.title}</CardTitle>
-              <CardDescription className="flex items-center gap-2 pt-2">
-                 <Avatar className="h-6 w-6">
-                    <AvatarImage src={`https://picsum.photos/seed/${post.authorId}/40`} />
-                    <AvatarFallback>{post.authorName?.charAt(0)}</AvatarFallback>
-                </Avatar>
-                Posted by {post.authorName} on {post.createdAt ? format(post.createdAt.toDate(), 'PPP') : '...'}
+              <CardDescription className="flex items-center flex-wrap gap-x-4 gap-y-1 pt-2">
+                 <div className="flex items-center gap-2">
+                    <Avatar className="h-6 w-6">
+                        <AvatarImage src={`https://picsum.photos/seed/${post.authorId}/40`} />
+                        <AvatarFallback>{post.authorName?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <span>Posted by {post.authorName}</span>
+                </div>
+                <span>·</span>
+                <span>{post.createdAt ? format(post.createdAt.toDate(), 'PP') : '...'}</span>
+                <div className="flex items-center gap-1">
+                    <Eye className="h-4 w-4"/>
+                    <span>{post.viewCount || 0} views</span>
+                </div>
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -228,3 +244,5 @@ export default function PostPage() {
     </div>
   );
 }
+
+    
