@@ -237,11 +237,7 @@ export default function ForumPage() {
                         <div className="flex items-center gap-4">
                             <PostStat icon={MessageSquare} count={post.replyCount} />
                             <PostStat icon={Eye} count={post.viewCount} />
-                            
-                            <div className="sm:hidden flex items-center gap-1.5 text-muted-foreground">
-                                <Heart className="h-4 w-4" />
-                                <span className="text-sm font-medium">{post.likeCount || 0}</span>
-                            </div>
+                            <PostStat icon={Heart} count={post.likeCount} />
                         </div>
                     </div>
                 </CardContent>
