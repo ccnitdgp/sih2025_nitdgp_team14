@@ -93,13 +93,13 @@ export function VerificationCenter({ publicProfile, doctorPublicProfileRef }: { 
         });
 
         try {
-            // Step 1: Await the file upload to complete
+            // Step 1: Wait for the file to upload to Firebase Storage
             const snapshot = await uploadBytes(storageRef, file);
             
-            // Step 2: Await getting the download URL
+            // Step 2: Wait to get the download URL from the uploaded file
             const downloadURL = await getDownloadURL(snapshot.ref);
 
-            // Step 3: Await the Firestore document update with the correct URL
+            // Step 3: Wait to update the Firestore document with the correct URL
             const updateData = {
                 [`verification.${docType}`]: {
                     status: 'Pending',
