@@ -112,7 +112,7 @@ export default function SystemHealthPage() {
                 </CardHeader>
                 <CardContent className="space-y-2">
                     <div className="p-2 border rounded-md">
-                        <p className="font-mono text-sm">`FirestorePermissionError` at `/users/{userId}`</p>
+                        <p className="font-mono text-sm">`FirestorePermissionError` at `/users/[userId]`</p>
                         <p className="text-xs text-muted-foreground">Count: 42</p>
                     </div>
                      <div className="p-2 border rounded-md">
