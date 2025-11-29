@@ -173,12 +173,6 @@ export function Header() {
                       <LayoutDashboard className="mr-2 h-4 w-4" />
                       <span>{t('dashboard_link', 'Dashboard')}</span>
                     </DropdownMenuItem>
-                    {isAdmin && (
-                      <DropdownMenuItem onClick={() => router.push('/admin-dashboard/kpi-cards')}>
-                          <BarChart className="mr-2 h-4 w-4" />
-                          <span>KPIs</span>
-                      </DropdownMenuItem>
-                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem disabled>
                       <div className="flex flex-col space-y-1">
