@@ -241,11 +241,9 @@ service cloud.firestore {
         allow get, list: if true;
 
         // Allow owner/admin to update/delete.
-        allow update, delete: if isSignedIn() && (isOwner(resource.data.authorId) || isAdmin());
-
-        // Allow anyone to increment like/view counts and add/remove from likedBy
-        allow update: if isSignedIn() && 
+        allow update: if isSignedIn() &&
           (
+            (isOwner(resource.data.authorId) || isAdmin()) ||
             (
               // Allow any signed in user to increment the like count and add their own UID to likedBy
               request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount', 'likedBy']) &&
@@ -255,11 +253,20 @@ service cloud.firestore {
               request.auth.uid in request.resource.data.likedBy
             ) ||
             (
+              // Allow a user to decrement the like count and remove their own UID from likedBy
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount', 'likedBy']) &&
+              request.resource.data.likeCount == resource.data.likeCount - 1 &&
+              !request.resource.data.likedBy.hasAny([request.auth.uid]) &&
+              request.auth.uid in resource.data.likedBy
+            ) ||
+            (
                 // Allow anyone to increment viewCount
                 request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount']) &&
                 request.resource.data.viewCount == resource.data.viewCount + 1
             )
           );
+        
+        allow delete: if isSignedIn() && (isOwner(resource.data.authorId) || isAdmin());
         
         // --- /forumPosts/{postId}/replies/{replyId} ---
         match /replies/{replyId} {

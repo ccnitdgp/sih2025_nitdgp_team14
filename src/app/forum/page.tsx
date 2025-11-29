@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, updateDocumentNonBlocking } from '@/firebase';
-import { collection, query, orderBy, serverTimestamp, doc, addDoc, arrayUnion, increment } from 'firebase/firestore';
+import { collection, query, orderBy, serverTimestamp, doc, addDoc, arrayUnion, increment, arrayRemove } from 'firebase/firestore';
 import { formatDistanceToNow } from 'date-fns';
 
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,7 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MessageSquare, PlusCircle, Heart, Eye, ArrowUp } from 'lucide-react';
+import { MessageSquare, PlusCircle, Heart, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AuthDialog } from '@/components/auth/auth-dialog';
 import { BackButton } from '@/components/layout/back-button';
@@ -104,18 +104,29 @@ export default function ForumPage() {
     }
   };
 
-  const handleLike = (e: React.MouseEvent, postId: string) => {
+  const handleToggleLike = (e: React.MouseEvent, post: any) => {
     e.preventDefault();
     e.stopPropagation();
     if (!user || !firestore) {
         toast({ variant: "destructive", title: "Please log in to like posts."});
         return;
     };
-    const postRef = doc(firestore, 'forumPosts', postId);
-    updateDocumentNonBlocking(postRef, {
-        likeCount: increment(1),
-        likedBy: arrayUnion(user.uid)
-    });
+    const postRef = doc(firestore, 'forumPosts', post.id);
+    const hasLiked = post.likedBy?.includes(user.uid);
+
+    if (hasLiked) {
+        // Unlike
+        updateDocumentNonBlocking(postRef, {
+            likeCount: increment(-1),
+            likedBy: arrayRemove(user.uid)
+        });
+    } else {
+        // Like
+        updateDocumentNonBlocking(postRef, {
+            likeCount: increment(1),
+            likedBy: arrayUnion(user.uid)
+        });
+    }
   };
 
   const PostsSkeleton = () => (
@@ -216,13 +227,8 @@ export default function ForumPage() {
             return (
               <AccordionItem value={post.id} key={post.id} className="border-none">
                 <Card className="hover:bg-muted/50 transition-colors">
-                  <CardContent className="p-4 flex gap-4">
-                      <div className="hidden sm:flex flex-col items-center space-y-2 p-2 bg-muted/50 rounded-lg">
-                          <Button variant="ghost" size="icon" className="h-8 w-8" disabled={hasLiked || !user} onClick={(e) => handleLike(e, post.id)}>
-                              <ArrowUp className={cn("h-5 w-5", hasLiked && "text-primary fill-primary")} />
-                          </Button>
-                          <span className="font-bold text-sm">{post.likeCount || 0}</span>
-                      </div>
+                  <AccordionTrigger className="p-0 w-full hover:no-underline" hideChevron>
+                  <CardContent className="p-4 flex gap-4 w-full text-left">
                       <div className="flex-1">
                           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                               <Avatar className="h-6 w-6">
@@ -236,19 +242,17 @@ export default function ForumPage() {
                           <h3 className="font-bold text-lg text-primary">{post.title}</h3>
                           <p className="text-sm text-muted-foreground line-clamp-2 my-2">{post.content}</p>
                           <div className="flex items-center gap-4 mt-3">
-                              <AccordionTrigger className="p-1 rounded-md hover:bg-accent -ml-1">
-                                <div className="flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-primary">
+                              <div className="flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-primary">
                                     <MessageSquare className="h-4 w-4" />
                                     <span className="text-sm font-medium">{post.replyCount || 0}</span>
-                                </div>
-                              </AccordionTrigger>
+                              </div>
                               <PostStat icon={Eye} count={post.viewCount} />
                                <Button
                                   variant="ghost"
                                   size="sm"
                                   className="flex items-center gap-1.5 text-muted-foreground p-1 h-auto -ml-1"
-                                  disabled={hasLiked || !user}
-                                  onClick={(e) => handleLike(e, post.id)}
+                                  disabled={!user}
+                                  onClick={(e) => handleToggleLike(e, post)}
                                 >
                                 <Heart className={cn("h-4 w-4", hasLiked && "text-destructive fill-destructive")} />
                                 <span className="text-sm font-medium">{post.likeCount || 0}</span>
@@ -256,6 +260,7 @@ export default function ForumPage() {
                           </div>
                       </div>
                   </CardContent>
+                  </AccordionTrigger>
                 </Card>
                  <AccordionContent>
                     <div className="pl-4 pr-2 pt-2 pb-4">
