@@ -14,11 +14,10 @@ import {
   CardTitle,
   CardDescription
 } from '@/components/ui/card';
-import { visitingCamps } from '@/lib/data';
 import { Calendar, MapPin, Stethoscope } from 'lucide-react';
 import { Highlight } from '@/components/ui/highlight';
-import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useUser, useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
+import { doc, collection, query } from 'firebase/firestore';
 import hi from '@/lib/locales/hi.json';
 import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
@@ -26,6 +25,7 @@ import te from '@/lib/locales/te.json';
 import mr from '@/lib/locales/mr.json';
 import en from '@/lib/locales/en.json';
 import { BackButton } from '@/components/layout/back-button';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const languageFiles = { hi, bn, ta, te, mr, en };
 
@@ -42,6 +42,13 @@ export default function CampsPage() {
   }, [user, firestore]);
 
   const { data: userProfile } = useDoc(userDocRef);
+
+  const campsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'healthCamps'));
+  }, [firestore]);
+
+  const { data: visitingCamps, isLoading } = useCollection(campsQuery);
 
   useEffect(() => {
     const lang = userProfile?.preferredLanguage || 'en';
@@ -62,12 +69,18 @@ export default function CampsPage() {
             {t('camps_page_desc', 'Find information about upcoming free health camps organized for your community.')}
           </p>
         </div>
-        {visitingCamps.length > 0 ? (
+        {isLoading ? (
+            <div className="space-y-4">
+              <Skeleton className="h-32 w-full" />
+              <Skeleton className="h-32 w-full" />
+              <Skeleton className="h-32 w-full" />
+            </div>
+        ) : visitingCamps && visitingCamps.length > 0 ? (
           <div className="space-y-8">
             {visitingCamps.map((camp) => {
-              const campName = t(camp.name_key, camp.name);
-              const campDetails = t(camp.details_key, camp.details);
-              const campLocation = t(camp.location_key, camp.location);
+              const campName = camp.description;
+              const campDetails = camp.availableServices;
+              const campLocation = camp.location;
 
               return (
               <Card key={camp.id} className="w-full transition-shadow hover:shadow-lg">
@@ -89,7 +102,7 @@ export default function CampsPage() {
                             </div>
                             <div className="flex items-center gap-2">
                               <Calendar className="h-4 w-4" />
-                              <span>{camp.date}</span>
+                              <span>{new Date(camp.startTime).toLocaleDateString()}</span>
                             </div>
                           </div>
                         </div>

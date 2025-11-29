@@ -13,13 +13,12 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { vaccinationDrives } from '@/lib/data';
 import { Calendar as CalendarIcon, MapPin, Syringe, User, Phone, CheckCircle, QrCode as QrCodeIcon, Download, Loader2 } from 'lucide-react';
 import { Highlight } from '@/components/ui/highlight';
-import { useUser, useDoc, useFirestore, useMemoFirebase, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
+import { useUser, useDoc, useFirestore, useMemoFirebase, addDocumentNonBlocking, setDocumentNonBlocking, useCollection } from '@/firebase';
 import { AuthDialog } from '@/components/auth/auth-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { doc, collection } from 'firebase/firestore';
+import { doc, collection, query } from 'firebase/firestore';
 import hi from '@/lib/locales/hi.json';
 import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
@@ -30,10 +29,18 @@ import { BackButton } from '@/components/layout/back-button';
 import { format, differenceInYears, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import QRCode from 'react-qr-code';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const languageFiles = { hi, bn, ta, te, mr, en };
 
-type Drive = typeof vaccinationDrives[0];
+type Drive = {
+  id: string;
+  name: string;
+  location: string;
+  schedule: string;
+  vaccineType: string;
+  description: string;
+};
 
 const timeSlots = {
   Morning: ['09:00 AM', '10:00 AM', '11:00 AM'],
@@ -67,6 +74,13 @@ export default function VaccinationPage() {
     return doc(firestore, 'users', user.uid);
   }, [user, firestore]);
   const { data: userProfile } = useDoc(userDocRef);
+
+  const drivesQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'vaccinationDrives'));
+  }, [firestore]);
+
+  const { data: vaccinationDrives, isLoading } = useCollection(drivesQuery);
   
   const isEligible = useMemo(() => {
       const parsedAge = typeof age === 'string' ? parseInt(age, 10) : age;
@@ -96,7 +110,6 @@ export default function VaccinationPage() {
     setStep(1);
     setIsSubmitting(false);
     setFinalBookingDetails(null);
-    // Reset other states
     setSelectedCenter(null);
     setSelectedDate(undefined);
     setSelectedTime(null);
@@ -114,12 +127,12 @@ export default function VaccinationPage() {
       
       setIsSubmitting(true);
       const registrationColRef = collection(firestore, 'vaccinationRegistrations');
-      const newDocRef = doc(registrationColRef); // Generate a new doc ref with a unique ID
+      const newDocRef = doc(registrationColRef);
 
       const registrationData = {
           id: newDocRef.id,
           driveId: selectedDrive.id,
-          driveName: selectedDrive.name,
+          driveName: selectedDrive.vaccineType,
           userId: user.uid,
           userName: `${userProfile.firstName} ${userProfile.lastName}`,
           userAge: age,
@@ -131,12 +144,11 @@ export default function VaccinationPage() {
           status: "Scheduled"
       };
       
-      // Use setDocumentNonBlocking with the new document reference
       setDocumentNonBlocking(newDocRef, registrationData, {});
       
       setFinalBookingDetails(registrationData);
       setIsSubmitting(false);
-      handleNextStep(); // Move to confirmation screen
+      handleNextStep();
   };
   
   const RegisterButton = ({ drive }) => {
@@ -300,12 +312,18 @@ export default function VaccinationPage() {
             {t('vaccination_page_desc', 'Stay protected. Find information about upcoming vaccination drives near you.')}
           </p>
         </div>
-        {vaccinationDrives.length > 0 ? (
+        {isLoading ? (
+          <div className="space-y-4">
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+          </div>
+        ) : vaccinationDrives && vaccinationDrives.length > 0 ? (
           <div className="space-y-8">
               {vaccinationDrives.map((drive) => {
-                const driveName = t(drive.name_key, drive.name);
-                const driveDetails = t(drive.details_key, drive.details);
-                const driveLocation = t(drive.location_key, drive.location);
+                const driveName = drive.vaccineType;
+                const driveDetails = drive.description;
+                const driveLocation = drive.location;
 
                 return (
                 <Card key={drive.id} className="w-full transition-shadow hover:shadow-lg">
@@ -327,7 +345,7 @@ export default function VaccinationPage() {
                               </div>
                               <div className="flex items-center gap-2">
                                 <CalendarIcon className="h-4 w-4" />
-                                <span>{drive.date}</span>
+                                <span>{new Date(drive.schedule).toLocaleDateString()}</span>
                               </div>
                             </div>
                           </div>
