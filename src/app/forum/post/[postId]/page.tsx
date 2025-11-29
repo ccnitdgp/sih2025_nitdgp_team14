@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useUser, useFirestore, useDoc, useCollection, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
-import { collection, doc, query, orderBy, serverTimestamp, increment, addDoc } from 'firebase/firestore';
+import { collection, doc, query, orderBy, serverTimestamp, increment, addDoc, updateDoc } from 'firebase/firestore';
 import { format } from 'date-fns';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -76,11 +76,12 @@ export default function PostPage() {
 
     try {
         const newReplyDocRef = await addDoc(repliesColRef, newReply);
-        // Set the ID on the document after creation
-        updateDocumentNonBlocking(newReplyDocRef, { id: newReplyDocRef.id });
         
-        // Increment reply count on the parent post
-        updateDocumentNonBlocking(postRef, { replyCount: increment(1) });
+        // ✅ Reply doc update
+        await updateDoc(newReplyDocRef, { id: newReplyDocRef.id });
+
+        // ✅ Parent post replyCount update
+        await updateDoc(postRef, { replyCount: increment(1) });
         
         toast({ title: 'Reply Posted' });
         form.reset();
