@@ -8,7 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useUser, useFirestore, useDoc, useCollection, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
 import { collection, doc, query, orderBy, serverTimestamp, increment, addDoc, updateDoc, arrayUnion } from 'firebase/firestore';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,10 +16,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Heart, Eye } from 'lucide-react';
+import { ArrowLeft, Heart, Eye, MessageSquare } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
+import { AuthDialog } from '@/components/auth/auth-dialog';
 
 const replySchema = z.object({
   content: z.string().min(1, 'Reply cannot be empty.'),
@@ -75,15 +76,15 @@ export default function PostPage() {
     
     const repliesColRef = collection(firestore, 'forumPosts', postId, 'replies');
 
-    const newReply = {
-      postId: postId,
-      content: values.content,
-      authorId: user.uid,
-      authorName: `${userProfile.firstName} ${userProfile.lastName}`,
-      createdAt: serverTimestamp(),
-    };
-
     try {
+        const newReply = {
+            postId: postId,
+            content: values.content,
+            authorId: user.uid,
+            authorName: `${userProfile.firstName} ${userProfile.lastName}`,
+            createdAt: serverTimestamp(),
+        };
+
         const newReplyDocRef = await addDoc(repliesColRef, newReply);
         
         await updateDoc(newReplyDocRef, { id: newReplyDocRef.id });
@@ -140,26 +141,22 @@ export default function PostPage() {
         {isLoadingPost ? <PostSkeleton /> : post ? (
           <Card>
             <CardHeader>
-              <CardTitle className="text-3xl">{post.title}</CardTitle>
-              <CardDescription className="flex items-center flex-wrap gap-x-4 gap-y-1 pt-2">
+              <CardDescription className="flex items-center flex-wrap gap-x-4 gap-y-1 text-sm">
                  <div className="flex items-center gap-2">
                     <Avatar className="h-6 w-6">
                         <AvatarImage src={`https://picsum.photos/seed/${post.authorId}/40`} />
                         <AvatarFallback>{post.authorName?.charAt(0)}</AvatarFallback>
                     </Avatar>
-                    <span>Posted by {post.authorName}</span>
+                    <span>Posted by <span className="font-medium text-foreground">{post.authorName}</span></span>
                 </div>
                 <span>·</span>
-                <span>{post.createdAt ? format(post.createdAt.toDate(), 'PP') : '...'}</span>
-                <div className="flex items-center gap-1">
-                    <Eye className="h-4 w-4"/>
-                    <span>{post.viewCount || 0} views</span>
-                </div>
+                <span>{post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : '...'}</span>
               </CardDescription>
+              <CardTitle className="text-3xl font-bold">{post.title}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="whitespace-pre-wrap">{post.content}</p>
-               <div className="mt-6 flex items-center gap-2 pt-4 border-t">
+              <p className="whitespace-pre-wrap leading-relaxed">{post.content}</p>
+               <div className="mt-6 flex items-center gap-x-6 gap-y-2 pt-4 border-t flex-wrap">
                   <Button
                     variant="outline"
                     size="sm"
@@ -167,9 +164,16 @@ export default function PostPage() {
                     onClick={handleLike}
                   >
                     <Heart className={cn("mr-2 h-4 w-4", hasLiked && "fill-destructive text-destructive")} />
-                    Like
+                    Like ({post.likeCount || 0})
                   </Button>
-                  <span className="text-sm text-muted-foreground">{post.likeCount || 0} likes</span>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <MessageSquare className="h-4 w-4"/>
+                    <span className="text-sm font-medium">{post.replyCount || 0} Replies</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Eye className="h-4 w-4"/>
+                    <span className="text-sm font-medium">{post.viewCount || 0} Views</span>
+                  </div>
                 </div>
             </CardContent>
           </Card>
@@ -179,44 +183,39 @@ export default function PostPage() {
           </Card>
         )}
 
-        <Separator />
-
         <div>
-          <h3 className="text-2xl font-bold mb-4">Replies</h3>
+          <h3 className="text-2xl font-bold mb-6">{post?.replyCount || 0} Replies</h3>
           <div className="space-y-6">
             {isLoadingReplies ? <p>Loading replies...</p> : replies && replies.length > 0 ? (
               replies.map(reply => (
-                <Card key={reply.id} className="bg-muted/50">
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-3">
-                       <Avatar className="h-8 w-8 mt-1">
-                          <AvatarImage src={`https://picsum.photos/seed/${reply.authorId}/40`} />
-                          <AvatarFallback>{reply.authorName?.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <span className="font-semibold text-foreground">{reply.authorName}</span>
-                            <span>·</span>
-                            <span>{reply.createdAt ? format(reply.createdAt.toDate(), 'PPp') : '...'}</span>
-                         </div>
-                        <p className="mt-1">{reply.content}</p>
-                      </div>
+                <div key={reply.id} className="flex items-start gap-4">
+                    <Avatar className="h-10 w-10 mt-1">
+                        <AvatarImage src={`https://picsum.photos/seed/${reply.authorId}/40`} />
+                        <AvatarFallback>{reply.authorName?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 p-4 border rounded-lg bg-muted/50">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                        <span className="font-semibold text-foreground">{reply.authorName}</span>
+                        <span>·</span>
+                        <span>{reply.createdAt ? formatDistanceToNow(reply.createdAt.toDate(), { addSuffix: true }) : '...'}</span>
+                        </div>
+                        <p>{reply.content}</p>
                     </div>
-                  </CardContent>
-                </Card>
+                </div>
               ))
             ) : (
-              <p className="text-muted-foreground">No replies yet. Be the first to respond!</p>
+              !isLoadingPost && <p className="text-muted-foreground text-center py-4">No replies yet. Be the first to respond!</p>
             )}
           </div>
         </div>
 
-        {user && (
+        
           <Card>
             <CardHeader>
               <CardTitle>Post a Reply</CardTitle>
             </CardHeader>
             <CardContent>
+             {user ? (
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   <FormField
@@ -226,7 +225,7 @@ export default function PostPage() {
                       <FormItem>
                         <FormLabel className="sr-only">Your Reply</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="Write your reply here..." {...field} />
+                          <Textarea placeholder="Write your reply here..." {...field} className="min-h-[120px]"/>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -237,12 +236,15 @@ export default function PostPage() {
                   </Button>
                 </form>
               </Form>
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-4 text-center p-8">
+                  <p className="text-muted-foreground">You must be logged in to post a reply.</p>
+                  <AuthDialog trigger={<Button>Login to Reply</Button>} />
+                </div>
+              )}
             </CardContent>
           </Card>
-        )}
       </div>
     </div>
   );
 }
-
-    

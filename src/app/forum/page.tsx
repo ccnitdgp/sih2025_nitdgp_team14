@@ -18,16 +18,25 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MessageSquare, PlusCircle, Heart, Eye } from 'lucide-react';
+import { MessageSquare, PlusCircle, Heart, Eye, ArrowUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AuthDialog } from '@/components/auth/auth-dialog';
 import { BackButton } from '@/components/layout/back-button';
 import { cn } from '@/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const newPostSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters long.'),
   content: z.string().min(10, 'Post content must be at least 10 characters long.'),
 });
+
+const PostStat = ({ icon: Icon, count }) => (
+    <div className="flex items-center gap-1.5 text-muted-foreground">
+        <Icon className="h-4 w-4" />
+        <span className="text-sm font-medium">{count || 0}</span>
+    </div>
+);
+
 
 export default function ForumPage() {
   const { user, isUserLoading } = useUser();
@@ -107,8 +116,18 @@ export default function ForumPage() {
     <div className="space-y-4">
       {[...Array(3)].map((_, i) => (
         <Card key={i} className="p-4">
-          <Skeleton className="h-6 w-3/4 mb-2" />
-          <Skeleton className="h-4 w-1/2" />
+          <div className="flex gap-4">
+            <div className="hidden sm:flex flex-col items-center gap-2 pt-2">
+                <Skeleton className="h-6 w-8" />
+                <Skeleton className="h-6 w-8" />
+                <Skeleton className="h-6 w-8" />
+            </div>
+            <div className="flex-1 space-y-3">
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-full" />
+            </div>
+          </div>
         </Card>
       ))}
     </div>
@@ -190,36 +209,42 @@ export default function ForumPage() {
             const hasLiked = user && post.likedBy?.includes(user.uid);
             return (
             <Card key={post.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <Link href={`/forum/post/${post.id}`} className="block mb-2">
-                  <h3 className="font-bold text-lg text-primary hover:underline">{post.title}</h3>
-                </Link>
-                <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{post.content}</p>
-                <div className="text-sm text-muted-foreground flex items-center gap-4 flex-wrap">
-                    <span>By {post.authorName}</span>
-                    <span>{post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : '...'}</span>
-                    <div className="flex items-center gap-1">
-                        <MessageSquare className="h-4 w-4"/>
-                        <span>{post.replyCount || 0} replies</span>
+                <CardContent className="p-4 flex gap-4">
+                    <div className="hidden sm:flex flex-col items-center space-y-2 p-2 bg-muted/50 rounded-lg">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" disabled={hasLiked || !user} onClick={() => handleLike(post.id)}>
+                            <ArrowUp className={cn("h-5 w-5", hasLiked && "text-primary fill-primary")} />
+                        </Button>
+                        <span className="font-bold text-sm">{post.likeCount || 0}</span>
                     </div>
-                    <div className="flex items-center gap-1">
-                        <Eye className="h-4 w-4"/>
-                        <span>{post.viewCount || 0} views</span>
+
+                    <div className="flex-1">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                            <Avatar className="h-6 w-6">
+                                <AvatarImage src={`https://picsum.photos/seed/${post.authorId}/40`} />
+                                <AvatarFallback>{post.authorName?.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <span>Posted by <span className="font-medium text-foreground">{post.authorName}</span></span>
+                            <span>•</span>
+                            <span>{post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : '...'}</span>
+                        </div>
+                        
+                        <Link href={`/forum/post/${post.id}`} className="block mb-2">
+                            <h3 className="font-bold text-lg text-primary hover:underline">{post.title}</h3>
+                        </Link>
+                        
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{post.content}</p>
+
+                        <div className="flex items-center gap-4">
+                            <PostStat icon={MessageSquare} count={post.replyCount} />
+                            <PostStat icon={Eye} count={post.viewCount} />
+                            
+                            <div className="sm:hidden flex items-center gap-1.5 text-muted-foreground">
+                                <Heart className="h-4 w-4" />
+                                <span className="text-sm font-medium">{post.likeCount || 0}</span>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                 <div className="mt-4 flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={hasLiked || !user}
-                        onClick={() => handleLike(post.id)}
-                      >
-                        <Heart className={cn("mr-2 h-4 w-4", hasLiked && "fill-destructive text-destructive")} />
-                        Like
-                      </Button>
-                      <span className="text-sm text-muted-foreground">{post.likeCount || 0} likes</span>
-                 </div>
-              </CardContent>
+                </CardContent>
             </Card>
           )})
         ) : (
@@ -232,5 +257,3 @@ export default function ForumPage() {
     </div>
   );
 }
-
-    
