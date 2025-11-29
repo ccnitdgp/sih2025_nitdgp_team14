@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,14 @@ import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
 import te from '@/lib/locales/te.json';
 import mr from '@/lib/locales/mr.json';
+import { Card, CardContent } from "@/components/ui/card"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel"
+import Autoplay from "embla-carousel-autoplay"
+
 
 const languageFiles = { hi, bn, ta, te, mr };
 
@@ -25,7 +33,7 @@ export function HeroSection() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isClient, setIsClient] = useState(false);
   const [translations, setTranslations] = useState({});
-  const heroImage = PlaceHolderImages.find(p => p.id === 'hero-image');
+  const heroImages = PlaceHolderImages.filter(p => p.id.startsWith('hero-image'));
 
   const userDocRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
@@ -33,6 +41,10 @@ export function HeroSection() {
   }, [user, firestore]);
 
   const { data: userProfile } = useDoc(userDocRef);
+  
+  const plugin = useRef(
+    Autoplay({ delay: 4000, stopOnInteraction: true })
+  )
 
   useEffect(() => {
     setIsClient(true);
@@ -96,17 +108,32 @@ export function HeroSection() {
             )}
           </div>
           <div className="flex items-center justify-center">
-            {heroImage && (
-              <Image
-                src={heroImage.imageUrl}
-                alt={heroImage.description}
-                data-ai-hint={heroImage.imageHint}
-                width={600}
-                height={500}
-                className="rounded-lg shadow-2xl"
-                priority
-              />
-            )}
+            <Carousel 
+              className="w-full max-w-md"
+              plugins={[plugin.current]}
+              onMouseEnter={plugin.current.stop}
+              onMouseLeave={plugin.current.reset}
+            >
+              <CarouselContent>
+                {heroImages.map((image) => (
+                  <CarouselItem key={image.id}>
+                    <Card>
+                      <CardContent className="flex aspect-square items-center justify-center p-0">
+                         <Image
+                            src={image.imageUrl}
+                            alt={image.description}
+                            data-ai-hint={image.imageHint}
+                            width={600}
+                            height={500}
+                            className="rounded-lg shadow-2xl object-cover w-full h-full"
+                            priority
+                          />
+                      </CardContent>
+                    </Card>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+            </Carousel>
           </div>
         </div>
       </div>

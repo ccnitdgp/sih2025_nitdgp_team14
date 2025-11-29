@@ -3,8 +3,20 @@
     {
       "id": "hero-image",
       "description": "Illustration of a doctor and patient in a friendly setting",
-      "imageUrl": "https://images.unsplash.com/photo-1729949129758-0b668478dce5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxkb2N0b3IlMjBoZWFsdGh8ZW58MHx8fHwxNzY0MDA1Mzc3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkb2N0b3IlMjBoZWFsdGh8ZW58MHx8fHwxNzY0MDA1Mzc3fDA&ixlib=rb-4.0.3&q=80&w=1080",
       "imageHint": "doctor health"
+    },
+    {
+      "id": "hero-image-2",
+      "description": "A scientist looking through a microscope in a lab",
+      "imageUrl": "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxsYWJvcmF0b3J5fGVufDB8fHx8MTc2NDI0MDc3M3ww&ixlib=rb-4.0.3&q=80&w=1080",
+      "imageHint": "laboratory science"
+    },
+    {
+      "id": "hero-image-3",
+      "description": "A diverse group of people smiling",
+      "imageUrl": "https://images.unsplash.com/photo-1529066512353-2c8350616124?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjb21tdW5pdHl8ZW58MHx8fHwxNzY0MDA1Mzc3fDA&ixlib=rb-4.0.3&q=80&w=1080",
+      "imageHint": "community people"
     },
     {
       "id": "testimonial-1",
