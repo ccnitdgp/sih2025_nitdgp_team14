@@ -261,7 +261,7 @@ export default function VerifyDoctorsPage() {
                     <div className="mt-4 flex-grow h-full">
                         {viewingDocumentUrl.toLowerCase().includes('.pdf') ? (
                              <iframe
-                                src={viewingDocumentUrl}
+                                src={`https://docs.google.com/gview?url=${encodeURIComponent(viewingDocumentUrl)}&embedded=true`}
                                 className="h-full w-full"
                                 title="Document viewer"
                             />
