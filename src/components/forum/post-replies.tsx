@@ -15,6 +15,8 @@ import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { AuthDialog } from '../auth/auth-dialog';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
+import { ChevronsUpDown } from 'lucide-react';
 
 const replySchema = z.object({
   content: z.string().min(1, 'Reply cannot be empty.'),
@@ -138,6 +140,8 @@ const ReplyForm = ({ postId, parentReplyId, onReply, isSubmitting }) => {
 const ReplyComponent = ({ reply, postId }) => {
     const [showReplyForm, setShowReplyForm] = useState(false);
     
+    const hasReplies = reply.replies && reply.replies.length > 0;
+    
     return (
         <div className="flex items-start gap-4">
             <Avatar className="h-10 w-10 mt-1">
@@ -158,12 +162,22 @@ const ReplyComponent = ({ reply, postId }) => {
                             <ReplyForm postId={postId} parentReplyId={reply.id} onReply={() => setShowReplyForm(false)} isSubmitting={false}/>
                         </div>
                     )}
-                    {reply.replies && reply.replies.length > 0 && (
-                        <div className="mt-4 pl-6 border-l space-y-4">
-                            {reply.replies.map(childReply => (
-                                <ReplyComponent key={childReply.id} reply={childReply} postId={postId} />
-                            ))}
-                        </div>
+                     {hasReplies && (
+                        <Collapsible>
+                            <CollapsibleTrigger asChild>
+                                <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
+                                    <ChevronsUpDown className="mr-2 h-3 w-3" />
+                                    View {reply.replies.length} {reply.replies.length > 1 ? 'replies' : 'reply'}
+                                </Button>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent>
+                                <div className="mt-4 pl-6 border-l space-y-4">
+                                    {reply.replies.map(childReply => (
+                                        <ReplyComponent key={childReply.id} reply={childReply} postId={postId} />
+                                    ))}
+                                </div>
+                            </CollapsibleContent>
+                        </Collapsible>
                     )}
                 </div>
             </div>
@@ -209,5 +223,3 @@ export const PostReplies = ({ postId }: { postId: string }) => {
     </div>
   );
 };
-
-  
