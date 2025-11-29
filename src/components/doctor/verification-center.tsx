@@ -175,4 +175,3 @@ export function VerificationCenter({ publicProfile, doctorPublicProfileRef }: { 
         </>
     );
 }
-
