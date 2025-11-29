@@ -27,6 +27,8 @@ import {
   AlertTriangle,
   ArrowRight,
   UserCheck,
+  FileText,
+  BriefcaseMedical,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { OutbreakHeatmap } from '@/components/admin/outbreak-heatmap';
@@ -52,20 +54,41 @@ export default function AdminDashboardPage() {
     [firestore]
   );
   const { data: unverifiedDoctors, isLoading: isLoadingDoctors } = useCollection(unverifiedDoctorsQuery);
+  
+  const doctorsQuery = useMemoFirebase(
+    () => (firestore ? query(collection(firestore, 'doctors')) : null),
+    [firestore]
+  );
+  const { data: doctors, isLoading: isLoadingTotalDoctors } = useCollection(doctorsQuery);
+
+  const appointmentsQuery = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'appointments') : null),
+    [firestore]
+  );
+  const { data: appointments, isLoading: isLoadingAppointments } = useCollection(appointmentsQuery);
+  
+  const prescriptionsQuery = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'prescriptions') : null),
+    [firestore]
+  );
+  const { data: prescriptions, isLoading: isLoadingPrescriptions } = useCollection(prescriptionsQuery);
 
 
   function handleExport() {
     const headers = 'Category,Value,Description\n';
     const rows = [
-      `Total Patients,${patients?.length || 0},`,
-      'Active Outbreak Signals,2,Flu & Dengue in Sector-15',
+      `Total Patients,${patients?.length || 0},Total registered patients on the platform`,
+      `Total Doctors,${doctors?.length || 0},Total doctors on the platform`,
+      `Unverified Doctors,${unverifiedDoctors?.length || 0},Doctors awaiting profile verification`,
+      `Total Appointments,${appointments?.length || 0},Total appointments scheduled all-time`,
+      `Total Prescriptions,${prescriptions?.length || 0},Total prescriptions written all-time`,
+      'Active Outbreak Signals,2,Flu & Dengue in Sector-15 (Static Example)',
     ].join('\n');
 
-    const csvContent = 'data:text/csv;charset=utf-8,' + headers + rows;
-    const encodedUri = encodeURI(csvContent);
+    const csvContent = 'data:text/csv;charset=utf-8,' + encodeURIComponent(headers + rows);
     const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', 'public_health_report.csv');
+    link.setAttribute('href', csvContent);
+    link.setAttribute('download', 'swasthya_platform_report.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -118,7 +141,7 @@ export default function AdminDashboardPage() {
                 Aggregated public health insights and operational statistics.
               </p>
             </div>
-            <Button onClick={handleExport} disabled={isLoadingPatients}>
+            <Button onClick={handleExport} disabled={isLoadingPatients || isLoadingTotalDoctors || isLoadingAppointments || isLoadingPrescriptions}>
               <FileDown className="mr-2 h-4 w-4" />
               Export Report
             </Button>
