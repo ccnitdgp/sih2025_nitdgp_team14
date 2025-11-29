@@ -259,7 +259,10 @@ service cloud.firestore {
         allow create: if isSignedIn();
 
         // Public can list feedback for testimonials if they query for high ratings.
-        allow list: if (request.query.where.rating >= 4 && request.query.where.feedbackType == 'General Feedback') || isAdmin();
+        allow list: if (
+            request.query.where.rating >= 4 &&
+            request.query.where.feedbackType == 'General Feedback'
+          ) || isAdmin();
         
         // Admins can get, update, or delete any feedback.
         allow get, update, delete: if isAdmin();
