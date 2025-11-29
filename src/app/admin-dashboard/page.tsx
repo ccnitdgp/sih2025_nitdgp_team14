@@ -2,7 +2,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { TrendingUp, Users, Syringe, Calendar, User, Activity, FileDown } from 'lucide-react';
+import { TrendingUp, Users, Syringe, Calendar, User, Activity, FileDown, Tent, Link as LinkIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DiseaseTrendChart } from '@/components/admin/disease-trend-chart';
 import { AppointmentTrendChart } from '@/components/admin/appointment-trend-chart';
@@ -10,6 +10,7 @@ import { VaccinationCoverageChart } from '@/components/admin/vaccination-coverag
 import { DoctorLoadChart } from '@/components/admin/doctor-load-chart';
 import { AgeDistributionChart } from '@/components/admin/age-distribution-chart';
 import { OutbreakHeatmap } from '@/components/admin/outbreak-heatmap';
+import Link from 'next/link';
 
 const StatCard = ({ title, value, icon: Icon, description }) => (
   <Card>
@@ -66,6 +67,36 @@ export default function AdminDashboardPage() {
              <StatCard title="Appointments (This Month)" value="1,890" icon={Calendar} description="+12% from last month" />
              <StatCard title="Vaccinations (This Month)" value="4,321" icon={Syringe} description="2 new drives started" />
              <StatCard title="Active Outbreak Signals" value="2" icon={TrendingUp} description="Flu & Dengue in Sector-15" />
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <Card>
+                  <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg"><Syringe/> Manage Drives</CardTitle>
+                      <CardDescription>Add, edit, or remove vaccination drives.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                      <Button asChild><Link href="/admin-dashboard/vaccination-drives">Go to Drives</Link></Button>
+                  </CardContent>
+              </Card>
+              <Card>
+                  <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg"><Tent/> Manage Camps</CardTitle>
+                      <CardDescription>Add, edit, or remove health camps.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                      <Button asChild><Link href="/admin-dashboard/health-camps">Go to Camps</Link></Button>
+                  </CardContent>
+              </Card>
+               <Card>
+                  <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg"><Users/> User Management</CardTitle>
+                      <CardDescription>View and manage patient & doctor accounts.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                      <Button disabled>Manage Users</Button>
+                  </CardContent>
+              </Card>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
