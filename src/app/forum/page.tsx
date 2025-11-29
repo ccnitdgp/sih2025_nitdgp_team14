@@ -24,6 +24,8 @@ import { AuthDialog } from '@/components/auth/auth-dialog';
 import { BackButton } from '@/components/layout/back-button';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+
 
 const newPostSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters long.'),
@@ -87,8 +89,9 @@ export default function ForumPage() {
           likedBy: [],
         };
 
-        const newPostRef = await addDoc(collection(firestore, 'forumPosts'), newPostData);
-        await updateDoc(newPostRef, {id: newPostRef.id})
+        const docRef = collection(firestore, 'forumPosts');
+        const newPostRef = await addDoc(docRef, newPostData);
+        await updateDocumentNonBlocking(doc(docRef, newPostRef.id), { id: newPostRef.id });
         
         toast({ title: 'Post Created', description: 'Your post has been added to the forum.' });
         form.reset();
@@ -209,40 +212,57 @@ export default function ForumPage() {
           posts.map((post) => {
             const hasLiked = user && post.likedBy?.includes(user.uid);
             return (
-            <Card key={post.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4 flex gap-4">
-                    <div className="hidden sm:flex flex-col items-center space-y-2 p-2 bg-muted/50 rounded-lg">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" disabled={hasLiked || !user} onClick={() => handleLike(post.id)}>
-                            <ArrowUp className={cn("h-5 w-5", hasLiked && "text-primary fill-primary")} />
-                        </Button>
-                        <span className="font-bold text-sm">{post.likeCount || 0}</span>
+            <HoverCard key={post.id} openDelay={200} closeDelay={100}>
+              <HoverCardTrigger asChild>
+                <Link href={`/forum/post/${post.id}`} className="block">
+                  <Card className="hover:bg-muted/50 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+                      <CardContent className="p-4 flex gap-4">
+                          <div className="hidden sm:flex flex-col items-center space-y-2 p-2 bg-muted/50 rounded-lg">
+                              <Button variant="ghost" size="icon" className="h-8 w-8" disabled={hasLiked || !user} onClick={(e) => {e.preventDefault(); handleLike(post.id);}}>
+                                  <ArrowUp className={cn("h-5 w-5", hasLiked && "text-primary fill-primary")} />
+                              </Button>
+                              <span className="font-bold text-sm">{post.likeCount || 0}</span>
+                          </div>
+                          <div className="flex-1">
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                                  <Avatar className="h-6 w-6">
+                                      <AvatarImage src={`https://picsum.photos/seed/${post.authorId}/40`} />
+                                      <AvatarFallback>{post.authorName?.charAt(0)}</AvatarFallback>
+                                  </Avatar>
+                                  <span>Posted by <span className="font-medium text-foreground">{post.authorName}</span></span>
+                                  <span>•</span>
+                                  <span>{post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : '...'}</span>
+                              </div>
+                              <h3 className="font-bold text-lg text-primary">{post.title}</h3>
+                              <p className="text-sm text-muted-foreground line-clamp-2 my-2">{post.content}</p>
+                              <div className="flex items-center gap-4 mt-3">
+                                  <PostStat icon={MessageSquare} count={post.replyCount} />
+                                  <PostStat icon={Eye} count={post.viewCount} />
+                                  <PostStat icon={Heart} count={post.likeCount} />
+                              </div>
+                          </div>
+                      </CardContent>
+                  </Card>
+                </Link>
+              </HoverCardTrigger>
+              <HoverCardContent className="w-80">
+                  <div className="space-y-3">
+                    <h4 className="font-semibold">{post.title}</h4>
+                    <p className="text-sm text-muted-foreground">
+                        {post.content.substring(0, 120)}{post.content.length > 120 && '...'}
+                    </p>
+                    <div className="flex items-center pt-2 gap-2 text-xs text-muted-foreground">
+                        <Avatar className="h-5 w-5">
+                          <AvatarImage src={`https://picsum.photos/seed/${post.authorId}/40`} />
+                          <AvatarFallback>{post.authorName?.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <span>{post.authorName}</span>
+                        <span>•</span>
+                        <span>{post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : '...'}</span>
                     </div>
-
-                    <div className="flex-1">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                            <Avatar className="h-6 w-6">
-                                <AvatarImage src={`https://picsum.photos/seed/${post.authorId}/40`} />
-                                <AvatarFallback>{post.authorName?.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <span>Posted by <span className="font-medium text-foreground">{post.authorName}</span></span>
-                            <span>•</span>
-                            <span>{post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : '...'}</span>
-                        </div>
-                        
-                        <Link href={`/forum/post/${post.id}`} className="block mb-2">
-                            <h3 className="font-bold text-lg text-primary hover:underline">{post.title}</h3>
-                        </Link>
-                        
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{post.content}</p>
-
-                        <div className="flex items-center gap-4">
-                            <PostStat icon={MessageSquare} count={post.replyCount} />
-                            <PostStat icon={Eye} count={post.viewCount} />
-                            <PostStat icon={Heart} count={post.likeCount} />
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+                  </div>
+              </HoverCardContent>
+            </HoverCard>
           )})
         ) : (
           <Card className="text-center p-8">
