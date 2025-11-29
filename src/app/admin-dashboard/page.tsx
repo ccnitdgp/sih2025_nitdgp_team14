@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo } from 'react';
@@ -19,11 +18,10 @@ import {
   Activity,
   Syringe,
   User,
-  Calendar,
+  Shield,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DiseaseTrendChart } from '@/components/admin/disease-trend-chart';
-import { AppointmentTrendChart } from '@/components/admin/appointment-trend-chart';
 import { VaccinationCoverageChart } from '@/components/admin/vaccination-coverage-chart';
 import { DoctorLoadChart } from '@/components/admin/doctor-load-chart';
 import { AgeDistributionChart } from '@/components/admin/age-distribution-chart';
@@ -136,33 +134,24 @@ export default function AdminDashboardPage() {
                 </Button>
               </CardContent>
             </Card>
-
-            <Card>
+             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
-                  <Tent />
-                  Camps & Drives
+                  <Shield />
+                   Preventive Care
                 </CardTitle>
                 <CardDescription>
-                  Manage health camps and vaccination drives.
+                  Vaccination coverage and drive performance.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                 <div className="flex flex-col space-y-2">
-                    <Button asChild size="sm">
-                    <Link href="/admin-dashboard/health-camps">
-                        Manage Camps
-                    </Link>
-                    </Button>
-                     <Button asChild size="sm" variant="outline">
-                    <Link href="/admin-dashboard/vaccination-drives">
-                        Manage Drives
-                    </Link>
-                    </Button>
-                 </div>
+                 <Button asChild>
+                  <Link href="/admin-dashboard/vaccination-preventive-care">
+                    View Analytics
+                  </Link>
+                </Button>
               </CardContent>
             </Card>
-
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
