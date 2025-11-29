@@ -258,11 +258,16 @@ service cloud.firestore {
         // Any signed-in user can create feedback.
         allow create: if isSignedIn();
         
-        // Public can list feedback for testimonials
-        allow list: if (request.query.where.rating >= 4 && request.query.where.feedbackType == 'General Feedback') || isAdmin();
-
+        // Public can list feedback for testimonials if they query for high ratings and correct type
+        allow list: if (
+            request.query.where.rating >= 4 &&
+            request.query.where.feedbackType == 'General Feedback'
+          ) || isAdmin();
+        
         // Admins can get, update, or delete any feedback.
         allow get, update, delete: if isAdmin();
     }
   }
 }
+
+    
