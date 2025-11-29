@@ -15,6 +15,9 @@ import {
   BarChart,
   Clock,
   Heart,
+  Activity,
+  Syringe,
+  User,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DiseaseTrendChart } from '@/components/admin/disease-trend-chart';
