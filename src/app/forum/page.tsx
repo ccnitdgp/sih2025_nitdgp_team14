@@ -23,18 +23,29 @@ import { AuthDialog } from '@/components/auth/auth-dialog';
 import { BackButton } from '@/components/layout/back-button';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { PostRepliesDialog } from '@/components/forum/post-replies-dialog';
 
 const newPostSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters long.'),
   content: z.string().min(10, 'Post content must be at least 10 characters long.'),
 });
 
-const PostStat = ({ icon: Icon, count }) => (
-    <div className="flex items-center gap-1.5 text-muted-foreground">
-        <Icon className="h-4 w-4" />
-        <span className="text-sm font-medium">{count || 0}</span>
-    </div>
-);
+const PostStat = ({ icon: Icon, count, postId, isReplies = false }) => {
+    const trigger = (
+        <div className="flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-primary">
+            <Icon className="h-4 w-4" />
+            <span className="text-sm font-medium">{count || 0}</span>
+        </div>
+    );
+
+    if (isReplies) {
+        return (
+            <PostRepliesDialog postId={postId} replyCount={count} trigger={trigger} />
+        )
+    }
+
+    return trigger;
+};
 
 
 export default function ForumPage() {
@@ -233,7 +244,7 @@ export default function ForumPage() {
                               <h3 className="font-bold text-lg text-primary">{post.title}</h3>
                               <p className="text-sm text-muted-foreground line-clamp-2 my-2">{post.content}</p>
                               <div className="flex items-center gap-4 mt-3">
-                                  <PostStat icon={MessageSquare} count={post.replyCount} />
+                                  <PostStat icon={MessageSquare} count={post.replyCount} postId={post.id} isReplies={true} />
                                   <PostStat icon={Eye} count={post.viewCount} />
                                   <PostStat icon={Heart} count={post.likeCount} />
                               </div>
