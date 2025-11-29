@@ -142,13 +142,13 @@ export default function PostPage() {
           <Card>
             <CardHeader>
               <CardDescription className="flex items-center flex-wrap gap-x-4 gap-y-1 text-sm">
-                 <div className="flex items-center gap-2">
+                 <span className="flex items-center gap-2">
                     <Avatar className="h-6 w-6">
                         <AvatarImage src={`https://picsum.photos/seed/${post.authorId}/40`} />
                         <AvatarFallback>{post.authorName?.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <span>Posted by <span className="font-medium text-foreground">{post.authorName}</span></span>
-                </div>
+                </span>
                 <span>·</span>
                 <span>{post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : '...'}</span>
               </CardDescription>
