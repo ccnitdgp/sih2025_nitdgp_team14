@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -141,10 +140,10 @@ export default function VerifyDoctorsPage() {
                     ) : doctors && doctors.length > 0 ? (
                         <Accordion type="single" collapsible className="w-full">
                             {doctors.map(doctor => (
-                                <AccordionItem value={doctor.id} key={doctor.id} className="border-b-0">
+                                <AccordionItem value={doctor.id} key={doctor.id} className="border-b last:border-b-0">
                                      <div className="flex items-center justify-between p-4">
                                         <div className="flex items-center gap-2 w-1/3">
-                                            <AccordionTrigger hideChevron/>
+                                            <AccordionTrigger />
                                             <span className="font-medium">Dr. {doctor.firstName} {doctor.lastName}</span>
                                         </div>
                                         <div className="flex items-center justify-between w-2/3">
