@@ -127,18 +127,29 @@ export function VirtualIdCard({ user, userProfile, t }) {
   return (
     <Card className="shadow-sm w-full max-w-lg mx-auto">
         <CardContent className="pt-6 relative">
-            <div className="relative">
-                <div className={cn("transition-transform duration-700 w-full", isFlipped ? '[transform:rotateY(180deg)]' : '')} style={{ transformStyle: 'preserve-3d'}}>
-                    <div className="absolute w-full h-full top-0 left-0" style={{backfaceVisibility: 'hidden'}}>
+             <div className="relative">
+                <div 
+                    className="relative w-full transition-transform duration-700"
+                    style={{
+                        transformStyle: 'preserve-3d',
+                        transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                    }}
+                >
+                    <div className="absolute w-full h-full top-0 left-0" style={{backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden'}}>
                          <VirtualIdCardFront user={user} userProfile={userProfile} t={t}/>
                     </div>
-                     <div className="absolute w-full h-full top-0 left-0 [transform:rotateY(180deg)]" style={{backfaceVisibility: 'hidden'}}>
+                     <div className="absolute w-full h-full top-0 left-0 [transform:rotateY(180deg)]" style={{backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden'}}>
                         <VirtualIdCardBack userProfile={userProfile} t={t}/>
                     </div>
                 </div>
-                {/* Placeholder to maintain height */}
-                <div className="opacity-0">
-                    <VirtualIdCardFront user={user} userProfile={userProfile} t={t} />
+
+                {/* Conditional placeholders to reserve space and prevent overlap */}
+                <div className="opacity-0 pointer-events-none">
+                    {isFlipped ? (
+                        <VirtualIdCardBack userProfile={userProfile} t={t}/>
+                    ) : (
+                        <VirtualIdCardFront user={user} userProfile={userProfile} t={t}/>
+                    )}
                 </div>
             </div>
 
