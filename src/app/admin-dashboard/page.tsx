@@ -364,20 +364,6 @@ export default function AdminDashboardPage() {
                 <OutbreakHeatmap />
               </CardContent>
             </Card>
-            <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Activity />
-                      Disease &amp; Symptom Trends
-                    </CardTitle>
-                    <CardDescription>
-                      Reported cases of Influenza over the last 7 days.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <DiseaseTrendChart />
-                  </CardContent>
-                </Card>
           </div>
         </div>
       </div>
