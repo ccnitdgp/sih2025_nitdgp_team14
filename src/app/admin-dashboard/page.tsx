@@ -18,6 +18,9 @@ import {
   Activity,
   FileDown,
   Tent,
+  BriefcaseMedical,
+  FileText,
+  ShieldAlert,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DiseaseTrendChart } from '@/components/admin/disease-trend-chart';
@@ -60,6 +63,10 @@ export default function AdminDashboardPage() {
     () => (firestore ? query(collection(firestore, 'users'), where('role', '==', 'patient')) : null),
     [firestore]
   );
+  const doctorsQuery = useMemoFirebase(
+    () => (firestore ? query(collection(firestore, 'users'), where('role', '==', 'doctor')) : null),
+    [firestore]
+  );
   const appointmentsQuery = useMemoFirebase(
     () => (firestore ? collection(firestore, 'appointments') : null),
     [firestore]
@@ -68,10 +75,17 @@ export default function AdminDashboardPage() {
     () => (firestore ? collection(firestore, 'vaccinationRegistrations') : null),
     [firestore]
   );
+  const prescriptionsQuery = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'prescriptions') : null),
+    [firestore]
+  );
 
   const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsQuery);
+  const { data: doctors, isLoading: isLoadingDoctors } = useCollection(doctorsQuery);
   const { data: appointments, isLoading: isLoadingAppointments } = useCollection(appointmentsQuery);
   const { data: vaccinations, isLoading: isLoadingVaccinations } = useCollection(vaccinationsQuery);
+  const { data: prescriptions, isLoading: isLoadingPrescriptions } = useCollection(prescriptionsQuery);
+
 
   const thisMonthStats = useMemo(() => {
     const now = new Date();
@@ -139,24 +153,54 @@ export default function AdminDashboardPage() {
               isLoading={isLoadingPatients}
             />
             <StatCard
+              title="Total Doctors"
+              value={doctors?.length.toLocaleString() || '0'}
+              icon={BriefcaseMedical}
+              description="Total verified doctors"
+              isLoading={isLoadingDoctors}
+            />
+            <StatCard
               title="Appointments (This Month)"
               value={thisMonthStats.appointmentsThisMonth.toLocaleString()}
               icon={Calendar}
               description="Scheduled this calendar month"
               isLoading={isLoadingAppointments}
             />
-            <StatCard
+             <StatCard
+              title="Prescriptions Written"
+              value={prescriptions?.length.toLocaleString() || '0'}
+              icon={FileText}
+              description="Total prescriptions issued"
+              isLoading={isLoadingPrescriptions}
+            />
+          </div>
+           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+             <StatCard
               title="Vaccinations (This Month)"
               value={thisMonthStats.vaccinationsThisMonth.toLocaleString()}
               icon={Syringe}
               description="Registered this calendar month"
               isLoading={isLoadingVaccinations}
             />
-            <StatCard
+             <StatCard
               title="Active Outbreak Signals"
               value="2"
               icon={TrendingUp}
               description="Flu & Dengue in Sector-15"
+              isLoading={false}
+            />
+             <StatCard
+              title="Critical Health Alerts"
+              value="5"
+              icon={ShieldAlert}
+              description="Abnormal lab reports today"
+              isLoading={false}
+            />
+             <StatCard
+              title="System Status"
+              value="99.9% Uptime"
+              icon={Activity}
+              description="No incidents reported"
               isLoading={false}
             />
           </div>
