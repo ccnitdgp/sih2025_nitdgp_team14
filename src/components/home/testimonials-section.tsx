@@ -34,7 +34,8 @@ export function TestimonialsSection() {
     return query(
       collection(firestore, 'feedback'),
       where('rating', '>=', 4),
-      orderBy('rating', 'desc'),
+      where('feedbackType', '==', 'General Feedback'),
+      orderBy('createdAt', 'desc'),
       limit(3)
     );
   }, [firestore]);
