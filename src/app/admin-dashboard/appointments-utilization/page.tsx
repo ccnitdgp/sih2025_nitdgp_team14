@@ -21,6 +21,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { BackButton } from '@/components/layout/back-button';
 import { AppointmentTrendChart } from '@/components/admin/appointment-trend-chart';
 import { DashboardFilters } from '@/components/admin/dashboard-filters';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection } from 'firebase/firestore';
 
 
 type StatCardProps = {
@@ -45,6 +47,15 @@ const StatCard = ({ title, value, icon: Icon, description, isLoading }: StatCard
 );
 
 export default function AppointmentsUtilizationPage() {
+  const firestore = useFirestore();
+  const appointmentsQuery = useMemoFirebase(() => collection(firestore, 'appointments'), [firestore]);
+  const { data: appointments, isLoading } = useCollection(appointmentsQuery);
+
+  const cancelRate = useMemo(() => {
+    if (!appointments || appointments.length === 0) return '0%';
+    const canceled = appointments.filter(a => a.status === 'Canceled').length;
+    return `${((canceled / appointments.length) * 100).toFixed(0)}%`;
+  }, [appointments]);
   
   return (
     <div className="bg-muted/40 min-h-screen">
@@ -64,11 +75,11 @@ export default function AppointmentsUtilizationPage() {
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <StatCard
-                    title="No-show Rate"
-                    value="8%"
+                    title="Cancellation Rate"
+                    value={cancelRate}
                     icon={TrendingDown}
-                    description="Percentage of missed appointments this month"
-                    isLoading={false}
+                    description="Percentage of canceled appointments"
+                    isLoading={isLoading}
                 />
                 <StatCard
                     title="Avg. Booking to Appt. Time"

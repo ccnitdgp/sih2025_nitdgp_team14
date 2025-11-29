@@ -13,11 +13,15 @@ import {
   Clock,
   AlertTriangle,
   BarChart3,
-  Percent
+  Percent,
+  FileText
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BackButton } from '@/components/layout/back-button';
 import { DashboardFilters } from '@/components/admin/dashboard-filters';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collectionGroup, query, where } from 'firebase/firestore';
+
 
 type StatCardProps = {
   title: string;
@@ -41,6 +45,12 @@ const StatCard = ({ title, value, icon: Icon, description, isLoading }: StatCard
 );
 
 export default function LabsReportsPage() {
+  const firestore = useFirestore();
+  const reportsQuery = useMemoFirebase(
+      () => query(collectionGroup(firestore, 'healthRecords'), where('recordType', 'in', ['labReport', 'scanReport'])),
+      [firestore]
+  );
+  const { data: reports, isLoading } = useCollection(reportsQuery);
   
   return (
     <div className="bg-muted/40 min-h-screen">
@@ -60,15 +70,15 @@ export default function LabsReportsPage() {
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <StatCard
-                    title="Avg. Turnaround Time"
-                    value="4.5 hours"
-                    icon={Clock}
-                    description="From sample collection to report generation"
-                    isLoading={false}
+                    title="Total Reports"
+                    value={reports?.length.toString() || '0'}
+                    icon={FileText}
+                    description="Total lab and scan reports uploaded"
+                    isLoading={isLoading}
                 />
                 <StatCard
                     title="Pending Critical Reports"
-                    value="3"
+                    value="0"
                     icon={AlertTriangle}
                     description="Reports flagged as critical awaiting review"
                     isLoading={false}

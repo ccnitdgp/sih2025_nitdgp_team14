@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -17,6 +18,9 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { BackButton } from '@/components/layout/back-button';
 import { DashboardFilters } from '@/components/admin/dashboard-filters';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collectionGroup, query } from 'firebase/firestore';
+
 
 type StatCardProps = {
   title: string;
@@ -40,6 +44,27 @@ const StatCard = ({ title, value, icon: Icon, description, isLoading }: StatCard
 );
 
 export default function BillingFinancialPage() {
+  const firestore = useFirestore();
+  const billsQuery = useMemoFirebase(() => query(collectionGroup(firestore, 'healthRecords')), [firestore]);
+  const { data: bills, isLoading } = useCollection(billsQuery);
+
+  const billStats = useMemo(() => {
+    if (!bills) return { totalRevenue: 0, outstandingDues: 0, avgBillValue: 0, outstandingCount: 0 };
+
+    const paidBills = bills.filter(b => b.recordType === 'bill' && b.details.status === 'Paid');
+    const dueBills = bills.filter(b => b.recordType === 'bill' && b.details.status === 'Due');
+    
+    const totalRevenue = paidBills.reduce((acc, bill) => acc + (bill.details.amount || 0), 0);
+    const outstandingDues = dueBills.reduce((acc, bill) => acc + (bill.details.amount || 0), 0);
+    const avgBillValue = paidBills.length > 0 ? totalRevenue / paidBills.length : 0;
+
+    return {
+      totalRevenue,
+      outstandingDues,
+      avgBillValue,
+      outstandingCount: dueBills.length
+    }
+  }, [bills]);
   
   return (
     <div className="bg-muted/40 min-h-screen">
@@ -59,25 +84,25 @@ export default function BillingFinancialPage() {
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <StatCard
-                    title="Total Revenue (Month)"
-                    value="Rs. 1,25,430"
+                    title="Total Revenue (All Time)"
+                    value={`Rs. ${billStats.totalRevenue.toLocaleString()}`}
                     icon={DollarSign}
-                    description="+12% from last month"
-                    isLoading={false}
+                    description="From all paid invoices"
+                    isLoading={isLoading}
                 />
                 <StatCard
                     title="Total Outstanding Dues"
-                    value="Rs. 18,750"
+                    value={`Rs. ${billStats.outstandingDues.toLocaleString()}`}
                     icon={Receipt}
-                    description="From 42 pending bills"
-                    isLoading={false}
+                    description={`From ${billStats.outstandingCount} pending bills`}
+                    isLoading={isLoading}
                 />
                 <StatCard
                     title="Average Bill Value"
-                    value="Rs. 850"
+                    value={`Rs. ${billStats.avgBillValue.toFixed(0)}`}
                     icon={TrendingUp}
                     description="Average per paid invoice"
-                    isLoading={false}
+                    isLoading={isLoading}
                 />
             </div>
 
