@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -26,35 +27,77 @@ import { DoctorLoadChart } from '@/components/admin/doctor-load-chart';
 import { AgeDistributionChart } from '@/components/admin/age-distribution-chart';
 import { OutbreakHeatmap } from '@/components/admin/outbreak-heatmap';
 import Link from 'next/link';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, where } from 'firebase/firestore';
+import { getMonth, getYear, parseISO } from 'date-fns';
+import { Skeleton } from '@/components/ui/skeleton';
 
-// simple typing to avoid TS noImplicitAny issues
 type StatCardProps = {
   title: string;
   value: string;
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   description: string;
+  isLoading: boolean;
 };
 
-const StatCard = ({ title, value, icon: Icon, description }: StatCardProps) => (
+const StatCard = ({ title, value, icon: Icon, description, isLoading }: StatCardProps) => (
   <Card>
     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
       <CardTitle className="text-sm font-medium">{title}</CardTitle>
       <Icon className="h-4 w-4 text-muted-foreground" />
     </CardHeader>
     <CardContent>
-      <div className="text-2xl font-bold">{value}</div>
+      {isLoading ? <Skeleton className="h-8 w-16" /> : <div className="text-2xl font-bold">{value}</div>}
       <p className="text-xs text-muted-foreground">{description}</p>
     </CardContent>
   </Card>
 );
 
 export default function AdminDashboardPage() {
+  const firestore = useFirestore();
+
+  const patientsQuery = useMemoFirebase(
+    () => (firestore ? query(collection(firestore, 'users'), where('role', '==', 'patient')) : null),
+    [firestore]
+  );
+  const appointmentsQuery = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'appointments') : null),
+    [firestore]
+  );
+  const vaccinationsQuery = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'vaccinationRegistrations') : null),
+    [firestore]
+  );
+
+  const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsQuery);
+  const { data: appointments, isLoading: isLoadingAppointments } = useCollection(appointmentsQuery);
+  const { data: vaccinations, isLoading: isLoadingVaccinations } = useCollection(vaccinationsQuery);
+
+  const thisMonthStats = useMemo(() => {
+    const now = new Date();
+    const currentMonth = getMonth(now);
+    const currentYear = getYear(now);
+
+    const appointmentsThisMonth = appointments?.filter(appt => {
+      const apptDate = parseISO(appt.date);
+      return getMonth(apptDate) === currentMonth && getYear(apptDate) === currentYear;
+    }).length || 0;
+
+    const vaccinationsThisMonth = vaccinations?.filter(vac => {
+      const vacDate = vac.registeredAt?.toDate();
+      if (!vacDate) return false;
+      return getMonth(vacDate) === currentMonth && getYear(vacDate) === currentYear;
+    }).length || 0;
+
+    return { appointmentsThisMonth, vaccinationsThisMonth };
+  }, [appointments, vaccinations]);
+
   function handleExport() {
     const headers = 'Category,Value,Description\n';
     const rows = [
-      'Total Patients,10245,+5.2% from last month',
-      'Appointments (This Month),1890,+12% from last month',
-      'Vaccinations (This Month),4321,2 new drives started',
+      `Total Patients,${patients?.length || 0},`,
+      `Appointments (This Month),${thisMonthStats.appointmentsThisMonth},`,
+      `Vaccinations (This Month),${thisMonthStats.vaccinationsThisMonth},`,
       'Active Outbreak Signals,2,Flu & Dengue in Sector-15',
     ].join('\n');
 
@@ -90,27 +133,31 @@ export default function AdminDashboardPage() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <StatCard
               title="Total Patients"
-              value="10,245"
+              value={patients?.length.toLocaleString() || '0'}
               icon={Users}
-              description="+5.2% from last month"
+              description="Total registered patients"
+              isLoading={isLoadingPatients}
             />
             <StatCard
               title="Appointments (This Month)"
-              value="1,890"
+              value={thisMonthStats.appointmentsThisMonth.toLocaleString()}
               icon={Calendar}
-              description="+12% from last month"
+              description="Scheduled this calendar month"
+              isLoading={isLoadingAppointments}
             />
             <StatCard
               title="Vaccinations (This Month)"
-              value="4,321"
+              value={thisMonthStats.vaccinationsThisMonth.toLocaleString()}
               icon={Syringe}
-              description="2 new drives started"
+              description="Registered this calendar month"
+              isLoading={isLoadingVaccinations}
             />
             <StatCard
               title="Active Outbreak Signals"
               value="2"
               icon={TrendingUp}
               description="Flu & Dengue in Sector-15"
+              isLoading={false}
             />
           </div>
 
@@ -226,7 +273,7 @@ export default function AdminDashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <AgeDistributionChart />
+                <AgeDistributionChart patients={patients} isLoading={isLoadingPatients}/>
               </CardContent>
             </Card>
 
