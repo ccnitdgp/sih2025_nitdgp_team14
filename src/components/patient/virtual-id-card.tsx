@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -136,7 +137,7 @@ export function VirtualIdCard({ user, userProfile, t }) {
         <CardContent className="pt-6 relative">
              <div className="relative h-[280px]" style={{ perspective: '1000px' }}>
                 <div 
-                    className="relative w-full h-full transition-transform duration-700"
+                    className={cn("relative w-full h-full transition-transform duration-700")}
                     style={{
                         transformStyle: 'preserve-3d',
                         transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',

@@ -6,8 +6,7 @@ import { collection, query, where, getDocs, doc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Bot, Loader2, Search, Sparkles, UserCheck, ShieldCheck } from 'lucide-react';
-import Link from 'next/link';
+import { Bot, Loader2, Search, Sparkles, ShieldCheck } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -31,7 +30,7 @@ export default function DoctorPatientsPage() {
   const [patientIdInput, setPatientIdInput] = useState('');
   const [otp, setOtp] = useState('');
   
-  const [foundPatient, setFoundPatient] = useState(null);
+  const [foundPatient, setFoundPatient] = useState<any | null>(null);
   const [viewState, setViewState] = useState<'search' | 'otp' | 'records'>('search');
   
   const [isLoading, setIsLoading] = useState(false);
@@ -68,12 +67,13 @@ export default function DoctorPatientsPage() {
 
   useEffect(() => {
     const patientIdFromUrl = searchParams.get('patientId');
-    if (patientIdFromUrl && !foundPatient) { // Check !foundPatient to avoid re-searching
+    if (patientIdFromUrl && viewState === 'search' && !foundPatient) {
       setPatientIdInput(patientIdFromUrl);
       handleFindPatient(patientIdFromUrl);
     }
+  // We only want this to run when searchParams change initially.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, foundPatient]);
+  }, [searchParams]);
 
   const medicalHistoryQuery = useMemoFirebase(() => {
     if (!foundPatient?.id || !firestore) return null;
@@ -87,7 +87,7 @@ export default function DoctorPatientsPage() {
 
   const handleVerifyOtp = () => {
     // In a real app, this would be a call to a backend service.
-    // Here we just mock it. The "OTP" is always 123456
+    // For demo purposes, the "OTP" is always 123456
     if (otp === '123456') {
       toast({ title: 'Verification Successful', description: `Accessing records for ${foundPatient.firstName}.` });
       setViewState('records');
