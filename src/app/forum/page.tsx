@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -25,6 +24,8 @@ import { BackButton } from '@/components/layout/back-button';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { PostRepliesPreview } from '@/components/forum/post-replies-preview';
 
 
 const newPostSchema = z.object({
@@ -247,35 +248,46 @@ export default function ForumPage() {
                   </Card>
                 </Link>
               </HoverCardTrigger>
-              <HoverCardContent className="w-96 max-h-[80vh] overflow-y-auto" side="right" align="start">
-                <div className="space-y-4">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Avatar className="h-6 w-6">
-                            <AvatarImage src={`https://picsum.photos/seed/${post.authorId}/40`} />
-                            <AvatarFallback>{post.authorName?.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <span>Posted by <span className="font-medium text-foreground">{post.authorName}</span></span>
-                        <span>•</span>
-                        <span>{post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : '...'}</span>
+                <HoverCardContent className="w-96 max-h-[80vh] overflow-y-auto" side="right" align="start">
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Avatar className="h-6 w-6">
+                                <AvatarImage src={`https://picsum.photos/seed/${post.authorId}/40`} />
+                                <AvatarFallback>{post.authorName?.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <span>Posted by <span className="font-medium text-foreground">{post.authorName}</span></span>
+                            <span>•</span>
+                            <span>{post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : '...'}</span>
+                        </div>
+                        <h4 className="font-bold text-lg">{post.title}</h4>
+                        <p className="text-sm text-foreground whitespace-pre-wrap">{post.content}</p>
+                        <div className="flex items-center gap-4 pt-2 border-t">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                disabled={hasLiked || !user}
+                                onClick={(e) => handleLike(e, post.id)}
+                                className="flex items-center gap-1.5 text-muted-foreground"
+                            >
+                                <Heart className={cn("h-4 w-4", hasLiked && "text-destructive fill-destructive")} />
+                                <span className="text-sm font-medium">{post.likeCount || 0}</span>
+                            </Button>
+                            
+                             <Popover>
+                                <PopoverTrigger asChild>
+                                    <button className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors">
+                                        <PostStat icon={MessageSquare} count={post.replyCount} />
+                                    </button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-80">
+                                   <PostRepliesPreview postId={post.id} />
+                                </PopoverContent>
+                            </Popover>
+
+                            <PostStat icon={Eye} count={post.viewCount} />
+                        </div>
                     </div>
-                    <h4 className="font-bold text-lg">{post.title}</h4>
-                    <p className="text-sm text-foreground whitespace-pre-wrap">{post.content}</p>
-                    <div className="flex items-center gap-4 pt-2 border-t">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled={hasLiked || !user}
-                            onClick={(e) => handleLike(e, post.id)}
-                            className="flex items-center gap-1.5 text-muted-foreground"
-                        >
-                            <Heart className={cn("h-4 w-4", hasLiked && "text-destructive fill-destructive")} />
-                            <span className="text-sm font-medium">{post.likeCount || 0}</span>
-                        </Button>
-                        <PostStat icon={MessageSquare} count={post.replyCount} />
-                        <PostStat icon={Eye} count={post.viewCount} />
-                    </div>
-                </div>
-              </HoverCardContent>
+                </HoverCardContent>
             </HoverCard>
           )})
         ) : (
