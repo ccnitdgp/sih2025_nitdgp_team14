@@ -2,7 +2,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { TrendingUp, Users, Syringe, Calendar, User, Activity, FileDown, Tent, Link as LinkIcon } from 'lucide-react';
+import { TrendingUp, Users, Syringe, Calendar, User, Activity, FileDown, Tent } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DiseaseTrendChart } from '@/components/admin/disease-trend-chart';
 import { AppointmentTrendChart } from '@/components/admin/appointment-trend-chart';
@@ -27,7 +27,7 @@ const StatCard = ({ title, value, icon: Icon, description }) => (
 
 export default function AdminDashboardPage() {
     
-  const handleExport = () => {
+  function handleExport() {
     const headers = "Category,Value,Description\n";
     const rows = [
         "Total Patients,10245,+5.2% from last month",
@@ -44,7 +44,7 @@ export default function AdminDashboardPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };
+  }
 
   return (
     <div className="bg-muted/40 min-h-screen">
