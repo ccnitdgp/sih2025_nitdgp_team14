@@ -16,7 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { vaccinationDrives } from '@/lib/data';
 import { Calendar as CalendarIcon, MapPin, Syringe, User, Phone, CheckCircle, QrCode as QrCodeIcon, Download, Loader2 } from 'lucide-react';
 import { Highlight } from '@/components/ui/highlight';
-import { useUser, useDoc, useFirestore, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
+import { useUser, useDoc, useFirestore, useMemoFirebase, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
 import { AuthDialog } from '@/components/auth/auth-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { doc, collection } from 'firebase/firestore';
@@ -113,8 +113,11 @@ export default function VaccinationPage() {
       if (!user || !userProfile || !firestore || !selectedDrive || !selectedCenter || !selectedDate || !selectedTime) return;
       
       setIsSubmitting(true);
-      const registrationRef = collection(firestore, 'vaccinationRegistrations');
+      const registrationColRef = collection(firestore, 'vaccinationRegistrations');
+      const newDocRef = doc(registrationColRef); // Generate a new doc ref with a unique ID
+
       const registrationData = {
+          id: newDocRef.id,
           driveId: selectedDrive.id,
           driveName: selectedDrive.name,
           userId: user.uid,
@@ -127,13 +130,11 @@ export default function VaccinationPage() {
           registeredAt: new Date(),
           status: "Scheduled"
       };
-
-      const newDocRef = doc(registrationRef);
-      const finalData = { ...registrationData, id: newDocRef.id };
       
-      addDocumentNonBlocking(newDocRef, finalData, {});
+      // Use setDocumentNonBlocking with the new document reference
+      setDocumentNonBlocking(newDocRef, registrationData, {});
       
-      setFinalBookingDetails(finalData);
+      setFinalBookingDetails(registrationData);
       setIsSubmitting(false);
       handleNextStep(); // Move to confirmation screen
   };
