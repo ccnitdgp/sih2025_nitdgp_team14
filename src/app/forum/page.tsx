@@ -7,8 +7,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking, useDoc } from '@/firebase';
-import { collection, query, orderBy, serverTimestamp, doc } from 'firebase/firestore';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { collection, query, orderBy, serverTimestamp, doc, addDoc } from 'firebase/firestore';
 import { formatDistanceToNow } from 'date-fns';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -63,23 +63,30 @@ export default function ForumPage() {
     }
 
     setIsSubmitting(true);
-    const newPostRef = doc(collection(firestore, 'forumPosts'));
     
-    const newPost = {
-      id: newPostRef.id,
-      title: values.title,
-      content: values.content,
-      authorId: user.uid,
-      authorName: `${userProfile.firstName} ${userProfile.lastName}`,
-      createdAt: serverTimestamp(),
-      replyCount: 0,
-    };
+    try {
+        const newPost = {
+          title: values.title,
+          content: values.content,
+          authorId: user.uid,
+          authorName: `${userProfile.firstName} ${userProfile.lastName}`,
+          createdAt: serverTimestamp(),
+          replyCount: 0,
+        };
 
-    addDocumentNonBlocking(newPostRef, newPost);
-    toast({ title: 'Post Created', description: 'Your post has been added to the forum.' });
-    setIsSubmitting(false);
-    setIsDialogOpen(false);
-    form.reset();
+        const docRef = await addDoc(collection(firestore, 'forumPosts'), newPost);
+        // Optionally update the new doc with its own ID, if your rules/logic need it
+        // await updateDoc(docRef, { id: docRef.id });
+
+        toast({ title: 'Post Created', description: 'Your post has been added to the forum.' });
+        form.reset();
+        setIsDialogOpen(false);
+    } catch (error) {
+        console.error("Error creating post: ", error);
+        toast({ variant: 'destructive', title: 'Error', description: "Could not create your post."});
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   const PostsSkeleton = () => (
