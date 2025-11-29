@@ -63,55 +63,18 @@ export default function AdminDashboardPage() {
     () => (firestore ? query(collection(firestore, 'users'), where('role', '==', 'patient')) : null),
     [firestore]
   );
-  const doctorsQuery = useMemoFirebase(
-    () => (firestore ? query(collection(firestore, 'users'), where('role', '==', 'doctor')) : null),
-    [firestore]
-  );
+ 
   const appointmentsQuery = useMemoFirebase(
     () => (firestore ? collection(firestore, 'appointments') : null),
     [firestore]
   );
-  const vaccinationsQuery = useMemoFirebase(
-    () => (firestore ? collection(firestore, 'vaccinationRegistrations') : null),
-    [firestore]
-  );
-  const prescriptionsQuery = useMemoFirebase(
-    () => (firestore ? collection(firestore, 'prescriptions') : null),
-    [firestore]
-  );
-
+  
   const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsQuery);
-  const { data: doctors, isLoading: isLoadingDoctors } = useCollection(doctorsQuery);
-  const { data: appointments, isLoading: isLoadingAppointments } = useCollection(appointmentsQuery);
-  const { data: vaccinations, isLoading: isLoadingVaccinations } = useCollection(vaccinationsQuery);
-  const { data: prescriptions, isLoading: isLoadingPrescriptions } = useCollection(prescriptionsQuery);
-
-
-  const thisMonthStats = useMemo(() => {
-    const now = new Date();
-    const currentMonth = getMonth(now);
-    const currentYear = getYear(now);
-
-    const appointmentsThisMonth = appointments?.filter(appt => {
-      const apptDate = parseISO(appt.date);
-      return getMonth(apptDate) === currentMonth && getYear(apptDate) === currentYear;
-    }).length || 0;
-
-    const vaccinationsThisMonth = vaccinations?.filter(vac => {
-      const vacDate = vac.registeredAt?.toDate();
-      if (!vacDate) return false;
-      return getMonth(vacDate) === currentMonth && getYear(vacDate) === currentYear;
-    }).length || 0;
-
-    return { appointmentsThisMonth, vaccinationsThisMonth };
-  }, [appointments, vaccinations]);
 
   function handleExport() {
     const headers = 'Category,Value,Description\n';
     const rows = [
       `Total Patients,${patients?.length || 0},`,
-      `Appointments (This Month),${thisMonthStats.appointmentsThisMonth},`,
-      `Vaccinations (This Month),${thisMonthStats.vaccinationsThisMonth},`,
       'Active Outbreak Signals,2,Flu & Dengue in Sector-15',
     ].join('\n');
 
@@ -142,37 +105,6 @@ export default function AdminDashboardPage() {
               <FileDown className="mr-2 h-4 w-4" />
               Export Report
             </Button>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <StatCard
-              title="Appointments (This Month)"
-              value={thisMonthStats.appointmentsThisMonth.toLocaleString()}
-              icon={Calendar}
-              description="Scheduled this calendar month"
-              isLoading={isLoadingAppointments}
-            />
-             <StatCard
-              title="Prescriptions Written"
-              value={prescriptions?.length.toLocaleString() || '0'}
-              icon={FileText}
-              description="Total prescriptions issued"
-              isLoading={isLoadingPrescriptions}
-            />
-             <StatCard
-              title="Vaccinations (This Month)"
-              value={thisMonthStats.vaccinationsThisMonth.toLocaleString()}
-              icon={Syringe}
-              description="Registered this calendar month"
-              isLoading={isLoadingVaccinations}
-            />
-             <StatCard
-              title="Active Outbreak Signals"
-              value="2"
-              icon={TrendingUp}
-              description="Flu & Dengue in Sector-15"
-              isLoading={false}
-            />
           </div>
 
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">

@@ -1,8 +1,7 @@
-
 "use client";
 
 import Link from "next/link";
-import { LogOut, Settings, LayoutDashboard, Menu, FileText, UserPlus, User, CalendarPlus, Receipt, Bot, BookUser, Sparkles, Shield, MessageSquare, Bell } from "lucide-react";
+import { LogOut, Settings, LayoutDashboard, Menu, FileText, UserPlus, User, CalendarPlus, Receipt, Bot, BookUser, Sparkles, Shield, MessageSquare, Bell, BarChart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -62,6 +61,7 @@ const doctorNavLinks = [
 
 const adminNavLinks = [
     { href: "/admin-dashboard", label: "Dashboard", i18n_key: "dashboard_link" },
+    { href: "/admin-dashboard/kpi-cards", label: "KPIs", i18n_key: "kpi_link" },
 ];
 
 
@@ -175,9 +175,9 @@ export function Header() {
                       <span>{t('dashboard_link', 'Dashboard')}</span>
                     </DropdownMenuItem>
                     {isAdmin && (
-                      <DropdownMenuItem onClick={() => router.push('/admin-dashboard')}>
-                          <Shield className="mr-2 h-4 w-4" />
-                          <span>Admin Dashboard</span>
+                      <DropdownMenuItem onClick={() => router.push('/admin-dashboard/kpi-cards')}>
+                          <BarChart className="mr-2 h-4 w-4" />
+                          <span>KPIs</span>
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuSeparator />
@@ -255,4 +255,3 @@ export function Header() {
     </header>
   );
 }
-

@@ -12,11 +12,16 @@ import {
   Activity,
   BriefcaseMedical,
   ShieldAlert,
+  Calendar,
+  FileText,
+  TrendingUp,
 } from 'lucide-react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BackButton } from '@/components/layout/back-button';
+import { getMonth, getYear, parseISO } from 'date-fns';
+
 
 type StatCardProps = {
   title: string;
@@ -50,9 +55,33 @@ export default function KpiCardsPage() {
     () => (firestore ? query(collection(firestore, 'users'), where('role', '==', 'doctor')) : null),
     [firestore]
   );
+  const appointmentsQuery = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'appointments') : null),
+    [firestore]
+  );
+  const prescriptionsQuery = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'prescriptions') : null),
+    [firestore]
+  );
 
   const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsQuery);
   const { data: doctors, isLoading: isLoadingDoctors } = useCollection(doctorsQuery);
+  const { data: appointments, isLoading: isLoadingAppointments } = useCollection(appointmentsQuery);
+  const { data: prescriptions, isLoading: isLoadingPrescriptions } = useCollection(prescriptionsQuery);
+
+
+  const appointmentsThisMonth = useMemo(() => {
+    if (!appointments) return 0;
+    const now = new Date();
+    const currentMonth = getMonth(now);
+    const currentYear = getYear(now);
+
+    return appointments?.filter(appt => {
+      const apptDate = parseISO(appt.date);
+      return getMonth(apptDate) === currentMonth && getYear(apptDate) === currentYear;
+    }).length || 0;
+  }, [appointments]);
+
 
   return (
     <div className="bg-muted/40 min-h-screen">
@@ -70,19 +99,40 @@ export default function KpiCardsPage() {
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <StatCard
-                title="Total Patients"
-                value={patients?.length.toLocaleString() || '0'}
-                icon={Users}
-                description="Total registered patients"
-                isLoading={isLoadingPatients}
+                    title="Total Patients"
+                    value={patients?.length.toLocaleString() || '0'}
+                    icon={Users}
+                    description="Total registered patients"
+                    isLoading={isLoadingPatients}
                 />
                 <StatCard
-                title="Total Doctors"
-                value={doctors?.length.toLocaleString() || '0'}
-                icon={BriefcaseMedical}
-                description="Total verified doctors"
-                isLoading={isLoadingDoctors}
+                    title="Total Doctors"
+                    value={doctors?.length.toLocaleString() || '0'}
+                    icon={BriefcaseMedical}
+                    description="Total verified doctors"
+                    isLoading={isLoadingDoctors}
                 />
+                <StatCard
+                    title="Appointments (This Month)"
+                    value={appointmentsThisMonth.toLocaleString()}
+                    icon={Calendar}
+                    description="Scheduled this calendar month"
+                    isLoading={isLoadingAppointments}
+                />
+                <StatCard
+                    title="Prescriptions Written"
+                    value={prescriptions?.length.toLocaleString() || '0'}
+                    icon={FileText}
+                    description="Total prescriptions issued"
+                    isLoading={isLoadingPrescriptions}
+                />
+                 <StatCard
+                    title="Active Outbreak Signals"
+                    value="2"
+                    icon={TrendingUp}
+                    description="Flu & Dengue in Sector-15"
+                    isLoading={false}
+                 />
                  <StatCard
                     title="Critical Health Alerts"
                     value="5"
