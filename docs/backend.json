@@ -309,6 +309,21 @@
         "vaccineType"
       ]
     },
+     "VaccinationRegistration": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "VaccinationRegistration",
+      "type": "object",
+      "description": "Represents a user's registration for a vaccination drive.",
+      "properties": {
+        "id": { "type": "string" },
+        "driveId": { "type": "number" },
+        "driveName": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "registeredAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["driveId", "userId", "userName", "registeredAt"]
+    },
     "HealthCamp": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "HealthCamp",
@@ -594,6 +609,15 @@
         }
       },
       {
+        "path": "/vaccinationRegistrations/{registrationId}",
+        "definition": {
+          "entityName": "VaccinationRegistration",
+          "schema": { "$ref": "#/backend/entities/VaccinationRegistration" },
+          "description": "A collection storing user registrations for vaccination drives.",
+          "params": [{ "name": "registrationId", "description": "The unique identifier for the registration." }]
+        }
+      },
+      {
         "path": "/healthCamps/{healthCampId}",
         "definition": {
           "entityName": "HealthCamp",
@@ -663,5 +687,3 @@
     "reasoning": "The Firestore data structure has been redesigned for clarity and security. The core change is the introduction of a public `/doctors` collection, which is separate from the private `/users` collection. The `/doctors` collection stores only non-sensitive information necessary for patients to find and view doctor profiles. The `/users` collection holds all private data for both patients and doctors, strictly secured by user UID. This separation prevents permission errors when listing doctors and adheres to security best practices by not exposing the entire user base. Added ForumPost and ForumReply collections for community discussion feature. Added a Feedback collection to store user feedback. Added a dedicated `/prescriptions` collection for better data structure and security."
   }
 }
-
-    

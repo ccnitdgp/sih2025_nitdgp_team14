@@ -16,10 +16,10 @@ import {
 import { vaccinationDrives } from '@/lib/data';
 import { Calendar, MapPin, Syringe } from 'lucide-react';
 import { Highlight } from '@/components/ui/highlight';
-import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { useUser, useDoc, useFirestore, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
 import { AuthDialog } from '@/components/auth/auth-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { doc } from 'firebase/firestore';
+import { doc, collection } from 'firebase/firestore';
 import hi from '@/lib/locales/hi.json';
 import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
@@ -52,16 +52,34 @@ export default function VaccinationPage() {
 
   const t = (key: string, fallback: string) => translations[key] || fallback;
 
-  const handleRegister = () => {
+  const handleRegister = (driveId: number, driveName: string) => {
+    if (!user || !firestore || !userProfile) {
+        toast({
+            variant: 'destructive',
+            title: 'Login Required',
+            description: 'You must be logged in to register for a drive.',
+        });
+        return;
+    }
+
+    const registrationRef = collection(firestore, 'vaccinationRegistrations');
+    addDocumentNonBlocking(registrationRef, {
+        driveId: driveId,
+        driveName: driveName,
+        userId: user.uid,
+        userName: `${userProfile.firstName} ${userProfile.lastName}`,
+        registeredAt: new Date(),
+    });
+
     toast({
       title: t('registration_successful_toast_title', 'Registration Successful!'),
       description: t('registration_successful_toast_desc', 'You have been successfully registered for the drive.'),
     });
   };
 
-  const RegisterButton = ({ driveId }) => {
+  const RegisterButton = ({ driveId, driveName }) => {
     if (user) {
-      return <Button onClick={handleRegister}>{t('register_now_button', 'Register Now')}</Button>;
+      return <Button onClick={() => handleRegister(driveId, driveName)}>{t('register_now_button', 'Register Now')}</Button>;
     }
     return (
       <AuthDialog 
@@ -123,7 +141,7 @@ export default function VaccinationPage() {
                           <p className="text-muted-foreground">
                             <Highlight text={driveDetails} query={searchQuery} />
                           </p>
-                          <RegisterButton driveId={drive.id} />
+                          <RegisterButton driveId={drive.id} driveName={drive.name} />
                         </div>
                       </AccordionContent>
                     </AccordionItem>

@@ -198,6 +198,23 @@ service cloud.firestore {
         allow create, update, delete: if isAdmin();
     }
 
+    // ============================================================
+    // /vaccinationRegistrations/{registrationId}
+    // ============================================================
+    match /vaccinationRegistrations/{registrationId} {
+        // A user can create their own registration.
+        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+        
+        // A user can read their own registration, admins can read any.
+        allow get: if isSignedIn() && (isOwner(resource.data.userId) || isAdmin());
+        
+        // A user can list registrations they own, admins can list all.
+        allow list: if isSignedIn() && (request.query.where.userId == request.auth.uid || isAdmin());
+        
+        // Admins can delete registrations.
+        allow delete, update: if isAdmin();
+    }
+
 
     // ============================================================
     // /healthCamps/{healthCampId} (public)
@@ -258,8 +275,14 @@ service cloud.firestore {
         // Any signed-in user can create feedback.
         allow create: if isSignedIn();
 
-        // Admins can get, list, update, or delete any feedback.
-        allow get, list, update, delete: if isAdmin();
+        // Public can list feedback for testimonials if they query for high ratings and correct type
+        allow list: if (
+            request.query.where.rating >= 4 &&
+            request.query.where.feedbackType == 'General Feedback'
+          ) || isAdmin();
+        
+        // Admins can get, update, or delete any feedback.
+        allow get, update, delete: if isAdmin();
     }
   }
 }
