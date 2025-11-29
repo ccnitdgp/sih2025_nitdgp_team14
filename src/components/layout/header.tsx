@@ -61,7 +61,6 @@ const doctorNavLinks = [
 
 const adminNavLinks = [
     { href: "/admin-dashboard", label: "Dashboard", i18n_key: "dashboard_link" },
-    { href: "/admin-dashboard/kpi-cards", label: "KPIs", i18n_key: "kpi_link" },
 ];
 
 
