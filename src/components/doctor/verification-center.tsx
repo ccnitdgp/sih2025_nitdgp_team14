@@ -48,7 +48,8 @@ const VerificationItem = ({ label, status, onUpload, isRequired }) => {
              <input 
                 type="file" 
                 ref={fileInputRef} 
-                className="hidden" 
+                className="hidden"
+                accept="image/*,.pdf"
                 onChange={(e) => e.target.files && onUpload(e.target.files[0])}
             />
             <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
@@ -59,13 +60,8 @@ const VerificationItem = ({ label, status, onUpload, isRequired }) => {
     );
 };
 
-// This is a placeholder function. In a real application, you would
-// upload the file to a service like Firebase Storage and return the URL.
-async function uploadFileToStorage(file: File): Promise<string> {
-    // Simulate upload delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // For this prototype, we'll read the file as a data URI.
+// This function reads the file as a data URI for simulation purposes.
+async function getFileDataUri(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -86,13 +82,13 @@ export function VerificationCenter({ publicProfile, doctorPublicProfileRef }: { 
         });
 
         try {
-            // Use the placeholder upload function
-            const fileUrl = await uploadFileToStorage(file);
+            // Get the file content as a data URI
+            const fileUrl = await getFileDataUri(file);
 
             const updateData = {
                 [`verification.${docType}`]: {
                     status: 'Pending',
-                    url: fileUrl, // Use the returned URL
+                    url: fileUrl, // Use the data URI
                 }
             };
 
