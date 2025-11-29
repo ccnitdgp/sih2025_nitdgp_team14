@@ -385,7 +385,7 @@ export default function PatientDashboardPage() {
                   </Button>
               </CardContent>
             </Card>
-
+            
             <Card className="shadow-sm">
                 <CardHeader>
                     <CardTitle>{t('my_notifications_page_title', 'My Notifications')}</CardTitle>

@@ -77,7 +77,7 @@ export default function PostPage() {
     const repliesColRef = collection(firestore, 'forumPosts', postId, 'replies');
 
     try {
-        const newReply = {
+        const newReplyData = {
             postId: postId,
             content: values.content,
             authorId: user.uid,
@@ -85,7 +85,7 @@ export default function PostPage() {
             createdAt: serverTimestamp(),
         };
 
-        const newReplyDocRef = await addDoc(repliesColRef, newReply);
+        const newReplyDocRef = await addDoc(repliesColRef, newReplyData);
         
         await updateDoc(newReplyDocRef, { id: newReplyDocRef.id });
 

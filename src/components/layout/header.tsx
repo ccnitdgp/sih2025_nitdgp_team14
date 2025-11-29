@@ -1,7 +1,8 @@
+
 "use client";
 
 import Link from "next/link";
-import { LogOut, Settings, LayoutDashboard, Menu, FileText, UserPlus, User, CalendarPlus, Receipt, Bot, BookUser, Sparkles, Shield, MessageSquare, Bell, BarChart } from "lucide-react";
+import { LogOut, Settings, LayoutDashboard, Menu, FileText, UserPlus, User, CalendarPlus, Receipt, Bot, BookUser, Sparkles, Shield, MessageSquare, Bell } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {

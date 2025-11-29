@@ -75,7 +75,7 @@ export default function ForumPage() {
     setIsSubmitting(true);
     
     try {
-        const newPost = {
+        const newPostData = {
           title: values.title,
           content: values.content,
           authorId: user.uid,
@@ -87,7 +87,8 @@ export default function ForumPage() {
           likedBy: [],
         };
 
-        await addDoc(collection(firestore, 'forumPosts'), newPost);
+        const newPostRef = await addDoc(collection(firestore, 'forumPosts'), newPostData);
+        await updateDoc(newPostRef, {id: newPostRef.id})
         
         toast({ title: 'Post Created', description: 'Your post has been added to the forum.' });
         form.reset();
