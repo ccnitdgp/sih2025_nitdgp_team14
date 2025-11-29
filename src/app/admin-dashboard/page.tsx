@@ -21,6 +21,7 @@ import {
   FileText,
   ShieldAlert,
   BarChart,
+  Clock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DiseaseTrendChart } from '@/components/admin/disease-trend-chart';
@@ -64,11 +65,6 @@ export default function AdminDashboardPage() {
     [firestore]
   );
  
-  const appointmentsQuery = useMemoFirebase(
-    () => (firestore ? collection(firestore, 'appointments') : null),
-    [firestore]
-  );
-  
   const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsQuery);
 
   function handleExport() {
@@ -164,19 +160,23 @@ export default function AdminDashboardPage() {
                 </Button>
               </CardContent>
             </Card>
-
+            
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
-                  <Users />
-                  User Management
+                  <Clock />
+                  Appointments
                 </CardTitle>
                 <CardDescription>
-                  View and manage patient & doctor accounts.
+                  Analyze appointment volume and utilization.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button disabled>Manage Users</Button>
+                <Button asChild>
+                  <Link href="/admin-dashboard/appointments-utilization">
+                    View Analytics
+                  </Link>
+                </Button>
               </CardContent>
             </Card>
           </div>
