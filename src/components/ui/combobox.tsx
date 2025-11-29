@@ -56,19 +56,17 @@ export function Combobox({ options, value, onChange, placeholder = "Select optio
     <Popover open={open} onOpenChange={setOpen}>
       <div className="relative">
         <PopoverTrigger asChild>
-            <FormControl>
-                <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={open}
-                    className="w-full justify-between font-normal"
-                >
-                    {value
-                    ? options.find((option) => option.value === value)?.label
-                    : placeholder}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-            </FormControl>
+            <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={open}
+                className="w-full justify-between font-normal"
+            >
+                {value
+                ? options.find((option) => option.value === value)?.label
+                : placeholder}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
         </PopoverTrigger>
         {value && (
             <Button
@@ -119,13 +117,3 @@ export function Combobox({ options, value, onChange, placeholder = "Select optio
     </Popover>
   )
 }
-
-
-// A wrapper for Shadcn's form control to be used within the combobox trigger.
-const FormControl = React.forwardRef<
-  HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement>
->(({ ...props }, ref) => {
-  return <div {...props} />;
-});
-FormControl.displayName = "FormControl";
