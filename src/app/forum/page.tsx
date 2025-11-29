@@ -104,7 +104,9 @@ export default function ForumPage() {
     }
   };
 
-  const handleLike = (postId: string) => {
+  const handleLike = (e: React.MouseEvent, postId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (!user || !firestore) {
         toast({ variant: "destructive", title: "Please log in to like posts."});
         return;
@@ -218,7 +220,7 @@ export default function ForumPage() {
                   <Card className="hover:bg-muted/50 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
                       <CardContent className="p-4 flex gap-4">
                           <div className="hidden sm:flex flex-col items-center space-y-2 p-2 bg-muted/50 rounded-lg">
-                              <Button variant="ghost" size="icon" className="h-8 w-8" disabled={hasLiked || !user} onClick={(e) => {e.preventDefault(); handleLike(post.id);}}>
+                              <Button variant="ghost" size="icon" className="h-8 w-8" disabled={hasLiked || !user} onClick={(e) => handleLike(e, post.id)}>
                                   <ArrowUp className={cn("h-5 w-5", hasLiked && "text-primary fill-primary")} />
                               </Button>
                               <span className="font-bold text-sm">{post.likeCount || 0}</span>
@@ -245,22 +247,34 @@ export default function ForumPage() {
                   </Card>
                 </Link>
               </HoverCardTrigger>
-              <HoverCardContent className="w-80">
-                  <div className="space-y-3">
-                    <h4 className="font-semibold">{post.title}</h4>
-                    <p className="text-sm text-muted-foreground">
-                        {post.content.substring(0, 120)}{post.content.length > 120 && '...'}
-                    </p>
-                    <div className="flex items-center pt-2 gap-2 text-xs text-muted-foreground">
-                        <Avatar className="h-5 w-5">
-                          <AvatarImage src={`https://picsum.photos/seed/${post.authorId}/40`} />
-                          <AvatarFallback>{post.authorName?.charAt(0)}</AvatarFallback>
+              <HoverCardContent className="w-96 max-h-[80vh] overflow-y-auto" side="right" align="start">
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Avatar className="h-6 w-6">
+                            <AvatarImage src={`https://picsum.photos/seed/${post.authorId}/40`} />
+                            <AvatarFallback>{post.authorName?.charAt(0)}</AvatarFallback>
                         </Avatar>
-                        <span>{post.authorName}</span>
+                        <span>Posted by <span className="font-medium text-foreground">{post.authorName}</span></span>
                         <span>•</span>
                         <span>{post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : '...'}</span>
                     </div>
-                  </div>
+                    <h4 className="font-bold text-lg">{post.title}</h4>
+                    <p className="text-sm text-foreground whitespace-pre-wrap">{post.content}</p>
+                    <div className="flex items-center gap-4 pt-2 border-t">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={hasLiked || !user}
+                            onClick={(e) => handleLike(e, post.id)}
+                            className="flex items-center gap-1.5 text-muted-foreground"
+                        >
+                            <Heart className={cn("h-4 w-4", hasLiked && "text-destructive fill-destructive")} />
+                            <span className="text-sm font-medium">{post.likeCount || 0}</span>
+                        </Button>
+                        <PostStat icon={MessageSquare} count={post.replyCount} />
+                        <PostStat icon={Eye} count={post.viewCount} />
+                    </div>
+                </div>
               </HoverCardContent>
             </HoverCard>
           )})
