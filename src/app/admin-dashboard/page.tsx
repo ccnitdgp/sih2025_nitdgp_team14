@@ -29,7 +29,6 @@ import {
   UserCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { AgeDistributionChart } from '@/components/admin/age-distribution-chart';
 import { OutbreakHeatmap } from '@/components/admin/outbreak-heatmap';
 import Link from 'next/link';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -37,6 +36,7 @@ import { collection, query, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DashboardFilters } from '@/components/admin/dashboard-filters';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { DiseaseTrendChart } from '@/components/admin/disease-trend-chart';
 
 export default function AdminDashboardPage() {
   const firestore = useFirestore();
@@ -45,8 +45,14 @@ export default function AdminDashboardPage() {
     () => (firestore ? query(collection(firestore, 'users'), where('role', '==', 'patient')) : null),
     [firestore]
   );
- 
   const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsQuery);
+
+  const unverifiedDoctorsQuery = useMemoFirebase(
+    () => (firestore ? query(collection(firestore, 'doctors'), where('isVerified', '==', false)) : null),
+    [firestore]
+  );
+  const { data: unverifiedDoctors, isLoading: isLoadingDoctors } = useCollection(unverifiedDoctorsQuery);
+
 
   function handleExport() {
     const headers = 'Category,Value,Description\n';
@@ -65,14 +71,21 @@ export default function AdminDashboardPage() {
     document.body.removeChild(link);
   }
 
-  const alerts = [
-      {
-          title: "3 Unverified Doctors",
-          description: "New doctor profiles are awaiting verification.",
-          actionText: "Verify Now",
-          href: "/doctor-dashboard/profile", // A generic link, could be more specific
-          icon: UserCheck
-      },
+  const alerts = useMemo(() => {
+    const dynamicAlerts = [];
+    
+    if (unverifiedDoctors && unverifiedDoctors.length > 0) {
+        dynamicAlerts.push({
+            title: `${unverifiedDoctors.length} Unverified Doctor(s)`,
+            description: "New doctor profiles are awaiting verification.",
+            actionText: "Verify Now",
+            href: "/doctor-dashboard/profile",
+            icon: UserCheck
+        });
+    }
+
+    // Static alerts for demonstration
+    const staticAlerts = [
       {
           title: "High No-Show Rate for Dr. Patel",
           description: "Dr. Patel's no-show rate is 15% this week.",
@@ -87,7 +100,10 @@ export default function AdminDashboardPage() {
           href: "/admin-dashboard/vaccination-preventive-care",
           icon: Syringe
       },
-  ]
+    ];
+
+    return [...dynamicAlerts, ...staticAlerts];
+  }, [unverifiedDoctors]);
 
   return (
     <div className="bg-muted/40 min-h-screen">
@@ -121,22 +137,28 @@ export default function AdminDashboardPage() {
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                {alerts.map((alert, index) => (
-                    <Alert key={index} variant="destructive" className="bg-destructive/5 dark:bg-destructive/10 border-destructive/20 text-destructive">
-                        <alert.icon className="h-4 w-4" />
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                            <div>
-                                <AlertTitle className="text-destructive">{alert.title}</AlertTitle>
-                                <AlertDescription className="text-destructive/80">
-                                {alert.description}
-                                </AlertDescription>
+                {isLoadingDoctors ? (
+                  <Skeleton className="h-24 w-full" />
+                ) : alerts.length > 0 ? (
+                    alerts.map((alert, index) => (
+                        <Alert key={index} variant="destructive" className="bg-destructive/5 dark:bg-destructive/10 border-destructive/20 text-destructive">
+                            <alert.icon className="h-4 w-4" />
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                                <div>
+                                    <AlertTitle className="text-destructive">{alert.title}</AlertTitle>
+                                    <AlertDescription className="text-destructive/80">
+                                    {alert.description}
+                                    </AlertDescription>
+                                </div>
+                                <Button asChild variant="outline" size="sm" className="border-destructive/50 text-destructive hover:bg-destructive/10">
+                                    <Link href={alert.href}>{alert.actionText} <ArrowRight className="ml-2 h-4 w-4"/></Link>
+                                </Button>
                             </div>
-                            <Button asChild variant="outline" size="sm" className="border-destructive/50 text-destructive hover:bg-destructive/10">
-                                <Link href={alert.href}>{alert.actionText} <ArrowRight className="ml-2 h-4 w-4"/></Link>
-                            </Button>
-                        </div>
-                    </Alert>
-                ))}
+                        </Alert>
+                    ))
+                ) : (
+                    <p className="text-sm text-muted-foreground text-center">No alerts at this time.</p>
+                )}
             </CardContent>
           </Card>
 
@@ -342,6 +364,20 @@ export default function AdminDashboardPage() {
                 <OutbreakHeatmap />
               </CardContent>
             </Card>
+            <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Activity />
+                      Disease &amp; Symptom Trends
+                    </CardTitle>
+                    <CardDescription>
+                      Reported cases of Influenza over the last 7 days.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <DiseaseTrendChart />
+                  </CardContent>
+                </Card>
           </div>
         </div>
       </div>
