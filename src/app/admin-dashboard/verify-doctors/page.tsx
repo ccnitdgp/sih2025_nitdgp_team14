@@ -21,7 +21,6 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import Link from 'next/link';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 const verificationItems = [
@@ -200,7 +199,7 @@ export default function VerifyDoctorsPage() {
                                                             <Button 
                                                                 variant="secondary" 
                                                                 size="sm" 
-                                                                disabled={!docInfo?.url || docInfo.url === '#'}
+                                                                disabled={!docInfo?.url}
                                                                 onClick={() => setViewingDocumentUrl(docInfo?.url)}
                                                             >
                                                                 View <ExternalLink className="ml-2 h-4 w-4"/>
@@ -259,8 +258,8 @@ export default function VerifyDoctorsPage() {
                     <DialogDescription>Review the uploaded document below.</DialogDescription>
                 </DialogHeader>
                  {viewingDocumentUrl && (
-                    <div className="mt-4 flex-grow">
-                        {viewingDocumentUrl.startsWith('data:application/pdf') ? (
+                    <div className="mt-4 flex-grow h-full">
+                        {viewingDocumentUrl.includes('.pdf') ? (
                              <iframe
                                 src={viewingDocumentUrl}
                                 className="h-full w-full"

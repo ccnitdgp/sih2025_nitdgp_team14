@@ -5,10 +5,11 @@ import { useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Upload, CheckCircle, Clock, XCircle, FileText, ShieldCheck, QrCode } from 'lucide-react';
+import { Upload, CheckCircle, Clock, XCircle, FileText, ShieldCheck, QrCode, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { updateDocumentNonBlocking } from '@/firebase';
+import { updateDocumentNonBlocking, useFirebaseApp } from '@/firebase';
 import { DocumentReference } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const verificationItems = [
     { id: 'medicalDegree', label: 'Medical Degree Certificate', required: true },
@@ -33,8 +34,9 @@ const StatusBadge = ({ status }) => {
     }
 };
 
-const VerificationItem = ({ label, status, onUpload, isRequired }) => {
+const VerificationItem = ({ label, status, onUpload, isRequired, isUploading, currentUploadingDoc }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const isThisItemUploading = isUploading && currentUploadingDoc === label;
 
     return (
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 p-4 border rounded-md">
@@ -51,30 +53,39 @@ const VerificationItem = ({ label, status, onUpload, isRequired }) => {
                 className="hidden"
                 accept="image/*,.pdf"
                 onChange={(e) => e.target.files && onUpload(e.target.files[0])}
+                disabled={isUploading}
             />
-            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                <Upload className="mr-2 h-4 w-4" />
-                {status === 'Not Uploaded' ? 'Upload' : 'Re-upload'}
+            <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+            >
+                {isThisItemUploading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                    <Upload className="mr-2 h-4 w-4" />
+                )}
+                {isThisItemUploading ? 'Uploading...' : (status === 'Not Uploaded' ? 'Upload' : 'Re-upload')}
             </Button>
         </div>
     );
 };
 
-// This function reads the file as a data URI.
-async function getFileDataUri(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = (error) => reject(error);
-    });
-}
-
 export function VerificationCenter({ publicProfile, doctorPublicProfileRef }: { publicProfile: any, doctorPublicProfileRef: DocumentReference | null }) {
     const { toast } = useToast();
+    const firebaseApp = useFirebaseApp();
+    const [isUploading, setIsUploading] = useState(false);
+    const [currentUploadingDoc, setCurrentUploadingDoc] = useState<string | null>(null);
 
     const handleUpload = async (docType: string, file: File) => {
-        if (!doctorPublicProfileRef) return;
+        if (!doctorPublicProfileRef || !firebaseApp) return;
+
+        setIsUploading(true);
+        setCurrentUploadingDoc(docType);
+
+        const storage = getStorage(firebaseApp);
+        const storageRef = ref(storage, `doctor-verification/${doctorPublicProfileRef.id}/${docType}-${file.name}`);
         
         toast({
             title: 'Uploading Document...',
@@ -82,17 +93,16 @@ export function VerificationCenter({ publicProfile, doctorPublicProfileRef }: { 
         });
 
         try {
-            // Get the file content as a data URI
-            const fileUrl = await getFileDataUri(file);
+            const snapshot = await uploadBytes(storageRef, file);
+            const downloadURL = await getDownloadURL(snapshot.ref);
 
             const updateData = {
                 [`verification.${docType}`]: {
                     status: 'Pending',
-                    url: fileUrl, // Use the data URI
+                    url: downloadURL,
                 }
             };
 
-            // Use the non-blocking update
             await updateDocumentNonBlocking(doctorPublicProfileRef, updateData);
             
             toast({
@@ -106,6 +116,9 @@ export function VerificationCenter({ publicProfile, doctorPublicProfileRef }: { 
                 title: "Upload Failed",
                 description: "Could not upload the selected file.",
             });
+        } finally {
+            setIsUploading(false);
+            setCurrentUploadingDoc(null);
         }
     };
 
@@ -134,6 +147,8 @@ export function VerificationCenter({ publicProfile, doctorPublicProfileRef }: { 
                         isRequired={item.required}
                         status={publicProfile?.verification?.[item.id]?.status || 'Not Uploaded'}
                         onUpload={(file) => handleUpload(item.id, file)}
+                        isUploading={isUploading}
+                        currentUploadingDoc={currentUploadingDoc === item.id ? item.label : null}
                     />
                 ))}
             </CardContent>
