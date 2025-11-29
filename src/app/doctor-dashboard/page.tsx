@@ -56,12 +56,8 @@ export default function DoctorDashboardPage() {
   const { data: appointments, isLoading: areAppointmentsLoading } = useCollection(appointmentsQuery);
 
   const prescriptionsQuery = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
-    return query(
-        collectionGroup(firestore, 'healthRecords'),
-        where('recordType', '==', 'prescription'),
-        where('addedBy', '==', user.uid)
-    );
+      if (!user || !firestore) return null;
+      return query(collection(firestore, 'prescriptions'), where('doctorId', '==', user.uid));
   }, [user, firestore]);
 
   const { data: prescriptions, isLoading: arePrescriptionsLoading } = useCollection(prescriptionsQuery);
@@ -168,5 +164,3 @@ export default function DoctorDashboardPage() {
     </div>
   );
 }
-
-    

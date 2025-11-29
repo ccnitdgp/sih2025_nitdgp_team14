@@ -156,8 +156,15 @@ service cloud.firestore {
             isAdmin()
         );
 
-        // List/Delete: only admins for now.
-        allow list, delete: if isAdmin();
+        // LIST (QUERY): A user can query appointments only if they filter by their OWN patientId or doctorId.
+        allow list: if isSignedIn() && (
+          (request.query.where.doctorId == request.auth.uid && isDoctor()) ||
+          (request.query.where.patientId == request.auth.uid && isPatient()) ||
+          isAdmin()
+        );
+
+        // Delete: only admins for now.
+        allow delete: if isAdmin();
     }
     
     // ============================================================
@@ -168,7 +175,6 @@ service cloud.firestore {
       allow get: if isSignedIn() && (resource.data.patientId == request.auth.uid || resource.data.doctorId == request.auth.uid || isAdmin());
       
       // LIST (QUERY): A user can query prescriptions only if they filter by their OWN patientId or doctorId.
-      // This prevents a user from listing all prescriptions in the database.
       allow list: if isSignedIn() && (
         (request.query.where.doctorId == request.auth.uid && isDoctor()) ||
         (request.query.where.patientId == request.auth.uid && isPatient()) ||
