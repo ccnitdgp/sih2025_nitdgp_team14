@@ -30,9 +30,12 @@ const newPostSchema = z.object({
   content: z.string().min(10, 'Post content must be at least 10 characters long.'),
 });
 
-const PostStat = ({ icon: Icon, count, children }) => {
+const PostStat = ({ icon: Icon, count, children, onClick }: { icon: any, count: number, children?: React.ReactNode, onClick?: (e: React.MouseEvent) => void }) => {
     return (
-        <div className="flex items-center gap-1.5 text-muted-foreground transition-colors">
+        <div 
+            className="flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-primary"
+            onClick={onClick}
+        >
             {children || (
                 <>
                     <Icon className="h-4 w-4" />
@@ -117,13 +120,11 @@ export default function ForumPage() {
     const hasLiked = post.likedBy?.includes(user.uid);
 
     if (hasLiked) {
-        // Unlike
         updateDocumentNonBlocking(postRef, {
             likeCount: increment(-1),
             likedBy: arrayRemove(user.uid)
         });
     } else {
-        // Like
         updateDocumentNonBlocking(postRef, {
             likeCount: increment(1),
             likedBy: arrayUnion(user.uid)
@@ -228,11 +229,10 @@ export default function ForumPage() {
             const hasLiked = user && post.likedBy?.includes(user.uid);
             return (
               <AccordionItem value={post.id} key={post.id} className="border-none">
-                 <Card className="hover:bg-muted/50 transition-colors">
-                    <CardContent className="p-4">
-                      <div className="flex flex-col gap-3">
-                         <AccordionTrigger className="w-full text-left p-0 hover:no-underline" hideChevron>
-                            <div>
+                 <Card className="hover:bg-muted/50 transition-colors p-4">
+                    <div className="flex flex-col gap-3">
+                        <AccordionTrigger className="w-full text-left p-0 hover:no-underline" hideChevron>
+                            <div className="flex-1">
                                 <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                                     <Avatar className="h-6 w-6">
                                         <AvatarImage src={`https://picsum.photos/seed/${post.authorId}/40`} />
@@ -245,30 +245,26 @@ export default function ForumPage() {
                                 <h3 className="font-bold text-lg text-primary">{post.title}</h3>
                                 <p className="text-sm text-muted-foreground line-clamp-2 my-2">{post.content}</p>
                             </div>
-                         </AccordionTrigger>
+                        </AccordionTrigger>
                         <div className="flex items-center gap-4">
-                            <PostStat count={post.replyCount}>
-                              <AccordionTrigger className="flex items-center gap-1.5 p-0 hover:no-underline text-muted-foreground transition-colors hover:text-primary" hideChevron>
+                             <AccordionTrigger className="flex items-center gap-1.5 p-0 hover:no-underline text-muted-foreground transition-colors hover:text-primary" hideChevron>
                                 <MessageSquare className="h-4 w-4" />
                                 <span className="text-sm font-medium">{post.replyCount || 0}</span>
-                              </AccordionTrigger>
-                            </PostStat>
+                             </AccordionTrigger>
                             <PostStat icon={Eye} count={post.viewCount} />
-                            <PostStat>
-                              <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="flex items-center gap-1.5 text-muted-foreground p-1 h-auto -ml-1 hover:text-primary"
-                                  disabled={!user}
-                                  onClick={(e) => handleToggleLike(e, post)}
+                            <PostStat icon={Heart} count={post.likeCount} onClick={(e) => handleToggleLike(e, post)}>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="flex items-center gap-1.5 text-muted-foreground p-1 h-auto -ml-1 hover:text-primary"
+                                    disabled={!user}
                                 >
-                                <Heart className={cn("h-4 w-4", hasLiked && "text-destructive fill-destructive")} />
-                                <span className="text-sm font-medium">{post.likeCount || 0}</span>
-                              </Button>
+                                    <Heart className={cn("h-4 w-4", hasLiked && "text-destructive fill-destructive")} />
+                                    <span className="text-sm font-medium">{post.likeCount || 0}</span>
+                                </Button>
                             </PostStat>
                         </div>
-                      </div>
-                    </CardContent>
+                    </div>
                  </Card>
                  <AccordionContent>
                     <div className="pl-4 pr-2 pt-2 pb-4">
