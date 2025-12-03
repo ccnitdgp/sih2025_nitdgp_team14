@@ -10,6 +10,9 @@ import { ThemeProvider } from '@/components/theme-provider';
 export const metadata: Metadata = {
   title: 'Swasthya',
   description: 'Your Health, Our Priority.',
+  icons: {
+    icon: '/logo.svg',
+  },
 };
 
 export default function RootLayout({
