@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -6,7 +5,7 @@ import { collection, query, where, getDocs, doc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Bot, Loader2, Search, Sparkles, ShieldCheck } from 'lucide-react';
+import { Bot, Loader2, Search, Sparkles, ShieldCheck, KeyRound } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -20,6 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { summarizeMedicalHistory } from '@/ai/flows/summarize-medical-history-flow';
 import { MedicalDetailsTab } from '@/components/doctor/medical-details-tab';
 import { VaccinationRecordsTab } from '@/components/doctor/vaccination-records-tab';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 export default function DoctorPatientsPage() {
   const { user } = useUser();
@@ -28,12 +28,15 @@ export default function DoctorPatientsPage() {
   const searchParams = useSearchParams();
 
   const [patientIdInput, setPatientIdInput] = useState('');
-  
+  const [patientToVerify, setPatientToVerify] = useState<any | null>(null);
   const [foundPatient, setFoundPatient] = useState<any | null>(null);
   
   const [isLoading, setIsLoading] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [summary, setSummary] = useState<string | null>(null);
+  const [otp, setOtp] = useState('');
+  const [generatedOtp, setGeneratedOtp] = useState('');
+  const [isOtpDialogOpen, setIsOtpDialogOpen] = useState(false);
 
   const handleFindPatient = async (idToSearch?: string) => {
     const searchId = idToSearch || patientIdInput;
@@ -43,6 +46,9 @@ export default function DoctorPatientsPage() {
     }
     setIsLoading(true);
     setFoundPatient(null);
+    setPatientToVerify(null);
+    setIsOtpDialogOpen(false);
+
     try {
       const q = query(collection(firestore, 'users'), where('patientId', '==', searchId.trim()));
       const querySnapshot = await getDocs(q);
@@ -51,8 +57,19 @@ export default function DoctorPatientsPage() {
         toast({ variant: 'destructive', title: 'Patient Not Found', description: 'No patient found with that ID.' });
       } else {
         const patientData = { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
-        setFoundPatient(patientData);
-        toast({ title: `Patient ${patientData.firstName} Found`, description: `Displaying records.` });
+        setPatientToVerify(patientData);
+        
+        // Simulate sending OTP
+        const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
+        setGeneratedOtp(newOtp);
+
+        toast({
+          title: 'OTP Sent (Simulation)',
+          description: `An OTP has been sent to the patient's registered number. OTP: ${newOtp}`,
+          duration: 9000,
+        });
+
+        setIsOtpDialogOpen(true);
       }
     } catch (error) {
       console.error(error);
@@ -61,6 +78,17 @@ export default function DoctorPatientsPage() {
       setIsLoading(false);
     }
   };
+
+  const handleVerifyOtp = () => {
+    if (otp === generatedOtp) {
+        toast({ title: 'Verification Successful', description: 'Access granted.' });
+        setFoundPatient(patientToVerify);
+        setIsOtpDialogOpen(false);
+        setOtp('');
+    } else {
+        toast({ variant: 'destructive', title: 'Invalid OTP', description: 'The OTP you entered is incorrect.'});
+    }
+  }
 
   useEffect(() => {
     const patientIdFromUrl = searchParams.get('patientId');
@@ -199,6 +227,32 @@ export default function DoctorPatientsPage() {
             </Tabs>
           </div>
         )}
+
+        <Dialog open={isOtpDialogOpen} onOpenChange={setIsOtpDialogOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>OTP Verification Required</DialogTitle>
+                    <DialogDescription>
+                        To protect patient privacy, please enter the OTP sent to their registered mobile number.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="flex flex-col items-center gap-4 py-4">
+                    <p className="font-medium">Enter 6-digit OTP</p>
+                    <Input
+                        type="text"
+                        maxLength={6}
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value)}
+                        className="w-48 text-center text-2xl tracking-[0.5em]"
+                        placeholder="••••••"
+                    />
+                    <Button onClick={handleVerifyOtp} className="mt-4">
+                        <KeyRound className="mr-2"/>
+                        Verify & View Records
+                    </Button>
+                </div>
+            </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
