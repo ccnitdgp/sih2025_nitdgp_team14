@@ -1,3 +1,4 @@
+
 'use client';
 
 import { firebaseConfig as hardcodedConfig } from '@/firebase/config';
