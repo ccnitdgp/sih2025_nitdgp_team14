@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -6,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Bot, Loader2, Search, Sparkles, ShieldCheck, KeyRound } from 'lucide-react';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
@@ -38,7 +39,7 @@ export default function DoctorPatientsPage() {
   const [generatedOtp, setGeneratedOtp] = useState('');
   const [isOtpDialogOpen, setIsOtpDialogOpen] = useState(false);
 
-  const handleFindPatient = async (idToSearch?: string) => {
+  const handleFindPatient = useCallback(async (idToSearch?: string) => {
     const searchId = idToSearch || patientIdInput;
     if (!searchId.trim()) {
       toast({ variant: 'destructive', title: 'Patient ID is required.' });
@@ -77,7 +78,7 @@ export default function DoctorPatientsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [patientIdInput, firestore, toast]);
 
   const handleVerifyOtp = () => {
     if (otp === generatedOtp) {
@@ -96,8 +97,7 @@ export default function DoctorPatientsPage() {
       setPatientIdInput(patientIdFromUrl);
       handleFindPatient(patientIdFromUrl);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  }, [searchParams, foundPatient, handleFindPatient]);
 
   const medicalHistoryQuery = useMemoFirebase(() => {
     if (!foundPatient?.id || !firestore) return null;
