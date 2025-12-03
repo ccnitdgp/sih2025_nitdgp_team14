@@ -36,7 +36,7 @@ const BackField = ({ label, value }) => (
 
 
 const VirtualIdCardFront = ({ user, userProfile, t }) => {
-    const qrCodeUrl = typeof window !== 'undefined' ? `${window.location.origin}/doctor-dashboard/patients?patientId=${userProfile?.patientId}` : '';
+    const qrCodeUrl = typeof window !== 'undefined' ? `${window.location.origin}/doctor-dashboard/patient/${userProfile?.id}` : '';
 
     return (
         <div className="w-full h-[280px] bg-white rounded-lg p-4 border-2 border-gray-300 flex flex-col justify-between">

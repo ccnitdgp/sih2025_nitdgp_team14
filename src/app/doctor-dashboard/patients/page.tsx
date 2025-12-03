@@ -28,10 +28,8 @@ export default function DoctorPatientsPage() {
   const searchParams = useSearchParams();
 
   const [patientIdInput, setPatientIdInput] = useState('');
-  const [otp, setOtp] = useState('');
   
   const [foundPatient, setFoundPatient] = useState<any | null>(null);
-  const [viewState, setViewState] = useState<'search' | 'otp' | 'records'>('search');
   
   const [isLoading, setIsLoading] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
@@ -54,8 +52,7 @@ export default function DoctorPatientsPage() {
       } else {
         const patientData = { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
         setFoundPatient(patientData);
-        setViewState('otp');
-        toast({ title: `Patient ${patientData.firstName} Found`, description: 'Please enter the OTP to proceed.' });
+        toast({ title: `Patient ${patientData.firstName} Found`, description: `Displaying records.` });
       }
     } catch (error) {
       console.error(error);
@@ -67,11 +64,10 @@ export default function DoctorPatientsPage() {
 
   useEffect(() => {
     const patientIdFromUrl = searchParams.get('patientId');
-    if (patientIdFromUrl && viewState === 'search' && !foundPatient) {
+    if (patientIdFromUrl && !foundPatient) {
       setPatientIdInput(patientIdFromUrl);
       handleFindPatient(patientIdFromUrl);
     }
-  // We only want this to run when searchParams change initially.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
@@ -84,17 +80,6 @@ export default function DoctorPatientsPage() {
   }, [foundPatient, firestore]);
 
   const { data: medicalHistory } = useCollection(medicalHistoryQuery);
-
-  const handleVerifyOtp = () => {
-    // In a real app, this would be a call to a backend service.
-    // For demo purposes, the "OTP" is always 123456
-    if (otp === '123456') {
-      toast({ title: 'Verification Successful', description: `Accessing records for ${foundPatient.firstName}.` });
-      setViewState('records');
-    } else {
-      toast({ variant: 'destructive', title: 'Invalid OTP', description: 'The OTP you entered is incorrect.' });
-    }
-  };
 
   const handleSummarize = async () => {
     if (!medicalHistory || medicalHistory.length === 0) {
@@ -130,53 +115,25 @@ export default function DoctorPatientsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Secure Patient Access</CardTitle>
-            <CardDescription>Enter a Patient ID to search for and verify a patient to view their records.</CardDescription>
+            <CardDescription>Enter a Patient ID to search for and view their records.</CardDescription>
           </CardHeader>
           <CardContent>
-            {viewState === 'search' && (
-              <div className="flex max-w-md items-center space-x-2">
-                <Input
-                  placeholder="Enter Patient ID (e.g., PT-XXXXXXXXXX)"
-                  value={patientIdInput}
-                  onChange={(e) => setPatientIdInput(e.target.value)}
-                  disabled={isLoading}
-                />
-                <Button onClick={() => handleFindPatient()} disabled={isLoading}>
-                  {isLoading ? <Loader2 className="mr-2 animate-spin" /> : <Search className="mr-2" />}
-                  Find Patient
-                </Button>
-              </div>
-            )}
-            {viewState === 'otp' && foundPatient && (
-              <div className="max-w-md space-y-4">
-                <p className="text-sm">
-                  An OTP has been sent to <span className="font-semibold">{foundPatient.firstName}'s</span> registered mobile number.
-                   For demo purposes, the OTP is <strong className="text-primary">123456</strong>.
-                </p>
-                <div className="flex items-center space-x-2">
-                  <Input
-                    placeholder="Enter 6-digit OTP"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    maxLength={6}
-                  />
-                  <Button onClick={handleVerifyOtp}>
-                    <ShieldCheck className="mr-2" />
-                    Verify & View Records
-                  </Button>
-                </div>
-                 <Button variant="link" onClick={() => {
-                   setViewState('search');
-                   setPatientIdInput('');
-                   setFoundPatient(null);
-                   setOtp('');
-                 }}>Search for another patient</Button>
-              </div>
-            )}
+            <div className="flex max-w-md items-center space-x-2">
+              <Input
+                placeholder="Enter Patient ID (e.g., PT-XXXXXXXXXX)"
+                value={patientIdInput}
+                onChange={(e) => setPatientIdInput(e.target.value)}
+                disabled={isLoading}
+              />
+              <Button onClick={() => handleFindPatient()} disabled={isLoading}>
+                {isLoading ? <Loader2 className="mr-2 animate-spin" /> : <Search className="mr-2" />}
+                Find Patient
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
-        {viewState === 'records' && foundPatient && (
+        {foundPatient && (
           <div className="space-y-8">
              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
