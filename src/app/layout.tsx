@@ -2,10 +2,9 @@
 import type { Metadata } from 'next';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
-import { Toaster } from "@/components/ui/toaster";
 import './globals.css';
-import { FirebaseClientProvider } from '@/firebase';
-import { ThemeProvider } from '@/components/theme-provider';
+import { ClientProviders } from '@/components/client-providers';
+
 
 export const metadata: Metadata = {
   title: 'Swasthya',
@@ -28,20 +27,13 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          disableTransitionOnChange
-        >
-          <FirebaseClientProvider>
+        <ClientProviders>
             <div className="flex flex-col min-h-screen">
               <Header />
               <main className="flex-grow">{children}</main>
               <Footer />
             </div>
-            <Toaster />
-          </FirebaseClientProvider>
-        </ThemeProvider>
+        </ClientProviders>
       </body>
     </html>
   );
