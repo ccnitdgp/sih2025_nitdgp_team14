@@ -1,22 +1,23 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, updateDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
 import { collection, query, orderBy, serverTimestamp, doc, addDoc, arrayUnion, increment, arrayRemove } from 'firebase/firestore';
 import { formatDistanceToNow } from 'date-fns';
 
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Skeleton } from '@/components/ui/skeleton';
-import { MessageSquare, PlusCircle, Heart, Eye } from 'lucide-react';
+import { MessageSquare, PlusCircle, Heart, Eye, Edit, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AuthDialog } from '@/components/auth/auth-dialog';
 import { BackButton } from '@/components/layout/back-button';
@@ -24,6 +25,8 @@ import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { PostReplies } from '@/components/forum/post-replies';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 
 const newPostSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters long.'),
@@ -52,7 +55,9 @@ export default function ForumPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isNewPostDialogOpen, setIsNewPostDialogOpen] = useState(false);
+  const [isEditPostDialogOpen, setIsEditPostDialogOpen] = useState(false);
+  const [editingPost, setEditingPost] = useState<any | null>(null);
 
   const userDocRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
@@ -67,15 +72,57 @@ export default function ForumPage() {
 
   const { data: posts, isLoading } = useCollection(postsQuery);
 
-  const form = useForm<z.infer<typeof newPostSchema>>({
-    resolver: zodResolver(newPostSchema),
-    defaultValues: {
-      title: '',
-      content: '',
-    },
-  });
+  const myPosts = useMemo(() => {
+    if (!posts || !user) return [];
+    return posts.filter(post => post.authorId === user.uid);
+  }, [posts, user]);
 
-  const onSubmit = async (values: z.infer<typeof newPostSchema>) => {
+  const newPostForm = useForm<z.infer<typeof newPostSchema>>({
+    resolver: zodResolver(newPostSchema),
+    defaultValues: { title: '', content: '' },
+  });
+  
+  const editPostForm = useForm<z.infer<typeof newPostSchema>>({
+    resolver: zodResolver(newPostSchema),
+    defaultValues: { title: '', content: '' },
+  });
+  
+  const handleEditClick = (post: any) => {
+    setEditingPost(post);
+    editPostForm.reset({
+      title: post.title,
+      content: post.content,
+    });
+    setIsEditPostDialogOpen(true);
+  };
+
+  const handleUpdatePost = async (values: z.infer<typeof newPostSchema>) => {
+    if (!editingPost || !firestore) return;
+    setIsSubmitting(true);
+    const postRef = doc(firestore, 'forumPosts', editingPost.id);
+    try {
+      await updateDocumentNonBlocking(postRef, {
+        title: values.title,
+        content: values.content,
+      });
+      toast({ title: 'Post Updated' });
+      setIsEditPostDialogOpen(false);
+      setEditingPost(null);
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Could not update your post.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+  
+  const handleDeletePost = (postId: string) => {
+    if (!firestore) return;
+    const postRef = doc(firestore, 'forumPosts', postId);
+    deleteDocumentNonBlocking(postRef);
+    toast({ variant: 'destructive', title: 'Post Deleted' });
+  }
+
+  const handleNewPost = async (values: z.infer<typeof newPostSchema>) => {
     if (!user || !userProfile || !firestore) {
       toast({ variant: 'destructive', title: 'You must be logged in to post.' });
       return;
@@ -100,8 +147,8 @@ export default function ForumPage() {
         await updateDocumentNonBlocking(doc(docRef, newPostRef.id), { id: newPostRef.id });
         
         toast({ title: 'Post Created', description: 'Your post has been added to the forum.' });
-        form.reset();
-        setIsDialogOpen(false);
+        newPostForm.reset();
+        setIsNewPostDialogOpen(false);
     } catch (error) {
         console.error("Error creating post: ", error);
         toast({ variant: 'destructive', title: 'Error', description: "Could not create your post."});
@@ -137,11 +184,6 @@ export default function ForumPage() {
       {[...Array(3)].map((_, i) => (
         <Card key={i} className="p-4">
           <div className="flex gap-4">
-            <div className="hidden sm:flex flex-col items-center gap-2 pt-2">
-                <Skeleton className="h-6 w-8" />
-                <Skeleton className="h-6 w-8" />
-                <Skeleton className="h-6 w-8" />
-            </div>
             <div className="flex-1 space-y-3">
                 <Skeleton className="h-4 w-1/2" />
                 <Skeleton className="h-6 w-3/4" />
@@ -163,7 +205,7 @@ export default function ForumPage() {
             Ask questions, share experiences, and connect with other patients.
           </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isNewPostDialogOpen} onOpenChange={setIsNewPostDialogOpen}>
           <DialogTrigger asChild>
             {user ? (
                  <Button>
@@ -179,10 +221,10 @@ export default function ForumPage() {
             <DialogHeader>
               <DialogTitle>Create a New Post</DialogTitle>
             </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <Form {...newPostForm}>
+              <form onSubmit={newPostForm.handleSubmit(handleNewPost)} className="space-y-4">
                 <FormField
-                  control={form.control}
+                  control={newPostForm.control}
                   name="title"
                   render={({ field }) => (
                     <FormItem>
@@ -195,7 +237,7 @@ export default function ForumPage() {
                   )}
                 />
                 <FormField
-                  control={form.control}
+                  control={newPostForm.control}
                   name="content"
                   render={({ field }) => (
                     <FormItem>
@@ -221,65 +263,167 @@ export default function ForumPage() {
         </Dialog>
       </div>
 
-      <Accordion type="single" collapsible className="w-full space-y-4">
-        {isLoading ? (
-          <PostsSkeleton />
-        ) : posts && posts.length > 0 ? (
-          posts.map((post) => {
-            const hasLiked = user && post.likedBy?.includes(user.uid);
-            return (
-              <AccordionItem value={post.id} key={post.id} className="border-none">
-                 <Card className="hover:bg-muted/50 transition-colors p-4">
-                    <div className="flex flex-col gap-3">
-                        <AccordionTrigger className="w-full text-left p-0 hover:no-underline" hideChevron>
-                            <div className="flex-1">
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                                    <Avatar className="h-6 w-6">
-                                        <AvatarImage src={`https://picsum.photos/seed/${post.authorId}/40`} />
-                                        <AvatarFallback>{post.authorName?.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <span>Posted by <span className="font-medium text-foreground">{post.authorName}</span></span>
-                                    <span>•</span>
-                                    <span>{post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : '...'}</span>
+       <Tabs defaultValue="all-posts" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="all-posts">All Posts</TabsTrigger>
+                <TabsTrigger value="my-posts">My Posts</TabsTrigger>
+            </TabsList>
+            <TabsContent value="all-posts" className="mt-8">
+                <Accordion type="single" collapsible className="w-full space-y-4">
+                    {isLoading ? (
+                    <PostsSkeleton />
+                    ) : posts && posts.length > 0 ? (
+                    posts.map((post) => {
+                        const hasLiked = user && post.likedBy?.includes(user.uid);
+                        return (
+                        <AccordionItem value={post.id} key={post.id} className="border-none">
+                            <Card className="hover:bg-muted/50 transition-colors p-4">
+                                <div className="flex flex-col gap-3">
+                                    <AccordionTrigger className="w-full text-left p-0 hover:no-underline" hideChevron>
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                                                <Avatar className="h-6 w-6">
+                                                    <AvatarImage src={`https://picsum.photos/seed/${post.authorId}/40`} />
+                                                    <AvatarFallback>{post.authorName?.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <span>Posted by <span className="font-medium text-foreground">{post.authorName}</span></span>
+                                                <span>•</span>
+                                                <span>{post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : '...'}</span>
+                                            </div>
+                                            <h3 className="font-bold text-lg text-primary">{post.title}</h3>
+                                            <p className="text-sm text-muted-foreground line-clamp-2 my-2">{post.content}</p>
+                                        </div>
+                                    </AccordionTrigger>
+                                    <div className="flex items-center gap-4">
+                                        <AccordionTrigger className="flex items-center gap-1.5 p-0 hover:no-underline text-muted-foreground transition-colors hover:text-primary" hideChevron>
+                                            <MessageSquare className="h-4 w-4" />
+                                            <span className="text-sm font-medium">{post.replyCount || 0}</span>
+                                        </AccordionTrigger>
+                                        <PostStat icon={Eye} count={post.viewCount} />
+                                        <PostStat icon={Heart} count={post.likeCount} onClick={(e) => handleToggleLike(e, post)}>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="flex items-center gap-1.5 text-muted-foreground p-1 h-auto -ml-1 hover:text-primary"
+                                                disabled={!user}
+                                            >
+                                                <Heart className={cn("h-4 w-4", hasLiked && "text-destructive fill-destructive")} />
+                                                <span className="text-sm font-medium">{post.likeCount || 0}</span>
+                                            </Button>
+                                        </PostStat>
+                                    </div>
                                 </div>
-                                <h3 className="font-bold text-lg text-primary">{post.title}</h3>
-                                <p className="text-sm text-muted-foreground line-clamp-2 my-2">{post.content}</p>
+                            </Card>
+                            <AccordionContent>
+                                <div className="pl-4 pr-2 pt-2 pb-4">
+                                <PostReplies postId={post.id} />
+                                </div>
+                            </AccordionContent>
+                        </AccordionItem>
+                    )})
+                    ) : (
+                    <Card className="text-center p-8">
+                        <CardTitle>No Posts Yet</CardTitle>
+                        <CardDescription>Be the first to start a conversation in the community forum!</CardDescription>
+                    </Card>
+                    )}
+                </Accordion>
+            </TabsContent>
+            <TabsContent value="my-posts" className="mt-8">
+                 {isLoading ? (
+                    <PostsSkeleton />
+                ) : myPosts.length > 0 ? (
+                    <div className="space-y-4">
+                    {myPosts.map(post => (
+                         <Card key={post.id} className="p-4">
+                            <div className="flex justify-between items-start">
+                                <div className="flex-1">
+                                    <h3 className="font-bold text-lg">{post.title}</h3>
+                                    <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{post.content}</p>
+                                    <p className="text-xs text-muted-foreground mt-2">{post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : '...'}</p>
+                                </div>
+                                <div className="flex gap-2">
+                                     <Button variant="ghost" size="icon" onClick={() => handleEditClick(post)}>
+                                        <Edit className="h-4 w-4"/>
+                                    </Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="ghost" size="icon">
+                                                <Trash2 className="h-4 w-4 text-destructive"/>
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This action cannot be undone. This will permanently delete your post.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleDeletePost(post.id)}>Delete</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </div>
                             </div>
-                        </AccordionTrigger>
-                        <div className="flex items-center gap-4">
-                             <AccordionTrigger className="flex items-center gap-1.5 p-0 hover:no-underline text-muted-foreground transition-colors hover:text-primary" hideChevron>
-                                <MessageSquare className="h-4 w-4" />
-                                <span className="text-sm font-medium">{post.replyCount || 0}</span>
-                             </AccordionTrigger>
-                            <PostStat icon={Eye} count={post.viewCount} />
-                            <PostStat icon={Heart} count={post.likeCount} onClick={(e) => handleToggleLike(e, post)}>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="flex items-center gap-1.5 text-muted-foreground p-1 h-auto -ml-1 hover:text-primary"
-                                    disabled={!user}
-                                >
-                                    <Heart className={cn("h-4 w-4", hasLiked && "text-destructive fill-destructive")} />
-                                    <span className="text-sm font-medium">{post.likeCount || 0}</span>
-                                </Button>
-                            </PostStat>
-                        </div>
+                        </Card>
+                    ))}
                     </div>
-                 </Card>
-                 <AccordionContent>
-                    <div className="pl-4 pr-2 pt-2 pb-4">
-                      <PostReplies postId={post.id} />
-                    </div>
-                 </AccordionContent>
-              </AccordionItem>
-          )})
-        ) : (
-          <Card className="text-center p-8">
-            <CardTitle>No Posts Yet</CardTitle>
-            <CardDescription>Be the first to start a conversation in the community forum!</CardDescription>
-          </Card>
-        )}
-      </Accordion>
+                ) : (
+                    <Card className="text-center p-8">
+                        <CardTitle>You haven't posted anything yet.</CardTitle>
+                        <CardDescription>Click 'New Post' to share your thoughts with the community.</CardDescription>
+                    </Card>
+                )}
+            </TabsContent>
+        </Tabs>
+      
+        <Dialog open={isEditPostDialogOpen} onOpenChange={setIsEditPostDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Your Post</DialogTitle>
+            </DialogHeader>
+            <Form {...editPostForm}>
+              <form onSubmit={editPostForm.handleSubmit(handleUpdatePost)} className="space-y-4">
+                <FormField
+                  control={editPostForm.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Title</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editPostForm.control}
+                  name="content"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Content</FormLabel>
+                      <FormControl>
+                        <Textarea {...field} className="min-h-[120px]"/>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <DialogFooter>
+                  <DialogClose asChild>
+                    <Button type="button" variant="outline">Cancel</Button>
+                  </DialogClose>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
     </div>
   );
 }
