@@ -2,11 +2,11 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -107,7 +107,8 @@ export default function BillingPage() {
     
     // Non-blocking update to Firestore
     updateDocumentNonBlocking(billRef, {
-        'details.status': 'Paid'
+        'details.status': 'Paid',
+        'details.paymentDate': new Date().toISOString().split('T')[0],
     });
     
     toast({
@@ -160,7 +161,7 @@ export default function BillingPage() {
 
     docPDF.setFontSize(11);
     docPDF.setFont('helvetica', 'bold');
-    docPDF.text("Billing Information", margin, 52);
+    docPDF.text("Bill To", margin, 52);
     docPDF.text("Invoice Details", pageWidth / 2 + 20, 52);
 
     docPDF.setFont('helvetica', 'normal');
@@ -169,14 +170,20 @@ export default function BillingPage() {
     docPDF.text(`${userProfile?.address?.city || ''}, ${userProfile?.address?.state || ''} ${userProfile?.address?.pinCode || ''}`.replace(/^, |, $/g, ''), margin, 70);
     docPDF.text(userProfile?.phoneNumber || 'N/A', margin, 76);
 
+    const rightColX = pageWidth - margin;
     docPDF.text(`Invoice Number:`, pageWidth / 2 + 20, 58);
-    docPDF.text(bill.id, pageWidth - margin, 58, { align: 'right' });
+    docPDF.text(bill.id, rightColX, 58, { align: 'right' });
     
     docPDF.text(`Date Issued:`, pageWidth / 2 + 20, 64);
-    docPDF.text(bill.details.date, pageWidth - margin, 64, { align: 'right' });
+    docPDF.text(bill.details.date, rightColX, 64, { align: 'right' });
+
+    if (bill.details.status === 'Paid' && bill.details.paymentDate) {
+        docPDF.text(`Date Paid:`, pageWidth / 2 + 20, 70);
+        docPDF.text(bill.details.paymentDate, rightColX, 70, { align: 'right' });
+    }
     
-    docPDF.text(`Doctor:`, pageWidth / 2 + 20, 70);
-    docPDF.text(doctorName, pageWidth - margin, 70, { align: 'right' });
+    docPDF.text(`Doctor:`, pageWidth / 2 + 20, 76);
+    docPDF.text(doctorName, rightColX, 76, { align: 'right' });
 
     // Bill Table
     (docPDF as any).autoTable({
