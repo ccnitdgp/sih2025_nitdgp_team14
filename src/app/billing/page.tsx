@@ -138,48 +138,48 @@ export default function BillingPage() {
         }
     }
 
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
+    const docPDF = new jsPDF();
+    const pageWidth = docPDF.internal.pageSize.getWidth();
     const margin = 14;
 
     // Header
-    doc.setFontSize(22);
-    doc.setFont('helvetica', 'bold');
-    doc.text("Medical Bill Receipt", margin, 22);
+    docPDF.setFontSize(22);
+    docPDF.setFont('helvetica', 'bold');
+    docPDF.text("Medical Bill Receipt", margin, 22);
 
     // Clinic Info
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text("Swasthya Clinic", pageWidth - margin, 22, { align: 'right' });
-    doc.text("123 Health St, Wellness City", pageWidth - margin, 28, { align: 'right' });
-    doc.text("contact@swasthya.example.com", pageWidth - margin, 34, { align: 'right' });
+    docPDF.setFontSize(10);
+    docPDF.setFont('helvetica', 'normal');
+    docPDF.text("Swasthya Clinic", pageWidth - margin, 22, { align: 'right' });
+    docPDF.text("123 Health St, Wellness City", pageWidth - margin, 28, { align: 'right' });
+    docPDF.text("contact@swasthya.example.com", pageWidth - margin, 34, { align: 'right' });
 
     // Billing & Invoice Info
-    doc.setLineWidth(0.5);
-    doc.line(margin, 45, pageWidth - margin, 45);
+    docPDF.setLineWidth(0.5);
+    docPDF.line(margin, 45, pageWidth - margin, 45);
 
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.text("Billing Information", margin, 52);
-    doc.text("Invoice Details", pageWidth / 2 + 20, 52);
+    docPDF.setFontSize(11);
+    docPDF.setFont('helvetica', 'bold');
+    docPDF.text("Billing Information", margin, 52);
+    docPDF.text("Invoice Details", pageWidth / 2 + 20, 52);
 
-    doc.setFont('helvetica', 'normal');
-    doc.text(userProfile?.firstName + ' ' + userProfile?.lastName || 'N/A', margin, 58);
-    doc.text(userProfile?.address?.fullAddress || '', margin, 64);
-    doc.text(`${userProfile?.address?.city || ''}, ${userProfile?.address?.state || ''} ${userProfile?.address?.pinCode || ''}`.replace(/^, |, $/g, ''), margin, 70);
-    doc.text(userProfile?.phoneNumber || 'N/A', margin, 76);
+    docPDF.setFont('helvetica', 'normal');
+    docPDF.text(userProfile?.firstName + ' ' + userProfile?.lastName || 'N/A', margin, 58);
+    docPDF.text(userProfile?.address?.fullAddress || '', margin, 64);
+    docPDF.text(`${userProfile?.address?.city || ''}, ${userProfile?.address?.state || ''} ${userProfile?.address?.pinCode || ''}`.replace(/^, |, $/g, ''), margin, 70);
+    docPDF.text(userProfile?.phoneNumber || 'N/A', margin, 76);
 
-    doc.text(`Invoice Number:`, pageWidth / 2 + 20, 58);
-    doc.text(bill.id, pageWidth - margin, 58, { align: 'right' });
+    docPDF.text(`Invoice Number:`, pageWidth / 2 + 20, 58);
+    docPDF.text(bill.id, pageWidth - margin, 58, { align: 'right' });
     
-    doc.text(`Date Issued:`, pageWidth / 2 + 20, 64);
-    doc.text(bill.details.date, pageWidth - margin, 64, { align: 'right' });
+    docPDF.text(`Date Issued:`, pageWidth / 2 + 20, 64);
+    docPDF.text(bill.details.date, pageWidth - margin, 64, { align: 'right' });
     
-    doc.text(`Doctor:`, pageWidth / 2 + 20, 70);
-    doc.text(doctorName, pageWidth - margin, 70, { align: 'right' });
+    docPDF.text(`Doctor:`, pageWidth / 2 + 20, 70);
+    docPDF.text(doctorName, pageWidth - margin, 70, { align: 'right' });
 
     // Bill Table
-    (doc as any).autoTable({
+    (docPDF as any).autoTable({
         startY: 85,
         head: [['Date of Service', 'Description of Service', 'Amount']],
         body: [
@@ -198,30 +198,30 @@ export default function BillingPage() {
             const tax = amount * 0.18; // Assuming 18% GST
             const total = amount + tax;
             
-            doc.setFontSize(10);
-            doc.text("Subtotal:", pageWidth - margin - 30, finalY + 10, { align: 'right' });
-            doc.text(`Rs. ${amount.toLocaleString('en-IN')}`, pageWidth - margin, finalY + 10, { align: 'right' });
+            docPDF.setFontSize(10);
+            docPDF.text("Subtotal:", pageWidth - margin - 30, finalY + 10, { align: 'right' });
+            docPDF.text(`Rs. ${amount.toLocaleString('en-IN')}`, pageWidth - margin, finalY + 10, { align: 'right' });
             
-            doc.text("GST (18%):", pageWidth - margin - 30, finalY + 15, { align: 'right' });
-            doc.text(`Rs. ${tax.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, pageWidth - margin, finalY + 15, { align: 'right' });
+            docPDF.text("GST (18%):", pageWidth - margin - 30, finalY + 15, { align: 'right' });
+            docPDF.text(`Rs. ${tax.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, pageWidth - margin, finalY + 15, { align: 'right' });
             
-            doc.setFont('helvetica', 'bold');
-            doc.text("Grand Total:", pageWidth - margin - 30, finalY + 22, { align: 'right' });
-            doc.text(`Rs. ${total.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, pageWidth - margin, finalY + 22, { align: 'right' });
+            docPDF.setFont('helvetica', 'bold');
+            docPDF.text("Grand Total:", pageWidth - margin - 30, finalY + 22, { align: 'right' });
+            docPDF.text(`Rs. ${total.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, pageWidth - margin, finalY + 22, { align: 'right' });
 
             // Payment Information
-            doc.setFont('helvetica', 'bold');
-            doc.text("Payment Information", margin, finalY + 35);
-            doc.setFont('helvetica', 'normal');
-            doc.text(`Payment Status: ${bill.details.status}`, margin, finalY + 41);
+            docPDF.setFont('helvetica', 'bold');
+            docPDF.text("Payment Information", margin, finalY + 35);
+            docPDF.setFont('helvetica', 'normal');
+            docPDF.text(`Payment Status: ${bill.details.status}`, margin, finalY + 41);
 
             // Footer
-            doc.setFontSize(8);
-            doc.text("Thank you for choosing Swasthya Clinic. For any billing questions, please contact support.", margin, doc.internal.pageSize.getHeight() - 10);
+            docPDF.setFontSize(8);
+            docPDF.text("Thank you for choosing Swasthya Clinic. For any billing questions, please contact support.", margin, docPDF.internal.pageSize.getHeight() - 10);
         }
     });
 
-    doc.save(`invoice-${bill.id}.pdf`);
+    docPDF.save(`invoice-${bill.id}.pdf`);
   };
 
 
