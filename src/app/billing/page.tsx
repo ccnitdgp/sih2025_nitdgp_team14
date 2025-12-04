@@ -161,7 +161,6 @@ export default function BillingPage() {
 
     docPDF.setFontSize(11);
     docPDF.setFont('helvetica', 'bold');
-    docPDF.text("Bill To", margin, 52);
     docPDF.text("Invoice Details", pageWidth / 2 + 20, 52);
 
     docPDF.setFont('helvetica', 'normal');
@@ -171,7 +170,6 @@ export default function BillingPage() {
     docPDF.text(userProfile?.phoneNumber || 'N/A', margin, 76);
 
     const rightColX = pageWidth - margin;
-    docPDF.text(`Invoice Number:`, pageWidth / 2 + 20, 58);
     docPDF.text(bill.id, rightColX, 58, { align: 'right' });
     
     docPDF.text(`Date Issued:`, pageWidth / 2 + 20, 64);
