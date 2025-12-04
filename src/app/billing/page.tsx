@@ -20,10 +20,12 @@ import te from '@/lib/locales/te.json';
 import mr from '@/lib/locales/mr.json';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { dummyPdfContent } from '@/lib/dummy-pdf';
 import Link from 'next/link';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+
 
 const languageFiles = { hi, bn, ta, te, mr };
 
@@ -120,12 +122,54 @@ export default function BillingPage() {
   };
 
   const handleDownloadInvoice = (bill: any) => {
-    const link = document.createElement('a');
-    link.href = dummyPdfContent;
-    link.download = `invoice-${bill.id}-${bill.details.title.replace(/\s+/g, '-')}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const doc = new jsPDF();
+
+    // Header
+    doc.setFontSize(20);
+    doc.text("Swasthya Clinic", 14, 22);
+    doc.setFontSize(12);
+    doc.text("Healthcare Invoice", 14, 30);
+
+    // Patient Info
+    doc.setFontSize(12);
+    doc.text("Bill To:", 14, 45);
+    doc.text(userProfile?.firstName + ' ' + userProfile?.lastName || 'N/A', 14, 52);
+    doc.text(`Patient ID: ${userProfile?.patientId || 'N/A'}`, 14, 59);
+
+    // Bill Info
+    doc.text(`Invoice #: ${bill.id}`, 140, 45);
+    doc.text(`Invoice Date: ${bill.details.date}`, 140, 52);
+    doc.text(`Status: ${bill.details.status}`, 140, 59);
+
+    // Bill Table
+    (doc as any).autoTable({
+        startY: 70,
+        head: [['Description', 'Category', 'Amount']],
+        body: [
+            [
+                bill.details.title,
+                bill.details.category,
+                `${t('currency_symbol', 'Rs.')} ${bill.details.amount.toLocaleString('en-IN')}`
+            ]
+        ],
+        theme: 'striped',
+        headStyles: { fillColor: [93, 114, 110] }
+    });
+    
+    let finalY = (doc as any).lastAutoTable.finalY;
+
+    // Total
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text("Total:", 140, finalY + 10);
+    doc.text(`${t('currency_symbol', 'Rs.')} ${bill.details.amount.toLocaleString('en-IN')}`, 170, finalY + 10);
+    
+    // Footer
+    doc.setFontSize(10);
+    doc.text("Thank you for your payment.", 14, finalY + 30);
+
+
+    doc.save(`invoice-${bill.id}.pdf`);
   };
 
 
@@ -326,4 +370,3 @@ export default function BillingPage() {
     </div>
   );
 }
-
