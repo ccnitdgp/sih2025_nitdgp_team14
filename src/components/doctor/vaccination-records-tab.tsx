@@ -14,9 +14,11 @@ import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
 
 export function VaccinationRecordsTab({ patientId }: { patientId: string }) {
   const firestore = useFirestore();
+  const { toast } = useToast();
 
   const healthRecordsQuery = useMemoFirebase(() => {
     if (!patientId || !firestore) return null;
@@ -28,9 +30,39 @@ export function VaccinationRecordsTab({ patientId }: { patientId: string }) {
   
   const { data: vaccinationRecords, isLoading } = useCollection(healthRecordsQuery);
 
-  const handleDownload = (record: any) => {
-    if (record.details?.downloadUrl) {
-      window.open(record.details.downloadUrl, '_blank');
+  const handleDownload = async (record: any) => {
+    if (!record.details?.downloadUrl || !record.details?.fileName) {
+        toast({
+            variant: "destructive",
+            title: "Download failed",
+            description: "The file URL is missing or invalid.",
+        });
+        return;
+    }
+    
+    try {
+        const response = await fetch(record.details.downloadUrl);
+        if (!response.ok) throw new Error('Network response was not ok.');
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', record.details.fileName);
+        document.body.appendChild(link);
+        link.click();
+        
+        // Clean up
+        link.parentNode?.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+        console.error("Download error:", error);
+        toast({
+            variant: "destructive",
+            title: "Download failed",
+            description: "Could not download the file. Please try again.",
+        });
     }
   };
   
