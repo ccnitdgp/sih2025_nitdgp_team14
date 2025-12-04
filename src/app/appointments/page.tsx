@@ -329,6 +329,8 @@ const FindDoctors = ({ t, userProfile, isUserProfileLoading }) => {
     ? getAvailableTimesForDate(selectedDoctor, selectedDate)
     : [];
 
+    const isBookingDisabled = !selectedDate || !selectedTime || isUserProfileLoading || !userProfile?.patientId;
+
     return (
         <>
         <div className="space-y-8">
@@ -499,9 +501,9 @@ const FindDoctors = ({ t, userProfile, isUserProfileLoading }) => {
             </div>
             <DialogFooter className="sm:justify-between">
                 <Button variant="outline" onClick={handleCloseDialog}>{t('cancel_button', 'Cancel')}</Button>
-                <Button onClick={handleBookAppointment} disabled={!selectedDate || !selectedTime || isUserProfileLoading || !userProfile?.patientId}>
+                <Button onClick={handleBookAppointment} disabled={isBookingDisabled}>
                     {isUserProfileLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
-                    {t('confirm_booking_button', 'Confirm Booking')}
+                    {isUserProfileLoading ? 'Loading Profile...' : t('confirm_booking_button', 'Confirm Booking')}
                 </Button>
             </DialogFooter>
             </DialogContent>
