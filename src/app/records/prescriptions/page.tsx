@@ -8,21 +8,55 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { BookUser, FileDown } from 'lucide-react';
+import { BookUser, FileDown, CalendarClock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, doc, query, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import hi from '@/lib/locales/hi.json';
 import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
 import te from '@/lib/locales/te.json';
 import mr from '@/lib/locales/mr.json';
 import { dummyPdfContent } from '@/lib/dummy-pdf';
+import { isPast, parseISO } from 'date-fns';
+import Link from 'next/link';
 
 const languageFiles = { hi, bn, ta, te, mr };
+
+const PrescriptionCard = ({ item, t }) => {
+    const handleDownload = (prescription: any) => {
+        const link = document.createElement('a');
+        link.href = dummyPdfContent;
+        link.download = `prescription-${prescription.medication.replace(/\s+/g, '-')}-${prescription.date}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    return (
+        <Card className="p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+            <div className="flex-1">
+                <div className="flex items-center gap-4">
+                    <h3 className="font-semibold text-lg">{item.medication}</h3>
+                    <Badge variant={item.status === 'Active' ? 'default' : 'secondary'}>{t(item.status.toLowerCase() + '_status', item.status)}</Badge>
+                </div>
+                <p className="text-sm text-muted-foreground mt-1">
+                    {item.dosage} - {t('prescribed_by_text', 'Prescribed by')} {item.doctorName} {t('on_date_text', 'on')} {item.date}
+                </p>
+            </div>
+            <div className="flex items-center gap-2">
+                 {item.status !== 'Active' && <Button asChild size="sm"><Link href="/appointments">Book Again</Link></Button>}
+                 <Button variant="outline" size="sm" onClick={() => handleDownload(item)}>
+                    <FileDown className="mr-2 h-4 w-4"/>
+                    {t('download_button', 'Download')}
+                </Button>
+            </div>
+        </Card>
+    );
+};
 
 export default function PrescriptionsPage() {
   const { user } = useUser();
@@ -55,15 +89,31 @@ export default function PrescriptionsPage() {
   }, [user, firestore]);
   
   const { data: prescriptions, isLoading } = useCollection(prescriptionsQuery);
+  
+  const { currentPrescriptions, pastPrescriptions } = useMemo(() => {
+    if (!prescriptions) {
+        return { currentPrescriptions: [], pastPrescriptions: [] };
+    }
 
-  const handleDownload = (prescription: any) => {
-    const link = document.createElement('a');
-    link.href = dummyPdfContent;
-    link.download = `prescription-${prescription.medication.replace(/\s+/g, '-')}-${prescription.date}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+    const current: any[] = [];
+    const past: any[] = [];
+    const today = new Date();
+
+    prescriptions.forEach(p => {
+        const hasEnded = p.endDate && isPast(parseISO(p.endDate));
+        if (p.status === 'Active' && !hasEnded) {
+            current.push(p);
+        } else {
+            past.push(p);
+        }
+    });
+
+    return { 
+        currentPrescriptions: current.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+        pastPrescriptions: past.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    };
+  }, [prescriptions]);
+
 
   const SkeletonLoader = () => (
     <div className="space-y-4">
@@ -83,40 +133,47 @@ export default function PrescriptionsPage() {
   );
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center gap-3">
-        <BookUser className="h-6 w-6" />
-        <CardTitle className="text-2xl">{t('prescriptions_page_title', 'Prescriptions')}</CardTitle>
-        </div>
-        <CardDescription>
-        {t('prescriptions_page_desc', 'Your prescribed medications and their details.')}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {isLoading ? <SkeletonLoader /> : prescriptions && prescriptions.length > 0 ? (
-          prescriptions
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-            .map((item) => (
-            <Card key={item.id} className="p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                <div className="flex-1">
-                    <div className="flex items-center gap-4">
-                        <h3 className="font-semibold text-lg">{item.medication}</h3>
-                        <Badge variant={item.status === 'Active' ? 'default' : 'secondary'}>{t(item.status.toLowerCase() + '_status', item.status)}</Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        {item.dosage} - {t('prescribed_by_text', 'Prescribed by')} {item.doctorName} {t('on_date_text', 'on')} {item.date}
-                    </p>
+    <div className="space-y-8">
+        <Card>
+            <CardHeader>
+                <div className="flex items-center gap-3">
+                <BookUser className="h-6 w-6" />
+                <CardTitle className="text-2xl">{t('prescriptions_page_title', 'Prescriptions')}</CardTitle>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => handleDownload(item)}>
-                    <FileDown className="mr-2 h-4 w-4"/>
-                    {t('download_button', 'Download')}
-                </Button>
-            </Card>
-        ))) : (
-          !isLoading && <p className="text-muted-foreground text-center py-4">{t('no_prescriptions_text', 'No prescriptions recorded yet.')}</p>
-        )}
-      </CardContent>
-    </Card>
+                <CardDescription>
+                {t('prescriptions_page_desc', 'Your prescribed medications and their details.')}
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <h3 className="text-lg font-semibold mb-4">Current Prescriptions</h3>
+                <div className="space-y-4">
+                    {isLoading ? <SkeletonLoader /> : currentPrescriptions.length > 0 ? (
+                        currentPrescriptions.map(item => <PrescriptionCard key={item.id} item={item} t={t} />)
+                    ) : (
+                        <p className="text-muted-foreground text-center py-4">No active prescriptions.</p>
+                    )}
+                </div>
+            </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader>
+                <div className="flex items-center gap-3">
+                    <CalendarClock className="h-6 w-6" />
+                    <CardTitle className="text-2xl">Past Prescriptions</CardTitle>
+                </div>
+                <CardDescription>
+                    A history of your completed or expired prescriptions.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                 {isLoading ? <SkeletonLoader /> : pastPrescriptions.length > 0 ? (
+                        pastPrescriptions.map(item => <PrescriptionCard key={item.id} item={item} t={t} />)
+                    ) : (
+                        <p className="text-muted-foreground text-center py-4">No past prescriptions found.</p>
+                    )}
+            </CardContent>
+        </Card>
+    </div>
   );
 }
