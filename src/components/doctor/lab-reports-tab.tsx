@@ -11,23 +11,58 @@ import {
 import { FlaskConical, PlusCircle, FileDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
 
 export function LabReportsTab({ patientId }: { patientId: string }) {
   const firestore = useFirestore();
+  const { toast } = useToast();
 
-  const labReportsRef = useMemoFirebase(() => {
+  const healthRecordsQuery = useMemoFirebase(() => {
     if (!patientId || !firestore) return null;
-    return collection(firestore, `users/${patientId}/healthRecords`);
+    return query(
+      collection(firestore, `users/${patientId}/healthRecords`),
+      where('recordType', 'in', ['labReport', 'scanReport'])
+    );
   }, [patientId, firestore]);
   
-  const { data: labReports, isLoading } = useCollection(labReportsRef);
+  const { data: healthRecords, isLoading } = useCollection(healthRecordsQuery);
 
-  const handleDownload = (report: any) => {
-    if (report.details?.downloadUrl) {
-      window.open(report.details.downloadUrl, '_blank');
+  const handleDownload = async (report: any) => {
+    if (!report.details?.downloadUrl || !report.details?.fileName) {
+        toast({
+            variant: "destructive",
+            title: "Download failed",
+            description: "The file URL is missing or invalid.",
+        });
+        return;
+    }
+    
+    try {
+        const response = await fetch(report.details.downloadUrl);
+        if (!response.ok) throw new Error('Network response was not ok.');
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', report.details.fileName);
+        document.body.appendChild(link);
+        link.click();
+        
+        // Clean up
+        link.parentNode?.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+        console.error("Download error:", error);
+        toast({
+            variant: "destructive",
+            title: "Download failed",
+            description: "Could not download the file. Please try again.",
+        });
     }
   };
 
@@ -51,10 +86,10 @@ export function LabReportsTab({ patientId }: { patientId: string }) {
          <div>
             <div className="flex items-center gap-3">
             <FlaskConical className="h-6 w-6" />
-            <CardTitle className="text-2xl">Lab Reports</CardTitle>
+            <CardTitle className="text-2xl">Lab & Scan Reports</CardTitle>
             </div>
             <CardDescription>
-                View and manage patient's diagnostic lab reports.
+                View and manage patient's diagnostic lab and scan reports.
             </CardDescription>
         </div>
         <Button asChild>
@@ -65,9 +100,8 @@ export function LabReportsTab({ patientId }: { patientId: string }) {
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
-        {isLoading ? <SkeletonLoader /> : labReports && labReports.length > 0 ? (
-            labReports
-              .filter(report => report.recordType === 'labReport' || report.recordType === 'scanReport')
+        {isLoading ? <SkeletonLoader /> : healthRecords && healthRecords.length > 0 ? (
+            healthRecords
               .map((report) => (
               <Card key={report.id} className="p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                   <div className="flex-1">
@@ -83,7 +117,7 @@ export function LabReportsTab({ patientId }: { patientId: string }) {
               </Card>
             ))
         ) : (
-          !isLoading && <p className="text-muted-foreground text-center py-4">No lab reports uploaded for this patient yet.</p>
+          !isLoading && <p className="text-muted-foreground text-center py-4">No lab or scan reports uploaded for this patient yet.</p>
         )}
       </CardContent>
     </Card>

@@ -19,6 +19,7 @@ import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
 import te from '@/lib/locales/te.json';
 import mr from '@/lib/locales/mr.json';
+import { useToast } from '@/hooks/use-toast';
 
 const languageFiles = { hi, bn, ta, te, mr };
 
@@ -45,6 +46,7 @@ const ReportCard = ({ report, icon, onDownload, t }) => (
 export default function LabReportsPage() {
   const { user } = useUser();
   const firestore = useFirestore();
+  const { toast } = useToast();
   const [translations, setTranslations] = useState({});
 
   const userDocRef = useMemoFirebase(() => {
@@ -77,9 +79,39 @@ export default function LabReportsPage() {
   const labReports = useMemo(() => healthRecords?.filter(r => r.recordType === 'labReport') || [], [healthRecords]);
   const scanReports = useMemo(() => healthRecords?.filter(r => r.recordType === 'scanReport') || [], [healthRecords]);
 
-  const handleDownload = (report: any) => {
-    if (report.details?.downloadUrl) {
-      window.open(report.details.downloadUrl, '_blank');
+  const handleDownload = async (report: any) => {
+    if (!report.details?.downloadUrl || !report.details?.fileName) {
+        toast({
+            variant: "destructive",
+            title: "Download failed",
+            description: "The file URL is missing or invalid.",
+        });
+        return;
+    }
+    
+    try {
+        const response = await fetch(report.details.downloadUrl);
+        if (!response.ok) throw new Error('Network response was not ok.');
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', report.details.fileName);
+        document.body.appendChild(link);
+        link.click();
+        
+        // Clean up
+        link.parentNode?.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+        console.error("Download error:", error);
+        toast({
+            variant: "destructive",
+            title: "Download failed",
+            description: "Could not download the file. Please try again.",
+        });
     }
   };
 
