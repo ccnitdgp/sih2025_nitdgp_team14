@@ -79,8 +79,8 @@ export default function LabReportsPage() {
   const labReports = useMemo(() => healthRecords?.filter(r => r.recordType === 'labReport') || [], [healthRecords]);
   const scanReports = useMemo(() => healthRecords?.filter(r => r.recordType === 'scanReport') || [], [healthRecords]);
 
-  const handleDownload = async (report: any) => {
-    if (!report.details?.downloadUrl || !report.details?.fileName) {
+  const handleDownload = (report: any) => {
+    if (!report.details?.downloadUrl) {
         toast({
             variant: "destructive",
             title: "Download failed",
@@ -88,31 +88,7 @@ export default function LabReportsPage() {
         });
         return;
     }
-    
-    try {
-        const response = await fetch(report.details.downloadUrl);
-        if (!response.ok) throw new Error('Network response was not ok.');
-        
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', report.details.fileName);
-        document.body.appendChild(link);
-        link.click();
-        
-        // Clean up
-        link.parentNode?.removeChild(link);
-        window.URL.revokeObjectURL(url);
-
-    } catch (error) {
-        console.error("Download error:", error);
-        toast({
-            variant: "destructive",
-            title: "Download failed",
-            description: "Could not download the file. Please try again.",
-        });
-    }
+    window.open(report.details.downloadUrl, '_blank');
   };
 
   const SkeletonLoader = () => (

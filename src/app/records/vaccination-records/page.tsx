@@ -56,8 +56,8 @@ export default function VaccinationRecordsPage() {
   
   const { data: vaccinationRecords, isLoading } = useCollection(healthRecordsQuery);
 
-  const handleDownload = async (record: any) => {
-    if (!record.details?.downloadUrl || !record.details?.fileName) {
+  const handleDownload = (record: any) => {
+    if (!record.details?.downloadUrl) {
         toast({
             variant: "destructive",
             title: "Download failed",
@@ -65,31 +65,7 @@ export default function VaccinationRecordsPage() {
         });
         return;
     }
-    
-    try {
-        const response = await fetch(record.details.downloadUrl);
-        if (!response.ok) throw new Error('Network response was not ok.');
-        
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', record.details.fileName);
-        document.body.appendChild(link);
-        link.click();
-        
-        // Clean up
-        link.parentNode?.removeChild(link);
-        window.URL.revokeObjectURL(url);
-
-    } catch (error) {
-        console.error("Download error:", error);
-        toast({
-            variant: "destructive",
-            title: "Download failed",
-            description: "Could not download the file. Please try again.",
-        });
-    }
+    window.open(record.details.downloadUrl, '_blank');
   };
   
   const SkeletonLoader = () => (
