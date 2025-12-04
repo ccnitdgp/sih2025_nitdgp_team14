@@ -176,7 +176,7 @@ const parseAvailableDays = (daysString?: string): number[] => {
 }
 
 
-const FindDoctors = ({ t, userProfile }) => {
+const FindDoctors = ({ t, userProfile, isUserProfileLoading }) => {
   const [symptoms, setSymptoms] = useState('');
   const [suggestion, setSuggestion] = useState<SymptomCheckerOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -499,7 +499,10 @@ const FindDoctors = ({ t, userProfile }) => {
             </div>
             <DialogFooter className="sm:justify-between">
                 <Button variant="outline" onClick={handleCloseDialog}>{t('cancel_button', 'Cancel')}</Button>
-                <Button onClick={handleBookAppointment} disabled={!selectedDate || !selectedTime}>{t('confirm_booking_button', 'Confirm Booking')}</Button>
+                <Button onClick={handleBookAppointment} disabled={!selectedDate || !selectedTime || isUserProfileLoading || !userProfile?.patientId}>
+                    {isUserProfileLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
+                    {t('confirm_booking_button', 'Confirm Booking')}
+                </Button>
             </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -822,7 +825,7 @@ export default function AppointmentsPage() {
     return doc(firestore, 'users', user.uid);
   }, [user, firestore]);
 
-  const { data: userProfile } = useDoc(userDocRef);
+  const { data: userProfile, isLoading: isUserProfileLoading } = useDoc(userDocRef);
 
   useEffect(() => {
     if (userProfile?.preferredLanguage && languageFiles[userProfile.preferredLanguage]) {
@@ -859,7 +862,7 @@ export default function AppointmentsPage() {
                 </TabsTrigger>
             </TabsList>
             <TabsContent value="find-doctors" className="mt-8">
-                <FindDoctors t={t} userProfile={userProfile}/>
+                <FindDoctors t={t} userProfile={userProfile} isUserProfileLoading={isUserProfileLoading}/>
             </TabsContent>
             <TabsContent value="my-appointments" className="mt-8">
                 <MyAppointments t={t}/>
