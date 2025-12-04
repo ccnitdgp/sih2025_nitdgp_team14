@@ -175,8 +175,8 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
       emergencyContactPhone: "",
       emergencyContactRelation: "",
       doctorId: HARDCODED_DOCTOR_ID,
-      height: undefined,
-      weight: undefined,
+      height: '' as any,
+      weight: '' as any,
     },
   });
 
