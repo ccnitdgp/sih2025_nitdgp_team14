@@ -1,3 +1,4 @@
+
 'use client';
     
 import { useState, useEffect } from 'react';
@@ -24,6 +25,10 @@ export interface UseDocResult<T> {
   error: FirestoreError | Error | null; // Error object, or null.
 }
 
+interface UseDocOptions<T> {
+  initialData?: WithId<T> | null;
+}
+
 /**
  * React hook to subscribe to a single Firestore document in real-time.
  * Handles nullable references.
@@ -40,11 +45,13 @@ export interface UseDocResult<T> {
  */
 export function useDoc<T = any>(
   memoizedDocRef: DocumentReference<DocumentData> | null | undefined,
+  options: UseDocOptions<T> = {}
 ): UseDocResult<T> {
   type StateDataType = WithId<T> | null;
+  const { initialData = null } = options;
 
-  const [data, setData] = useState<StateDataType>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [data, setData] = useState<StateDataType>(initialData);
+  const [isLoading, setIsLoading] = useState<boolean>(!initialData);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
   useEffect(() => {

@@ -176,7 +176,7 @@ const parseAvailableDays = (daysString?: string): number[] => {
 }
 
 
-const FindDoctors = ({ t, userProfile, isUserProfileLoading }) => {
+const FindDoctors = ({ t, userProfile: initialUserProfile, isUserProfileLoading: initialIsLoading }) => {
   const [symptoms, setSymptoms] = useState('');
   const [suggestion, setSuggestion] = useState<SymptomCheckerOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -187,6 +187,14 @@ const FindDoctors = ({ t, userProfile, isUserProfileLoading }) => {
   const { toast } = useToast();
   const { user } = useUser();
   const firestore = useFirestore();
+
+  const userDocRef = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [user, firestore]);
+  const { data: userProfile, isLoading: isUserProfileLoading } = useDoc(userDocRef, {
+    initialData: initialUserProfile,
+  });
 
   const doctorsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
