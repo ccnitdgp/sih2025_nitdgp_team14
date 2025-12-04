@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Activity, Pill, Stethoscope, FileDown, CreditCard, DollarSign, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUser, useDoc, useFirestore, useMemoFirebase, useCollection, updateDocumentNonBlocking } from '@/firebase';
-import { doc, collection, query, where } from 'firebase/firestore';
+import { doc, collection, query, where, getDoc } from 'firebase/firestore';
 import hi from '@/lib/locales/hi.json';
 import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
@@ -121,53 +121,105 @@ export default function BillingPage() {
     setActiveTab('paid');
   };
 
-  const handleDownloadInvoice = (bill: any) => {
+  const handleDownloadInvoice = async (bill: any) => {
+    if (!firestore || !userProfile) return;
+
+    let doctorName = "N/A";
+    if (bill.addedBy) {
+        try {
+            const doctorRef = doc(firestore, 'doctors', bill.addedBy);
+            const doctorSnap = await getDoc(doctorRef);
+            if (doctorSnap.exists()) {
+                const doctorData = doctorSnap.data();
+                doctorName = `Dr. ${doctorData.firstName} ${doctorData.lastName}`;
+            }
+        } catch (error) {
+            console.error("Error fetching doctor details:", error);
+        }
+    }
+
     const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 14;
 
     // Header
-    doc.setFontSize(20);
-    doc.text("Swasthya Clinic", 14, 22);
-    doc.setFontSize(12);
-    doc.text("Healthcare Invoice", 14, 30);
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.text("Medical Bill Receipt", margin, 22);
 
-    // Patient Info
-    doc.setFontSize(12);
-    doc.text("Bill To:", 14, 45);
-    doc.text(userProfile?.firstName + ' ' + userProfile?.lastName || 'N/A', 14, 52);
-    doc.text(`Patient ID: ${userProfile?.patientId || 'N/A'}`, 14, 59);
+    // Clinic Info
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text("Swasthya Clinic", pageWidth - margin, 22, { align: 'right' });
+    doc.text("123 Health St, Wellness City", pageWidth - margin, 28, { align: 'right' });
+    doc.text("contact@swasthya.example.com", pageWidth - margin, 34, { align: 'right' });
 
-    // Bill Info
-    doc.text(`Invoice #: ${bill.id}`, 140, 45);
-    doc.text(`Invoice Date: ${bill.details.date}`, 140, 52);
-    doc.text(`Status: ${bill.details.status}`, 140, 59);
+    // Billing & Invoice Info
+    doc.setLineWidth(0.5);
+    doc.line(margin, 45, pageWidth - margin, 45);
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text("Billing Information", margin, 52);
+    doc.text("Invoice Details", pageWidth / 2 + 20, 52);
+
+    doc.setFont('helvetica', 'normal');
+    doc.text(userProfile?.firstName + ' ' + userProfile?.lastName || 'N/A', margin, 58);
+    doc.text(userProfile?.address?.fullAddress || '', margin, 64);
+    doc.text(`${userProfile?.address?.city || ''}, ${userProfile?.address?.state || ''} ${userProfile?.address?.pinCode || ''}`.replace(/^, |, $/g, ''), margin, 70);
+    doc.text(userProfile?.phoneNumber || 'N/A', margin, 76);
+
+    doc.text(`Invoice Number:`, pageWidth / 2 + 20, 58);
+    doc.text(bill.id, pageWidth - margin, 58, { align: 'right' });
+    
+    doc.text(`Date Issued:`, pageWidth / 2 + 20, 64);
+    doc.text(bill.details.date, pageWidth - margin, 64, { align: 'right' });
+    
+    doc.text(`Doctor:`, pageWidth / 2 + 20, 70);
+    doc.text(doctorName, pageWidth - margin, 70, { align: 'right' });
 
     // Bill Table
     (doc as any).autoTable({
-        startY: 70,
-        head: [['Description', 'Category', 'Amount']],
+        startY: 85,
+        head: [['Date of Service', 'Description of Service', 'Amount']],
         body: [
             [
+                bill.details.date,
                 bill.details.title,
-                bill.details.category,
                 `${t('currency_symbol', 'Rs.')} ${bill.details.amount.toLocaleString('en-IN')}`
             ]
         ],
         theme: 'striped',
-        headStyles: { fillColor: [93, 114, 110] }
+        headStyles: { fillColor: [93, 114, 110] },
+        didDrawPage: (data) => {
+            // Summary
+            const finalY = data.cursor.y;
+            const amount = bill.details.amount;
+            const tax = amount * 0.18; // Assuming 18% GST
+            const total = amount + tax;
+            
+            doc.setFontSize(10);
+            doc.text("Subtotal:", pageWidth - margin - 30, finalY + 10, { align: 'right' });
+            doc.text(`Rs. ${amount.toLocaleString('en-IN')}`, pageWidth - margin, finalY + 10, { align: 'right' });
+            
+            doc.text("GST (18%):", pageWidth - margin - 30, finalY + 15, { align: 'right' });
+            doc.text(`Rs. ${tax.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, pageWidth - margin, finalY + 15, { align: 'right' });
+            
+            doc.setFont('helvetica', 'bold');
+            doc.text("Grand Total:", pageWidth - margin - 30, finalY + 22, { align: 'right' });
+            doc.text(`Rs. ${total.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, pageWidth - margin, finalY + 22, { align: 'right' });
+
+            // Payment Information
+            doc.setFont('helvetica', 'bold');
+            doc.text("Payment Information", margin, finalY + 35);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Payment Status: ${bill.details.status}`, margin, finalY + 41);
+
+            // Footer
+            doc.setFontSize(8);
+            doc.text("Thank you for choosing Swasthya Clinic. For any billing questions, please contact support.", margin, doc.internal.pageSize.getHeight() - 10);
+        }
     });
-    
-    let finalY = (doc as any).lastAutoTable.finalY;
-
-    // Total
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text("Total:", 140, finalY + 10);
-    doc.text(`${t('currency_symbol', 'Rs.')} ${bill.details.amount.toLocaleString('en-IN')}`, 170, finalY + 10);
-    
-    // Footer
-    doc.setFontSize(10);
-    doc.text("Thank you for your payment.", 14, finalY + 30);
-
 
     doc.save(`invoice-${bill.id}.pdf`);
   };
