@@ -160,17 +160,27 @@ export default function BillingPage() {
     docPDF.line(margin, 45, pageWidth - margin, 45);
 
     docPDF.setFontSize(11);
+    
+    const patientName = `${userProfile?.firstName || ''} ${userProfile?.lastName || ''}`.trim() || 'N/A';
+    const patientAddress = `${userProfile?.address?.fullAddress || ''}, ${userProfile?.address?.city || ''}, ${userProfile?.address?.state || ''} ${userProfile?.address?.pinCode || ''}`.replace(/, , /g, ', ').replace(/^, |, $|,$/g, '');
+
+    docPDF.setFont('helvetica', 'bold');
+    docPDF.text("Name:", margin, 58);
+    docPDF.setFont('helvetica', 'normal');
+    docPDF.text(patientName, margin + 20, 58);
+
+    docPDF.setFont('helvetica', 'bold');
+    docPDF.text("Address:", margin, 64);
+    docPDF.setFont('helvetica', 'normal');
+    docPDF.text(patientAddress, margin + 20, 64);
+
     docPDF.setFont('helvetica', 'bold');
     docPDF.text("Invoice Details", pageWidth / 2 + 20, 52);
 
     docPDF.setFont('helvetica', 'normal');
-    docPDF.text(userProfile?.firstName + ' ' + userProfile?.lastName || 'N/A', margin, 58);
-    docPDF.text(userProfile?.address?.fullAddress || '', margin, 64);
-    docPDF.text(`${userProfile?.address?.city || ''}, ${userProfile?.address?.state || ''} ${userProfile?.address?.pinCode || ''}`.replace(/^, |, $/g, ''), margin, 70);
-    docPDF.text(userProfile?.phoneNumber || 'N/A', margin, 76);
-
+    
     const rightColX = pageWidth - margin;
-    docPDF.text(bill.id, rightColX, 58, { align: 'right' });
+    docPDF.text(`Invoice Number: ${bill.id}`, rightColX, 58, { align: 'right' });
     
     docPDF.text(`Date Issued:`, pageWidth / 2 + 20, 64);
     docPDF.text(bill.details.date, rightColX, 64, { align: 'right' });
