@@ -9,13 +9,13 @@ import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, updateDo
 import { collection, query, orderBy, serverTimestamp, doc, addDoc, arrayUnion, increment, arrayRemove } from 'firebase/firestore';
 import { formatDistanceToNow } from 'date-fns';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Skeleton } from '@/components/ui/skeleton';
 import { MessageSquare, PlusCircle, Heart, Eye, Edit, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -130,22 +130,26 @@ export default function ForumPage() {
 
     setIsSubmitting(true);
     
+    const docRef = collection(firestore, 'forumPosts');
+    const newPostData = {
+        title: values.title,
+        content: values.content,
+        authorId: user.uid,
+        authorName: `${userProfile.firstName} ${userProfile.lastName}`,
+        createdAt: serverTimestamp(),
+        replyCount: 0,
+        likeCount: 0,
+        viewCount: 0,
+        likedBy: [],
+    };
+    
     try {
-        const docRef = collection(firestore, 'forumPosts');
-        const newPostRef = await addDoc(docRef, {
-            title: values.title,
-            content: values.content,
-            authorId: user.uid,
-            authorName: `${userProfile.firstName} ${userProfile.lastName}`,
-            createdAt: serverTimestamp(),
-            replyCount: 0,
-            likeCount: 0,
-            viewCount: 0,
-            likedBy: [],
-        });
+        const newPostDocRef = await addDocumentNonBlocking(docRef, newPostData);
+        // After getting the ref, update it with its own ID.
+        if (newPostDocRef) {
+             updateDocumentNonBlocking(newPostDocRef, { id: newPostDocRef.id });
+        }
 
-        await updateDocumentNonBlocking(doc(docRef, newPostRef.id), { id: newPostRef.id });
-        
         toast({ title: 'Post Created', description: 'Your post has been added to the forum.' });
         newPostForm.reset();
         setIsNewPostDialogOpen(false);
@@ -276,10 +280,10 @@ export default function ForumPage() {
                     posts.map((post) => {
                         const hasLiked = user && post.likedBy?.includes(user.uid);
                         return (
-                        <AccordionItem value={post.id} key={post.id} className="border-none">
-                            <Card className="hover:bg-muted/50 transition-colors p-4">
-                                <div className="flex flex-col gap-3">
-                                    <AccordionTrigger className="w-full text-left p-0 hover:no-underline" hideChevron>
+                        <AccordionItem value={post.id} key={post.id} className="border-b-0">
+                             <Card className="hover:bg-muted/50 transition-colors">
+                                <CardHeader>
+                                    <AccordionTrigger className="w-full text-left p-0 hover:no-underline">
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                                                 <Avatar className="h-6 w-6">
@@ -291,14 +295,14 @@ export default function ForumPage() {
                                                 <span>{post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : '...'}</span>
                                             </div>
                                             <h3 className="font-bold text-lg text-primary">{post.title}</h3>
-                                            <p className="text-sm text-muted-foreground line-clamp-2 my-2">{post.content}</p>
                                         </div>
                                     </AccordionTrigger>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-sm text-muted-foreground whitespace-pre-wrap my-2">{post.content}</p>
+                                </CardContent>
+                                <CardFooter className="flex justify-between items-center">
                                     <div className="flex items-center gap-4">
-                                        <AccordionTrigger className="flex items-center gap-1.5 p-0 hover:no-underline text-muted-foreground transition-colors hover:text-primary" hideChevron>
-                                            <MessageSquare className="h-4 w-4" />
-                                            <span className="text-sm font-medium">{post.replyCount || 0}</span>
-                                        </AccordionTrigger>
                                         <PostStat icon={Eye} count={post.viewCount} />
                                         <PostStat icon={Heart} count={post.likeCount} onClick={(e) => handleToggleLike(e, post)}>
                                             <Button
@@ -312,13 +316,17 @@ export default function ForumPage() {
                                             </Button>
                                         </PostStat>
                                     </div>
-                                </div>
-                            </Card>
-                            <AccordionContent>
-                                <div className="pl-4 pr-2 pt-2 pb-4">
-                                <PostReplies postId={post.id} />
-                                </div>
-                            </AccordionContent>
+                                    <AccordionTrigger className="flex items-center gap-1.5 p-2 rounded-md hover:bg-accent text-muted-foreground transition-colors hover:text-primary" hideChevron>
+                                        <MessageSquare className="h-4 w-4" />
+                                        <span className="text-sm font-medium">{post.replyCount || 0} Replies</span>
+                                    </AccordionTrigger>
+                                </CardFooter>
+                                <AccordionContent>
+                                    <div className="p-4 border-t">
+                                        <PostReplies postId={post.id} />
+                                    </div>
+                                </AccordionContent>
+                             </Card>
                         </AccordionItem>
                     )})
                     ) : (
@@ -335,38 +343,42 @@ export default function ForumPage() {
                 ) : myPosts.length > 0 ? (
                     <div className="space-y-4">
                     {myPosts.map(post => (
-                         <Card key={post.id} className="p-4">
-                            <div className="flex justify-between items-start">
-                                <div className="flex-1">
-                                    <h3 className="font-bold text-lg">{post.title}</h3>
-                                    <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{post.content}</p>
-                                    <p className="text-xs text-muted-foreground mt-2">{post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : '...'}</p>
-                                </div>
-                                <div className="flex gap-2">
-                                     <Button variant="ghost" size="icon" onClick={() => handleEditClick(post)}>
-                                        <Edit className="h-4 w-4"/>
-                                    </Button>
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                            <Button variant="ghost" size="icon">
-                                                <Trash2 className="h-4 w-4 text-destructive"/>
-                                            </Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    This action cannot be undone. This will permanently delete your post.
-                                                </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                <AlertDialogAction onClick={() => handleDeletePost(post.id)}>Delete</AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
-                                </div>
-                            </div>
+                         <Card key={post.id}>
+                            <CardHeader>
+                                <CardTitle>{post.title}</CardTitle>
+                                <CardDescription>
+                                    Posted {post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : '...'}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-muted-foreground line-clamp-3">{post.content}</p>
+                            </CardContent>
+                            <CardFooter className="flex justify-end gap-2">
+                                <Button variant="outline" size="sm" onClick={() => handleEditClick(post)}>
+                                    <Edit className="mr-2 h-4 w-4"/>
+                                    Edit
+                                </Button>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="destructive" size="sm">
+                                            <Trash2 className="mr-2 h-4 w-4"/>
+                                            Delete
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                This action cannot be undone. This will permanently delete your post.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => handleDeletePost(post.id)}>Delete</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </CardFooter>
                         </Card>
                     ))}
                     </div>
@@ -427,3 +439,5 @@ export default function ForumPage() {
     </div>
   );
 }
+
+    
