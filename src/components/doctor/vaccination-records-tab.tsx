@@ -30,16 +30,37 @@ export function VaccinationRecordsTab({ patientId }: { patientId: string }) {
   
   const { data: vaccinationRecords, isLoading } = useCollection(healthRecordsQuery);
 
-  const handleDownload = (record: any) => {
+  const handleDownload = async (record: any) => {
     if (!record.details?.downloadUrl) {
-        toast({
-            variant: "destructive",
-            title: "Download failed",
-            description: "The file URL is missing or invalid.",
-        });
-        return;
+      toast({
+        variant: "destructive",
+        title: "Download failed",
+        description: "The file URL is missing or invalid.",
+      });
+      return;
     }
-    window.open(record.details.downloadUrl, '_blank');
+    try {
+      const response = await fetch(record.details.downloadUrl);
+      if (!response.ok) {
+        throw new Error('Network response was not ok.');
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', record.details.fileName || 'vaccination-certificate.pdf');
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Download error:', error);
+      toast({
+        variant: "destructive",
+        title: "Download failed",
+        description: "Could not download the file. Please check the network and try again.",
+      });
+    }
   };
   
   const SkeletonLoader = () => (
