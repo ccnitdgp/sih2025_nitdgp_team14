@@ -272,6 +272,14 @@ const FindDoctors = ({ t, userProfile }) => {
 
   const handleBookAppointment = () => {
     if (!selectedDoctor || !selectedDate || !selectedTime || !user || !firestore || !userProfile) return;
+    if (!userProfile.patientId) {
+        toast({
+            variant: "destructive",
+            title: "Booking Failed",
+            description: "Your patient profile is not yet complete. Please wait a moment and try again.",
+        });
+        return;
+    }
     
     const newAppointmentRef = doc(collection(firestore, "appointments"));
     const patientName = `${userProfile.firstName} ${userProfile.lastName}`;
