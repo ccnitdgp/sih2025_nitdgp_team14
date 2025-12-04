@@ -19,7 +19,6 @@ import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
 import te from '@/lib/locales/te.json';
 import mr from '@/lib/locales/mr.json';
-import { dummyPdfContent } from '@/lib/dummy-pdf';
 
 const languageFiles = { hi, bn, ta, te, mr };
 
@@ -78,14 +77,10 @@ export default function LabReportsPage() {
   const labReports = useMemo(() => healthRecords?.filter(r => r.recordType === 'labReport') || [], [healthRecords]);
   const scanReports = useMemo(() => healthRecords?.filter(r => r.recordType === 'scanReport') || [], [healthRecords]);
 
-  const handleDownload = (report) => {
-    const link = document.createElement('a');
-    link.href = dummyPdfContent;
-    const fileName = report.details?.fileName || `${report.details.name.replace(/\s+/g, '-')}.pdf`;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownload = (report: any) => {
+    if (report.details?.downloadUrl) {
+      window.open(report.details.downloadUrl, '_blank');
+    }
   };
 
   const SkeletonLoader = () => (

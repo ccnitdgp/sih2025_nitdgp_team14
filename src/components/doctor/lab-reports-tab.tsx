@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -12,7 +13,6 @@ import { Button } from '@/components/ui/button';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
-import { dummyPdfContent } from '@/lib/dummy-pdf';
 import Link from 'next/link';
 
 export function LabReportsTab({ patientId }: { patientId: string }) {
@@ -25,14 +25,10 @@ export function LabReportsTab({ patientId }: { patientId: string }) {
   
   const { data: labReports, isLoading } = useCollection(labReportsRef);
 
-  const handleDownload = (report) => {
-    const link = document.createElement('a');
-    link.href = dummyPdfContent;
-    const fileName = report.details?.fileName || `${report.details.name.replace(/\s+/g, '-')}.pdf`;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownload = (report: any) => {
+    if (report.details?.downloadUrl) {
+      window.open(report.details.downloadUrl, '_blank');
+    }
   };
 
   const SkeletonLoader = () => (

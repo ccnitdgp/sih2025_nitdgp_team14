@@ -18,7 +18,6 @@ import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
 import te from '@/lib/locales/te.json';
 import mr from '@/lib/locales/mr.json';
-import { dummyPdfContent } from '@/lib/dummy-pdf';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const languageFiles = { hi, bn, ta, te, mr };
@@ -55,14 +54,10 @@ export default function VaccinationRecordsPage() {
   
   const { data: vaccinationRecords, isLoading } = useCollection(healthRecordsQuery);
 
-  const handleDownload = (record) => {
-    const link = document.createElement('a');
-    link.href = dummyPdfContent;
-    const fileName = record.details?.fileName || `vaccination-certificate-${record.details.name.replace(/\s+/g, '-')}.pdf`;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownload = (record: any) => {
+    if (record.details?.downloadUrl) {
+      window.open(record.details.downloadUrl, '_blank');
+    }
   };
   
   const SkeletonLoader = () => (

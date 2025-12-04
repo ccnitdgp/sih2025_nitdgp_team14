@@ -5,8 +5,9 @@ import { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, query, where } from 'firebase/firestore';
+import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking, useFirebaseApp } from '@/firebase';
+import { collection, serverTimestamp, query, where, doc, updateDoc } from 'firebase/firestore';
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,7 +15,8 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Upload, FileText, Syringe, Scan } from 'lucide-react';
+import { Upload, FileText, Syringe, Scan, Loader2 } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 
 const uploadSchema = z.object({
   patientId: z.string().min(1, 'Please select a patient.'),
@@ -27,8 +29,10 @@ const uploadSchema = z.object({
 export default function UploadDocumentsPage() {
   const { user: doctorUser } = useUser();
   const firestore = useFirestore();
+  const firebaseApp = useFirebaseApp();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [fileName, setFileName] = useState('');
 
   const form = useForm<z.infer<typeof uploadSchema>>({
@@ -65,41 +69,67 @@ export default function UploadDocumentsPage() {
     return Array.from(patientMap.values());
   }, [appointments]);
 
-  const onSubmit = async (values: z.infer<typeof uploadSchema>) => {
-    if (!doctorUser || !firestore) return;
+  const onSubmit = (values: z.infer<typeof uploadSchema>) => {
+    if (!doctorUser || !firestore || !firebaseApp) return;
+
     setIsSubmitting(true);
+    setUploadProgress(0);
 
-    // This is a placeholder for actual file upload to a service like Firebase Storage.
-    // In a real application, you would upload the file here and get a URL.
-    console.log('Uploading file for patient:', values.patientId, values.file[0].name);
-    
-    const healthRecordsRef = collection(firestore, 'users', values.patientId, 'healthRecords');
-    
-    let recordType = 'labReport'; // default
-    if (values.documentType === 'Vaccination') recordType = 'vaccinationRecord';
-    if (values.documentType === 'Scan') recordType = 'scanReport';
+    const file = values.file[0];
+    const storage = getStorage(firebaseApp);
+    const storageRef = ref(storage, `patient_documents/${values.patientId}/${Date.now()}_${file.name}`);
+    const uploadTask = uploadBytesResumable(storageRef, file);
 
-
-    const reportData = {
-        recordType: recordType,
-        details: {
-            name: values.documentName,
-            issuer: values.issuer,
-            date: new Date().toISOString().split('T')[0],
-            fileName: values.file[0].name,
-            downloadUrl: '#', // Placeholder URL
+    uploadTask.on('state_changed',
+        (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            setUploadProgress(progress);
         },
-        dateCreated: serverTimestamp(),
-        userId: values.patientId,
-        addedBy: doctorUser.uid,
-    };
+        (error) => {
+            console.error("Upload failed:", error);
+            toast({
+                variant: 'destructive',
+                title: 'Upload Failed',
+                description: 'There was an error uploading your file. Please try again.'
+            });
+            setIsSubmitting(false);
+            setUploadProgress(null);
+        },
+        async () => {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
 
-    addDocumentNonBlocking(healthRecordsRef, reportData);
+            let recordType = 'labReport'; // default
+            if (values.documentType === 'Vaccination') recordType = 'vaccinationRecord';
+            if (values.documentType === 'Scan') recordType = 'scanReport';
+            
+            const healthRecordsRef = collection(firestore, 'users', values.patientId, 'healthRecords');
+            const newDocRef = doc(healthRecordsRef);
 
-    toast({ title: 'Document Record Saved', description: `A record for ${values.file[0].name} has been saved for the patient.` });
-    form.reset();
-    setFileName('');
-    setIsSubmitting(false);
+            const reportData = {
+                id: newDocRef.id,
+                recordType: recordType,
+                details: {
+                    name: values.documentName,
+                    issuer: values.issuer,
+                    date: new Date().toISOString().split('T')[0],
+                    fileName: file.name,
+                    downloadUrl: downloadURL,
+                },
+                dateCreated: serverTimestamp(),
+                userId: values.patientId,
+                addedBy: doctorUser.uid,
+            };
+
+            await addDocumentNonBlocking(healthRecordsRef, reportData);
+            
+            toast({ title: 'Document Uploaded Successfully', description: `${file.name} has been saved to the patient's records.` });
+            
+            form.reset();
+            setFileName('');
+            setIsSubmitting(false);
+            setUploadProgress(null);
+        }
+    );
   };
 
   return (
@@ -235,10 +265,14 @@ export default function UploadDocumentsPage() {
                     </FormItem>
                   )}
                 />
+              
+              {uploadProgress !== null && (
+                  <Progress value={uploadProgress} className="w-full" />
+              )}
 
               <Button type="submit" disabled={isSubmitting}>
-                <Upload className="mr-2 h-4 w-4" />
-                {isSubmitting ? 'Uploading...' : 'Upload Document'}
+                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Upload className="mr-2 h-4 w-4" />}
+                {isSubmitting ? `Uploading... ${uploadProgress?.toFixed(0)}%` : 'Upload Document'}
               </Button>
             </form>
           </Form>
@@ -247,5 +281,3 @@ export default function UploadDocumentsPage() {
     </div>
   );
 }
-
-    

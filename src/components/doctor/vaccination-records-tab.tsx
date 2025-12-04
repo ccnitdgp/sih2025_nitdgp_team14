@@ -13,7 +13,6 @@ import { Button } from '@/components/ui/button';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
-import { dummyPdfContent } from '@/lib/dummy-pdf';
 import Link from 'next/link';
 
 export function VaccinationRecordsTab({ patientId }: { patientId: string }) {
@@ -30,13 +29,9 @@ export function VaccinationRecordsTab({ patientId }: { patientId: string }) {
   const { data: vaccinationRecords, isLoading } = useCollection(healthRecordsQuery);
 
   const handleDownload = (record: any) => {
-    const link = document.createElement('a');
-    link.href = dummyPdfContent;
-    const fileName = record.details?.fileName || `vaccination-certificate-${record.details.name.replace(/\s+/g, '-')}.pdf`;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    if (record.details?.downloadUrl) {
+      window.open(record.details.downloadUrl, '_blank');
+    }
   };
   
   const SkeletonLoader = () => (
