@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: 'Swasthya',
   description: 'Your Health, Our Priority.',
   icons: {
-    icon: '/Logo.png',
+    icon: '/favicon.ico',
   },
 };
 
