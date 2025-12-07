@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Lightbulb, Users, BarChart, AreaChart, PieChart, ShieldAlert, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Lightbulb, Users, BarChart, TrendingUp, TrendingDown, Minus, ShieldAlert } from 'lucide-react';
 import { useUser, useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
 import { collection, doc, query, where } from 'firebase/firestore';
 import hi from '@/lib/locales/hi.json';
@@ -12,10 +12,20 @@ import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
 import te from '@/lib/locales/te.json';
 import mr from '@/lib/locales/mr.json';
-import { getDiseaseTrends, type DiseaseTrendOutput } from '@/ai/flows/disease-trends-flow';
 import { Skeleton } from '../ui/skeleton';
 
 const languageFiles = { hi, bn, ta, te, mr };
+
+// Static placeholder data to avoid hitting API rate limits.
+const staticTrendsData = {
+    trends: [
+        { disease: 'Fever & Influenza', trend: 'increasing', caseCount: 840 },
+        { disease: 'Dengue', trend: 'stable', caseCount: 320 },
+        { disease: 'Stomach Infections', trend: 'decreasing', caseCount: 150 },
+    ],
+    overallSummary: 'A seasonal increase in flu-like symptoms is being observed. Please maintain good hygiene. Other communicable disease trends remain stable.'
+};
+
 
 const InsightCard = ({ icon: Icon, title, value, description, isLoading }) => (
     <Card className="flex-1">
@@ -39,8 +49,10 @@ export function CommunityInsightsSection() {
     const { user } = useUser();
     const firestore = useFirestore();
     const [translations, setTranslations] = useState({});
-    const [trendsData, setTrendsData] = useState<DiseaseTrendOutput | null>(null);
-    const [isLoadingTrends, setIsLoadingTrends] = useState(true);
+    
+    // Use the static data directly
+    const trendsData = staticTrendsData;
+    const isLoadingTrends = false; // Data is now static, so not loading.
 
     const userDocRef = useMemoFirebase(() => {
         if (!user || !firestore) return null;
@@ -61,22 +73,6 @@ export function CommunityInsightsSection() {
         } else {
             setTranslations({});
         }
-
-        async function fetchTrends() {
-            try {
-                setIsLoadingTrends(true);
-                const trends = await getDiseaseTrends({ region: 'India', timeframe: 'last 30 days' });
-                setTrendsData(trends);
-            } catch (error) {
-                console.error("Failed to fetch disease trends:", error);
-                // Gracefully fail by not showing AI-generated content
-                setTrendsData(null);
-            } finally {
-                setIsLoadingTrends(false);
-            }
-        }
-        fetchTrends();
-
     }, [userProfile]);
 
     const t = (key: string, fallback: string) => translations[key] || fallback;
