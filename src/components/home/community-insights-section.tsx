@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Lightbulb, Users, BarChart, AreaChart, PieChart, ShieldAlert } from 'lucide-react';
+import { Lightbulb, Users, BarChart, AreaChart, PieChart, ShieldAlert, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { useUser, useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
 import { collection, doc, query, where } from 'firebase/firestore';
 import hi from '@/lib/locales/hi.json';
@@ -12,6 +12,8 @@ import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
 import te from '@/lib/locales/te.json';
 import mr from '@/lib/locales/mr.json';
+import { getDiseaseTrends, type DiseaseTrendOutput } from '@/ai/flows/disease-trends-flow';
+import { Skeleton } from '../ui/skeleton';
 
 const languageFiles = { hi, bn, ta, te, mr };
 
@@ -23,7 +25,7 @@ const InsightCard = ({ icon: Icon, title, value, description, isLoading }) => (
         </CardHeader>
         <CardContent>
              {isLoading ? (
-                <div className="h-8 w-16 bg-muted rounded-md animate-pulse" />
+                <Skeleton className="h-8 w-16" />
              ) : (
                 <div className="text-2xl font-bold">{value}</div>
              )}
@@ -37,6 +39,8 @@ export function CommunityInsightsSection() {
     const { user } = useUser();
     const firestore = useFirestore();
     const [translations, setTranslations] = useState({});
+    const [trendsData, setTrendsData] = useState<DiseaseTrendOutput | null>(null);
+    const [isLoadingTrends, setIsLoadingTrends] = useState(true);
 
     const userDocRef = useMemoFirebase(() => {
         if (!user || !firestore) return null;
@@ -57,9 +61,31 @@ export function CommunityInsightsSection() {
         } else {
             setTranslations({});
         }
+
+        async function fetchTrends() {
+            try {
+                setIsLoadingTrends(true);
+                const trends = await getDiseaseTrends({ region: 'India', timeframe: 'last 30 days' });
+                setTrendsData(trends);
+            } catch (error) {
+                console.error("Failed to fetch disease trends:", error);
+                // Gracefully fail by not showing AI-generated content
+                setTrendsData(null);
+            } finally {
+                setIsLoadingTrends(false);
+            }
+        }
+        fetchTrends();
+
     }, [userProfile]);
 
     const t = (key: string, fallback: string) => translations[key] || fallback;
+
+    const TrendIcon = ({ trend }: { trend: string }) => {
+        if (trend === 'increasing') return <TrendingUp className="h-4 w-4 text-destructive" />;
+        if (trend === 'decreasing') return <TrendingDown className="h-4 w-4 text-green-500" />;
+        return <Minus className="h-4 w-4 text-muted-foreground" />;
+    }
     
     return (
         <section id="community-insights" className="py-12 sm:py-24">
@@ -79,16 +105,16 @@ export function CommunityInsightsSection() {
                             <InsightCard 
                                 icon={Users} 
                                 title="Registered Patients" 
-                                value={patients?.length ?? '0'} 
+                                value={patients?.length?.toString() ?? '0'} 
                                 description="Total members on the platform" 
                                 isLoading={isLoadingPatients}
                             />
-                            <InsightCard 
+                             <InsightCard 
                                 icon={BarChart} 
-                                title={t('common_symptoms_card_title', 'Common Symptoms')} 
-                                value={t('common_symptoms_card_value', 'Fever, Cough')} 
-                                description={t('common_symptoms_card_desc', 'Reported this month')} 
-                                isLoading={false}
+                                title="Common Symptoms" 
+                                value={trendsData?.trends[0]?.disease || 'Fever'}
+                                description="Most reported this month"
+                                isLoading={isLoadingTrends}
                             />
                         </div>
                         <Card>
@@ -97,27 +123,24 @@ export function CommunityInsightsSection() {
                                 <CardDescription>{t('disease_trends_desc', 'Cases reported in the last 30 days.')}</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <div className="flex justify-between items-center">
-                                    <span>{t('disease_flu', 'Influenza')}</span>
-                                    <div className="w-2/3 bg-muted rounded-full h-2.5">
-                                        <div className="bg-primary h-2.5 rounded-full" style={{width: "75%"}}></div>
-                                    </div>
-                                     <span className="font-bold">340</span>
-                                </div>
-                                 <div className="flex justify-between items-center">
-                                    <span>{t('disease_dengue', 'Dengue')}</span>
-                                    <div className="w-2/3 bg-muted rounded-full h-2.5">
-                                        <div className="bg-primary h-2.5 rounded-full" style={{width: "45%"}}></div>
-                                    </div>
-                                    <span className="font-bold">180</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span>{t('disease_typhoid', 'Typhoid')}</span>
-                                    <div className="w-2/3 bg-muted rounded-full h-2.5">
-                                        <div className="bg-primary h-2.5 rounded-full" style={{width: "30%"}}></div>
-                                    </div>
-                                    <span className="font-bold">110</span>
-                                </div>
+                                {isLoadingTrends ? (
+                                    [...Array(3)].map((_, i) => <Skeleton key={i} className="h-8 w-full" />)
+                                ) : trendsData?.trends ? (
+                                    trendsData.trends.slice(0, 3).map((item) => (
+                                        <div key={item.disease} className="flex justify-between items-center gap-4">
+                                            <span className="flex items-center gap-2">
+                                                <TrendIcon trend={item.trend} />
+                                                {item.disease}
+                                            </span>
+                                            <div className="w-1/2 bg-muted rounded-full h-2.5">
+                                                <div className="bg-primary h-2.5 rounded-full" style={{width: `${(item.caseCount / (trendsData.trends.reduce((max, t) => Math.max(max, t.caseCount), 0) || 1)) * 100}%`}}></div>
+                                            </div>
+                                            <span className="font-bold tabular-nums text-right">{item.caseCount.toLocaleString()}</span>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-sm text-muted-foreground text-center">Trend data currently unavailable.</p>
+                                )}
                             </CardContent>
                         </Card>
                     </div>
@@ -129,9 +152,17 @@ export function CommunityInsightsSection() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                             <p className="text-accent-foreground/90">
-                               {t('ai_summary_content', 'This week we saw an increase in respiratory cases. Consider taking precautions like avoiding crowded areas and wearing masks if needed. Stay hydrated to combat the effects of the current heatwave.')}
-                            </p>
+                             {isLoadingTrends ? (
+                                <div className="space-y-2">
+                                    <Skeleton className="h-4 w-full" />
+                                    <Skeleton className="h-4 w-full" />
+                                    <Skeleton className="h-4 w-2/3" />
+                                </div>
+                             ) : (
+                                 <p className="text-accent-foreground/90">
+                                   {trendsData?.overallSummary || 'No summary available.'}
+                                </p>
+                             )}
                             <Alert variant="destructive" className="mt-4 bg-background/50 text-foreground border-foreground/20">
                                 <ShieldAlert className="h-4 w-4" />
                                 <AlertTitle className="font-semibold">{t('disclaimer_title', 'Disclaimer')}</AlertTitle>

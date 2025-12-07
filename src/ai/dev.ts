@@ -5,3 +5,4 @@ import './flows/symptom-checker-flow';
 import './flows/analyze-prescription-flow';
 import './flows/text-to-speech-flow';
 import './flows/summarize-medical-history-flow';
+import './flows/disease-trends-flow';
