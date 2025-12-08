@@ -24,9 +24,11 @@ import { collection } from 'firebase/firestore';
 
 
 export default function SystemHealthPage() {
-  const firestore = useFirestore();
+  const { firestore, isServicesLoading } = useFirestore();
   const appointmentsQuery = useMemoFirebase(() => collection(firestore, 'appointments'), [firestore]);
   const { data: appointments, isLoading: appointmentsLoading } = useCollection(appointmentsQuery);
+
+  const isConnected = !isServicesLoading && !appointmentsLoading && firestore;
 
   return (
     <div className="bg-muted/40 min-h-screen">
@@ -53,8 +55,8 @@ export default function SystemHealthPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Badge variant={!appointmentsLoading && firestore ? 'default' : 'destructive'} className={!appointmentsLoading && firestore ? 'bg-green-500 hover:bg-green-600' : ''}>
-                        {!appointmentsLoading && firestore ? 'Connected' : 'Connecting...'}
+                    <Badge variant={isConnected ? 'default' : 'destructive'} className={isConnected ? 'bg-green-500 hover:bg-green-600' : ''}>
+                        {isConnected ? 'Connected' : 'Connecting...'}
                     </Badge>
                      <p className="text-xs text-muted-foreground mt-2">
                         {appointments?.length || 0} appointments loaded.
