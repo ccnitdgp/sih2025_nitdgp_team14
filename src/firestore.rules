@@ -54,10 +54,11 @@ service cloud.firestore {
 
       // User can always read/update their own profile.
       // An assigned doctor can also read a patient's profile.
-      allow get: if isSignedIn() && (isOwner(userId) || isDoctorAssignedToPatient(userId));
+      // An Admin can read any user profile
+      allow get: if isSignedIn() && (isOwner(userId) || isDoctorAssignedToPatient(userId) || isAdmin());
       
-      // Only the user can update their own profile.
-      allow update: if isSignedIn() && isOwner(userId);
+      // Only the user can update their own profile. A doctor can update a patient's profile they are assigned to.
+      allow update: if isSignedIn() && (isOwner(userId) || isDoctorAssignedToPatient(userId));
 
 
       // Public can query for patient count. Admins can list all users.
@@ -335,5 +336,3 @@ service cloud.firestore {
     }
   }
 }
-
-    

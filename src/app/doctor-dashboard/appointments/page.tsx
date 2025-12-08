@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -20,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { useUser, useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking, useDoc, addDocumentNonBlocking } from '@/firebase';
-import { collection, query, where, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { differenceInYears, parse, addMinutes, parseISO } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -163,6 +162,11 @@ export default function DoctorAppointmentsPage() {
         time: values.time,
         meetLink: values.meetLink || null
     });
+    
+    // Also create the doctor-patient link
+    const patientUserRef = doc(firestore, 'users', selectedAppointment.patientId);
+    setDoc(patientUserRef, { doctorId: user?.uid }, { merge: true });
+
     toast({ title: "Appointment Scheduled", description: "The patient has been notified."});
     setIsScheduleDialogOpen(false);
   }
