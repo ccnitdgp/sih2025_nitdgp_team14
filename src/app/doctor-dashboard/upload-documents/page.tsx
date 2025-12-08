@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useUser, useFirestore, addDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
 import { collection, serverTimestamp, query, where, getDocs, doc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
@@ -73,59 +73,70 @@ export default function UploadDocumentsPage() {
     }
   };
 
-  const onSubmit = async (values: z.infer<typeof documentSchema>) => {
-    if (!doctorUser || !firestore || !foundPatient) return;
+  const onSubmit = (values: z.infer<typeof documentSchema>) => {
+    if (!doctorUser || !firestore || !foundPatient) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Please find and select a patient before uploading.'});
+        return;
+    };
     
     setIsSubmitting(true);
+
     const file = values.file;
     const patientId = foundPatient.id;
-    
-    try {
-        const storage = getStorage();
-        const storageRef = ref(storage, `patient_documents/${patientId}/${Date.now()}-${file.name}`);
-        const uploadTask = uploadBytesResumable(storageRef, file);
-        
-        uploadTask.on(
-            'state_changed',
-            null,
-            (error) => {
-                console.error("Upload failed:", error);
-                toast({ variant: 'destructive', title: 'Upload Failed', description: 'Could not upload the file. Please check storage permissions.'});
-                setIsSubmitting(false);
-            },
-            async () => {
-                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                
-                const healthRecordsRef = collection(firestore, 'users', patientId, 'healthRecords');
-                const newRecordRef = doc(healthRecordsRef);
-                const newRecordData = {
-                    id: newRecordRef.id,
-                    recordType: values.documentType,
-                    details: {
-                        name: values.documentName,
-                        issuer: values.organization,
-                        date: format(new Date(), 'yyyy-MM-dd'),
-                        downloadUrl: downloadURL,
-                        fileName: file.name
-                    },
-                    dateCreated: serverTimestamp(),
-                    userId: patientId,
-                    addedBy: doctorUser.uid,
-                };
+    const storage = getStorage();
+    const storageRef = ref(storage, `patient_documents/${patientId}/${Date.now()}-${file.name}`);
+    const uploadTask = uploadBytesResumable(storageRef, file);
 
-                await addDocumentNonBlocking(healthRecordsRef, newRecordData);
-                toast({ title: 'Document Uploaded', description: 'The document has been added to the patient\'s records.' });
-                form.reset();
-                setPatientIdInput('');
-                setFoundPatient(null);
-                setIsSubmitting(false);
+    const healthRecordsRef = collection(firestore, 'users', patientId, 'healthRecords');
+    const newRecordRef = doc(healthRecordsRef);
+
+    const newRecordData = {
+        id: newRecordRef.id,
+        recordType: values.documentType,
+        details: {
+            name: values.documentName,
+            issuer: values.organization,
+            date: format(new Date(), 'yyyy-MM-dd'),
+            downloadUrl: '', // Will be updated later
+            fileName: file.name
+        },
+        dateCreated: serverTimestamp(),
+        userId: patientId,
+        addedBy: doctorUser.uid,
+    };
+
+    // Immediately create the document record, non-blockingly
+    addDocumentNonBlocking(healthRecordsRef, newRecordData);
+    
+    toast({ title: 'Upload Started', description: 'Your document is being uploaded and will appear in the patient\'s records shortly.' });
+    
+    // Reset form and UI state immediately
+    form.reset();
+    setPatientIdInput('');
+    setFoundPatient(null);
+    setIsSubmitting(false);
+
+    // Handle the upload completion in the background
+    uploadTask.on(
+        'state_changed',
+        null, // We can add a progress handler here if needed in the future
+        (error) => {
+            console.error("Upload failed:", error);
+            // Optionally notify the user of the failure
+        },
+        async () => {
+            try {
+                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                // Now update the document with the final URL
+                const recordToUpdateRef = doc(firestore, 'users', patientId, 'healthRecords', newRecordData.id);
+                setDocumentNonBlocking(recordToUpdateRef, {
+                    'details.downloadUrl': downloadURL
+                }, { merge: true });
+            } catch (error) {
+                console.error("Failed to get download URL or update Firestore:", error);
             }
-        )
-    } catch(e) {
-        console.error(e)
-        toast({ variant: 'destructive', title: 'Error', description: 'An unexpected error occurred during the upload process.'});
-        setIsSubmitting(false);
-    }
+        }
+    );
   };
 
   return (
@@ -231,7 +242,7 @@ export default function UploadDocumentsPage() {
                             </div>
                             <Button type="submit" disabled={isSubmitting}>
                                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <PlusCircle className="mr-2 h-4 w-4"/>}
-                                {isSubmitting ? 'Uploading...' : 'Upload Document'}
+                                {isSubmitting ? 'Starting Upload...' : 'Upload Document'}
                             </Button>
                         </fieldset>
                     </form>
