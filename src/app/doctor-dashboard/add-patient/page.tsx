@@ -266,8 +266,19 @@ export default function AddPatientPage() {
                             )}
                         />
                          <div className="space-y-2">
-                            <FormLabel>Address</FormLabel>
-                            <FormField control={form.control} name="fullAddress" render={({ field }) => (<FormItem><FormControl><Input placeholder="Full Address" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField
+                                control={form.control}
+                                name="fullAddress" // Use a valid field name here to associate the label
+                                render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Address</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Full Address" {...form.register('fullAddress')} />
+                                    </FormControl>
+                                    <FormMessage {...form.formState.errors.fullAddress} />
+                                </FormItem>
+                                )}
+                            />
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <FormField control={form.control} name="city" render={({ field }) => (<FormItem><FormControl><Input placeholder="City" {...field} /></FormControl><FormMessage /></FormItem>)} />
                                 <FormField control={form.control} name="state" render={({ field }) => (<FormItem><FormControl><Input placeholder="State" {...field} /></FormControl><FormMessage /></FormItem>)} />
@@ -290,5 +301,3 @@ export default function AddPatientPage() {
     </div>
   )
 }
-
-    
