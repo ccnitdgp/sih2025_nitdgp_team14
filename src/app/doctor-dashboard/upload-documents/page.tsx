@@ -6,7 +6,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useUser, useFirestore, setDocumentNonBlocking } from '@/firebase';
-import { collection, query, where, getDocs, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, serverTimestamp, addDoc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -18,6 +18,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Upload, PlusCircle, Loader2, Search } from 'lucide-react';
 import { BackButton } from '@/components/layout/back-button';
+import { Combobox } from '@/components/ui/combobox';
 
 const documentSchema = z.object({
   documentName: z.string().min(3, 'Document name is required.'),
@@ -73,7 +74,7 @@ export default function UploadDocumentsPage() {
     }
   };
 
-  const onSubmit = (values: z.infer<typeof documentSchema>) => {
+  const onSubmit = async (values: z.infer<typeof documentSchema>) => {
     if (!doctorUser || !firestore || !foundPatient) {
         toast({ variant: 'destructive', title: 'Error', description: 'Please find and select a patient before uploading.'});
         return;
@@ -81,65 +82,52 @@ export default function UploadDocumentsPage() {
     
     setIsSubmitting(true);
 
-    const file = values.file;
-    const patientId = foundPatient.id;
-    const storage = getStorage();
-    const storageRef = ref(storage, `patient_documents/${patientId}/${Date.now()}-${file.name}`);
-    const uploadTask = uploadBytesResumable(storageRef, file);
+    try {
+        const file = values.file;
+        const patientId = foundPatient.id;
+        const storage = getStorage();
+        const storageRef = ref(storage, `patient_documents/${patientId}/${Date.now()}-${file.name}`);
+        
+        // Step 1: Await the file upload
+        const uploadTask = await uploadBytesResumable(storageRef, file);
+        const downloadURL = await getDownloadURL(uploadTask.ref);
 
-    uploadTask.on(
-        'state_changed',
-        null, 
-        (error) => {
-            console.error("Upload failed:", error);
-            setIsSubmitting(false); 
-            toast({
-              variant: 'destructive',
-              title: "Upload Failed",
-              description: "There was an error uploading your file. Please try again."
-            })
-        },
-        async () => {
-            try {
-                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                
-                const healthRecordsRef = collection(firestore, 'users', patientId, 'healthRecords');
-                const newRecordRef = doc(healthRecordsRef);
+        // Step 2: Await the database record creation
+        const healthRecordsRef = collection(firestore, 'users', patientId, 'healthRecords');
+        
+        const newRecordData = {
+            recordType: values.documentType,
+            details: {
+                name: values.documentName,
+                issuer: values.organization,
+                date: format(new Date(), 'yyyy-MM-dd'),
+                downloadUrl: downloadURL,
+                fileName: file.name
+            },
+            dateCreated: serverTimestamp(),
+            userId: patientId,
+            addedBy: doctorUser.uid,
+        };
 
-                const newRecordData = {
-                    id: newRecordRef.id,
-                    recordType: values.documentType,
-                    details: {
-                        name: values.documentName,
-                        issuer: values.organization,
-                        date: format(new Date(), 'yyyy-MM-dd'),
-                        downloadUrl: downloadURL,
-                        fileName: file.name
-                    },
-                    dateCreated: serverTimestamp(),
-                    userId: patientId,
-                    addedBy: doctorUser.uid,
-                };
-                
-                setDocumentNonBlocking(newRecordRef, newRecordData, {});
-                
-                toast({ title: 'Upload Complete', description: `${file.name} has been successfully uploaded.` });
+        const newDocRef = await addDoc(healthRecordsRef, newRecordData);
+        await setDocumentNonBlocking(doc(healthRecordsRef, newDocRef.id), { id: newDocRef.id }, { merge: true });
 
-            } catch (error) {
-                console.error("Failed to get download URL or update Firestore:", error);
-                 toast({
-                    variant: 'destructive',
-                    title: "Update Failed",
-                    description: "File uploaded, but failed to update profile. Please contact support.",
-                });
-            } finally {
-                setIsSubmitting(false);
-                reset();
-                setPatientIdInput('');
-                setFoundPatient(null);
-            }
-        }
-    );
+        toast({ title: 'Upload Complete', description: `${file.name} has been successfully uploaded.` });
+        
+        reset();
+        setPatientIdInput('');
+        setFoundPatient(null);
+
+    } catch (error) {
+        console.error("Upload or Firestore update failed:", error);
+        toast({
+            variant: 'destructive',
+            title: "Upload Failed",
+            description: "An error occurred during the upload process. Please try again."
+        });
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   return (
@@ -156,29 +144,29 @@ export default function UploadDocumentsPage() {
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <Form {...form}>
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Patient Unique ID</label>
-                            <div className="flex items-center space-x-2">
-                            <Input
-                                placeholder="Enter Patient ID (e.g., PT-XXXXXXXXXX)"
-                                value={patientIdInput}
-                                onChange={(e) => setPatientIdInput(e.target.value)}
-                                disabled={isSearching}
-                            />
-                            <Button type="button" onClick={handleFindPatient} disabled={isSearching || !patientIdInput}>
-                                {isSearching ? <Loader2 className="animate-spin" /> : <Search />}
-                            </Button>
-                            </div>
-                            {foundPatient && (
-                            <p className="text-sm text-green-600 font-medium">
-                                Selected: {foundPatient.firstName} {foundPatient.lastName}
-                            </p>
-                            )}
+                <div className="space-y-6">
+                    <div className="space-y-2">
+                        <FormLabel>Patient Unique ID</FormLabel>
+                        <div className="flex items-center space-x-2">
+                        <Input
+                            placeholder="Enter Patient ID (e.g., PT-XXXXXXXXXX)"
+                            value={patientIdInput}
+                            onChange={(e) => setPatientIdInput(e.target.value)}
+                            disabled={isSearching}
+                        />
+                        <Button type="button" onClick={handleFindPatient} disabled={isSearching || !patientIdInput}>
+                            {isSearching ? <Loader2 className="animate-spin" /> : <Search />}
+                        </Button>
                         </div>
-                        
-                        <fieldset disabled={!foundPatient || isSubmitting} className="space-y-6">
+                        {foundPatient && (
+                        <p className="text-sm text-green-600 font-medium">
+                            Selected: {foundPatient.firstName} {foundPatient.lastName}
+                        </p>
+                        )}
+                    </div>
+                    
+                    <Form {...form}>
+                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <FormField
                                     control={control}
@@ -186,7 +174,7 @@ export default function UploadDocumentsPage() {
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>Document Type</FormLabel>
-                                            <Select onValueChange={field.onChange} value={field.value}>
+                                            <Select onValueChange={field.onChange} value={field.value} disabled={!foundPatient || isSubmitting}>
                                                 <FormControl><SelectTrigger><SelectValue placeholder="Select a type..."/></SelectTrigger></FormControl>
                                                 <SelectContent>
                                                     <SelectItem value="labReport">Lab Report</SelectItem>
@@ -205,7 +193,7 @@ export default function UploadDocumentsPage() {
                                     render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Document Name</FormLabel>
-                                        <FormControl><Input placeholder="e.g., Full Blood Count" {...field} /></FormControl>
+                                        <FormControl><Input placeholder="e.g., Full Blood Count" {...field} disabled={!foundPatient || isSubmitting} /></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                     )}
@@ -216,7 +204,7 @@ export default function UploadDocumentsPage() {
                                     render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Issuing Organization</FormLabel>
-                                        <FormControl><Input placeholder="e.g., City Diagnostics Lab" {...field} /></FormControl>
+                                        <FormControl><Input placeholder="e.g., City Diagnostics Lab" {...field} disabled={!foundPatient || isSubmitting}/></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                     )}
@@ -237,6 +225,7 @@ export default function UploadDocumentsPage() {
                                                     onChange={(e) => {
                                                         onChange(e.target.files?.[0]);
                                                     }}
+                                                    disabled={!foundPatient || isSubmitting}
                                                 />
                                             </FormControl>
                                             <FormMessage />
@@ -244,13 +233,13 @@ export default function UploadDocumentsPage() {
                                     )}
                                 />
                             </div>
-                        </fieldset>
-                        <Button type="submit" disabled={!foundPatient || isSubmitting}>
-                            {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <PlusCircle className="mr-2 h-4 w-4"/>}
-                            {isSubmitting ? 'Uploading...' : 'Upload Document'}
-                        </Button>
-                    </form>
-                </Form>
+                            <Button type="submit" disabled={!foundPatient || isSubmitting}>
+                                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <PlusCircle className="mr-2 h-4 w-4"/>}
+                                {isSubmitting ? 'Uploading...' : 'Upload Document'}
+                            </Button>
+                        </form>
+                    </Form>
+                </div>
             </CardContent>
         </Card>
     </div>
