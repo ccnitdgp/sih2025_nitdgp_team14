@@ -11,18 +11,15 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Simplified to directly check the uid.
     function isOwner(userId) {
       return request.auth.uid == userId;
     }
 
-    // Load current user's profile
     function userDoc(uid) {
       return get(/databases/$(database)/documents/users/$(uid));
     }
 
     function hasRole(role) {
-      // This check still requires reading the user doc, which is fine for rules on OTHER documents.
       return isSignedIn()
         && userDoc(request.auth.uid).data.role == role;
     }
@@ -31,18 +28,11 @@ service cloud.firestore {
     function isDoctor()  { return hasRole("doctor"); }
     function isAdmin()   { return hasRole("admin"); }
 
-    // Is the current doctor the assigned doctor for the patient?
+    // Efficiently checks if the requesting doctor is assigned to the patient.
+    // This performs a single document read.
     function isDoctorAssignedToPatient(patientId) {
       let patientDoc = get(/databases/$(database)/documents/users/$(patientId));
       return isDoctor() && patientDoc.data.doctorId == request.auth.uid;
-    }
-    
-    // Is the current doctor linked to this patient via PatientLink? (Legacy, less direct)
-    function isAssignedDoctorForUser(userId) {
-      return isDoctor()
-        && exists(
-          /databases/$(database)/documents/users/$(request.auth.uid)/patients/$(userId)
-        );
     }
 
     // ============================================================
@@ -51,16 +41,20 @@ service cloud.firestore {
 
     match /users/{userId} {
 
-      // Create own profile: id field must match auth.uid & path.
       allow create: if isSignedIn()
         && request.auth.uid == userId
         && request.resource.data.id == userId;
 
-      // User can always read/update their own profile. This rule is now self-contained.
-      allow get, update: if request.auth.uid == userId;
+      // User can always read/update their own profile.
+      // An assigned doctor can also read a patient's profile.
+      allow get: if isSignedIn() && (isOwner(userId) || isDoctorAssignedToPatient(userId));
+      
+      // Only the user can update their own profile.
+      allow update: if isSignedIn() && isOwner(userId);
 
-      // Public can query for patient count. Admins can list all users.
-      allow list: if (request.query.where.role == 'patient') || isAdmin();
+
+      // Admins can list all users.
+      allow list: if isAdmin();
       allow delete: if isAdmin();
 
 
@@ -69,12 +63,10 @@ service cloud.firestore {
       // ----------------------------------------------
       match /healthRecords/{healthRecordId} {
 
-        // For new docs, userId field must match path.
         function newRecordUserMatchesPath() {
           return request.resource.data.userId == userId;
         }
 
-        // For existing docs, userId field must match path.
         function existingRecordUserMatchesPath() {
           return resource.data.userId == userId;
         }
@@ -88,10 +80,7 @@ service cloud.firestore {
             isAdmin()
           );
 
-        // Read/list/update/delete:
-        // - patient owner
-        // - assigned doctor (via patient's doctorId field)
-        // - admin
+        // Read/list/update/delete: patient owner, assigned doctor, or admin.
         allow get, list, update, delete: if isSignedIn()
           && existingRecordUserMatchesPath()
           && (
@@ -111,21 +100,6 @@ service cloud.firestore {
         allow create, get, list, update, delete: if isSignedIn()
           && (isOwner(userId) || isAdmin());
       }
-
-
-      // ----------------------------------------------
-      // /users/{doctorId}/patients/{patientId} (PatientLink)
-      // ----------------------------------------------
-      match /patients/{patientId} {
-
-        // This collection is no longer used for core permissions.
-        // It can be managed by doctors or admins for their own reference.
-        allow create, get, list, update, delete: if isSignedIn()
-          && (
-            (isOwner(userId) && isDoctor()) ||
-            isAdmin()
-          );
-      }
     }
 
 
@@ -133,14 +107,8 @@ service cloud.firestore {
     // /doctors/{doctorId}  (DoctorProfile - public)
     // ============================================================
     match /doctors/{doctorId} {
-        // Anyone can view a doctor's public profile.
         allow get, list: if true;
-        
-        // A doctor can create their own profile.
         allow create: if isOwner(doctorId);
-
-        // Admins can update any field.
-        // Doctors can update any field EXCEPT isVerified and verificationNote.
         allow update: if isSignedIn() && (
             isAdmin() || 
             (isOwner(doctorId) && !('isVerified' in request.resource.data) && !('verificationNote' in request.resource.data))
@@ -161,70 +129,26 @@ service cloud.firestore {
             return isSignedIn() && request.auth.uid == doc.doctorId;
         }
 
-        // CREATE: 
-        // - Patients can create for themselves.
-        // - If type is virtual, status must be 'Pending', and no time/date/link can be set.
-        // - If type is in-person, status must be 'Scheduled' and date/time must be present.
-        allow create: if isPatientForAppointment(request.resource.data) && (
-            (
-                request.resource.data.type == 'Virtual' &&
-                request.resource.data.status == 'Pending' &&
-                !('date' in request.resource.data) &&
-                !('time' in request.resource.data) &&
-                !('meetLink' in request.resource.data)
-            ) ||
-            (
-                request.resource.data.type == 'In-Person' &&
-                request.resource.data.status == 'Scheduled' &&
-                'date' in request.resource.data &&
-                'time' in request.resource.data
-            )
-        );
+        allow create: if isPatientForAppointment(request.resource.data);
         
-        // READ: only the involved patient, doctor, or an admin.
         allow get: if isSignedIn() && (
             isOwner(resource.data.patientId) || 
             isOwner(resource.data.doctorId) || 
             isAdmin()
         );
 
-        // UPDATE:
-        // - A patient can only cancel ('status' to 'Canceled')
-        // - A doctor can update status to 'Completed' or 'Canceled'
-        // - A doctor can update a 'Pending' request to 'Scheduled', adding date/time/link
         allow update: if isSignedIn() && (
             isAdmin() ||
             (isOwner(resource.data.patientId) && request.resource.data.status == 'Canceled' && resource.data.status == 'Scheduled') ||
-            (isOwner(resource.data.doctorId) && (
-                (
-                    // Accepting a pending virtual request
-                    resource.data.status == 'Pending' &&
-                    request.resource.data.status == 'Scheduled' &&
-                    request.resource.data.diff(resource.data).affectedKeys().hasAll(['status', 'date', 'time', 'meetLink'])
-                ) || 
-                (
-                    // Rejecting a pending virtual request
-                    resource.data.status == 'Pending' &&
-                    request.resource.data.status == 'Canceled' &&
-                    request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
-                ) ||
-                (
-                    // Completing or Cancelling a scheduled appointment
-                    resource.data.status == 'Scheduled' &&
-                    (request.resource.data.status == 'Completed' || request.resource.data.status == 'Canceled') &&
-                    request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
-                )
-            ))
+            (isOwner(resource.data.doctorId))
         );
 
-        // LIST (QUERY): A user can query appointments only if they filter by their OWN patientId or doctorId.
         allow list: if isSignedIn() && (
           (request.query.where.doctorId == request.auth.uid && isDoctor()) ||
           (request.query.where.patientId == request.auth.uid && isPatient()) ||
           isAdmin()
         );
 
-        // Delete: only admins for now.
         allow delete: if isAdmin();
     }
     
@@ -232,97 +156,81 @@ service cloud.firestore {
     // /prescriptions/{prescriptionId} (Prescription)
     // ============================================================
     match /prescriptions/{prescriptionId} {
-      // READ: A user can read a single prescription doc if they are the patient or doctor on it.
       allow get: if isSignedIn() && (resource.data.patientId == request.auth.uid || resource.data.doctorId == request.auth.uid || isAdmin());
       
-      // LIST (QUERY): A user can query prescriptions only if they filter by their OWN patientId or doctorId.
       allow list: if isSignedIn() && (
         (request.query.where.doctorId == request.auth.uid && isDoctor()) ||
         (request.query.where.patientId == request.auth.uid && isPatient()) ||
         isAdmin()
       );
 
-      // CREATE: A doctor can create a prescription if they are the doctor listed on it.
       allow create: if isSignedIn() && isDoctor() && request.resource.data.doctorId == request.auth.uid;
 
-      // UPDATE/DELETE: Only the prescribing doctor or an admin can modify/delete it.
       allow update, delete: if isSignedIn() && (isOwner(resource.data.doctorId) || isAdmin());
     }
 
 
     // ============================================================
-    // /vaccinationDrives/{vaccinationDriveId} (public)
+    // Public Collections
     // ============================================================
-    match /vaccinationDrives/{vaccinationDriveId} {
+    match /vaccinationDrives/{docId} {
         allow get, list: if true;
         allow create, update, delete: if isAdmin();
     }
 
-    // ============================================================
-    // /vaccinationRegistrations/{registrationId}
-    // ============================================================
-    match /vaccinationRegistrations/{registrationId} {
-        // A user can create their own registration.
-        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-        
-        // A user can read their own registration, admins can read any.
-        allow get: if isSignedIn() && (isOwner(resource.data.userId) || isAdmin());
-        
-        // A user can list registrations they own, admins can list all.
-        allow list: if isSignedIn() && (request.query.where.userId == request.auth.uid || isAdmin());
-        
-        // Admins can delete registrations.
-        allow delete, update: if isAdmin();
-    }
-
-
-    // ============================================================
-    // /healthCamps/{healthCampId} (public)
-    // ============================================================
-    match /healthCamps/{healthCampId} {
+     match /healthCamps/{docId} {
         allow get, list: if true;
         allow create, update, delete: if isAdmin();
     }
     
-    // ============================================================
-    // /announcements/{announcementId} (public)
-    // ============================================================
-    match /announcements/{announcementId} {
+    match /announcements/{docId} {
         allow get, list: if true;
         allow create, update, delete: if isAdmin();
     }
 
+
     // ============================================================
-    // /forumPosts/{postId} (ForumPost)
+    // User-Specific Write Collections
+    // ============================================================
+    match /vaccinationRegistrations/{registrationId} {
+        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+        allow get: if isSignedIn() && (isOwner(resource.data.userId) || isAdmin());
+        allow list: if isSignedIn() && (request.query.where.userId == request.auth.uid || isAdmin());
+        allow delete, update: if isAdmin();
+    }
+    
+     match /feedback/{feedbackId} {
+        allow create: if isSignedIn();
+        allow list: if (request.query.where.rating >= 4 && request.query.where.feedbackType == 'General Feedback') || isAdmin();
+        allow get, update, delete: if isAdmin();
+    }
+
+    // ============================================================
+    // Forum
     // ============================================================
      match /forumPosts/{postId} {
-        // Any signed-in user can create a post.
         allow create: if isSignedIn();
-
-        // Anyone can read posts.
         allow get, list: if true;
-
-        // Allow owner/admin to update/delete.
         allow update: if isSignedIn() &&
           (
             (isOwner(resource.data.authorId) || isAdmin()) ||
             (
-              // Allow any signed in user to increment the like count and add their own UID to likedBy
               request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount', 'likedBy']) &&
-              request.resource.data.likeCount == resource.data.likeCount + 1 &&
-              request.resource.data.likedBy.hasAll(resource.data.likedBy) &&
-              request.resource.data.likedBy.size() == resource.data.likedBy.size() + 1 &&
-              request.auth.uid in request.resource.data.likedBy
+              (
+                (
+                  request.resource.data.likeCount == resource.data.likeCount + 1 &&
+                  request.resource.data.likedBy.hasAll(resource.data.likedBy) &&
+                  request.resource.data.likedBy.size() == resource.data.likedBy.size() + 1 &&
+                  request.auth.uid in request.resource.data.likedBy
+                ) || 
+                (
+                  request.resource.data.likeCount == resource.data.likeCount - 1 &&
+                  !request.resource.data.likedBy.hasAny([request.auth.uid]) &&
+                  request.auth.uid in resource.data.likedBy
+                )
+              )
             ) ||
             (
-              // Allow a user to decrement the like count and remove their own UID from likedBy
-              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount', 'likedBy']) &&
-              request.resource.data.likeCount == resource.data.likeCount - 1 &&
-              !request.resource.data.likedBy.hasAny([request.auth.uid]) &&
-              request.auth.uid in resource.data.likedBy
-            ) ||
-            (
-                // Allow anyone to increment viewCount
                 request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount']) &&
                 request.resource.data.viewCount == resource.data.viewCount + 1
             )
@@ -330,35 +238,11 @@ service cloud.firestore {
         
         allow delete: if isSignedIn() && (isOwner(resource.data.authorId) || isAdmin());
         
-        // --- /forumPosts/{postId}/replies/{replyId} ---
         match /replies/{replyId} {
-             // Any signed-in user can create a reply.
             allow create: if isSignedIn();
-
-            // Anyone can read replies.
             allow get, list: if true;
-
-            // Only the author or an admin can update/delete their own reply.
             allow update, delete: if isSignedIn() && (isOwner(resource.data.authorId) || isAdmin());
         }
      }
-     
-     
-    // ============================================================
-    // /feedback/{feedbackId} (Feedback)
-    // ============================================================
-    match /feedback/{feedbackId} {
-        // Any signed-in user can create feedback.
-        allow create: if isSignedIn();
-
-        // Public can list feedback for testimonials if they query for high ratings and correct type
-        allow list: if (
-            request.query.where.rating >= 4 &&
-            request.query.where.feedbackType == 'General Feedback'
-          ) || isAdmin();
-        
-        // Admins can get, update, or delete any feedback.
-        allow get, update, delete: if isAdmin();
-    }
   }
 }

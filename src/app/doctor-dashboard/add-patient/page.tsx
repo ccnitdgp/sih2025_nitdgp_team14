@@ -108,10 +108,10 @@ export default function AddPatientPage() {
             country: values.country,
             pinCode: values.pinCode,
         },
-        doctorId: doctorUser.uid, // <-- This is the crucial fix
+        doctorId: doctorUser.uid, // This creates the formal link needed by security rules
       };
 
-      // 1. Create the patient's user profile document in Firestore.
+      // Create the patient's user profile document in Firestore.
       setDocumentNonBlocking(newPatientDocRef, userProfile, { merge: true });
       
       toast({
