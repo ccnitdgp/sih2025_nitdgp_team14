@@ -1,0 +1,31 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper function to check if a user is signed in
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if the user has the 'doctor' role in Firestore
+    function isDoctor() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor';
+    }
+
+    // Doctors can upload their own verification documents
+    // The path matches: /doctor-verification/{doctorId}/{documentName}
+    match /doctor-verification/{userId}/{allPaths=**} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Doctors can upload documents for their patients
+    // The path matches: /patient_documents/{patientId}/{documentName}
+    match /patient_documents/{patientId}/{allPaths=**} {
+        // Allow write access if the requesting user is a doctor
+        allow write: if isDoctor();
+        // Allow read access to the patient who owns the record and the doctor
+        allow read: if isSignedIn() && (request.auth.uid == patientId || isDoctor());
+    }
+  }
+}
