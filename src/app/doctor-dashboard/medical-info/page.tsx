@@ -61,7 +61,8 @@ export default function MedicalInfoPage() {
     if (!selectedPatientId || !firestore) return null;
     return query(
       collection(firestore, `users/${selectedPatientId}/healthRecords`),
-      where('recordType', '==', 'medicalHistory')
+      where('recordType', '==', 'medicalHistory'),
+      orderBy('dateCreated', 'desc')
     );
   }, [selectedPatientId, firestore]);
 
@@ -179,7 +180,6 @@ export default function MedicalInfoPage() {
                         medicalHistory && medicalHistory.length > 0 ? (
                             <div className="space-y-4">
                                 {medicalHistory
-                                 .sort((a, b) => b.dateCreated?.toMillis() - a.dateCreated?.toMillis())
                                 .map(note => (
                                     <div key={note.id} className="p-4 border rounded-lg">
                                         <p className="text-sm">{note.details}</p>
@@ -199,5 +199,3 @@ export default function MedicalInfoPage() {
     </div>
   )
 }
-
-    

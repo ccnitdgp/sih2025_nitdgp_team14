@@ -300,7 +300,4 @@ export default function UploadDocumentsPage() {
         )}
     </div>
   )
-
-    
-
-    
+}
