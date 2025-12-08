@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
 import { collection, serverTimestamp, query, where, orderBy, doc, DocumentReference } from 'firebase/firestore';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
@@ -42,6 +42,7 @@ export default function UploadDocumentsPage() {
       documentName: '',
       organization: '',
       documentType: undefined,
+      file: undefined,
     },
   });
   
@@ -115,7 +116,7 @@ export default function UploadDocumentsPage() {
 
                 await addDocumentNonBlocking(healthRecordsRef, newRecordData);
                 toast({ title: 'Document Uploaded', description: 'The document has been added to the patient\'s records.' });
-                form.reset({ patientId: values.patientId, documentName: '', organization: '', documentType: undefined });
+                form.reset({ patientId: values.patientId, documentName: '', organization: '', documentType: undefined, file: undefined });
                 setIsSubmitting(false);
             }
         )
@@ -217,19 +218,18 @@ export default function UploadDocumentsPage() {
                              <FormField
                                 control={form.control}
                                 name="file"
-                                render={({ field: { onChange, ...fieldProps } }) => (
+                                render={({ field }) => (
                                     <FormItem className="md:col-span-2">
                                         <FormLabel>File (PDF only)</FormLabel>
                                         <FormControl>
-                                            <Input 
-                                                type="file" 
+                                            <Input
+                                                type="file"
                                                 accept="application/pdf"
-                                                {...fieldProps}
-                                                onChange={(event) => {
-                                                    const file = event.target.files?.[0];
-                                                    if (file) {
-                                                        onChange(file);
-                                                    }
+                                                onBlur={field.onBlur}
+                                                name={field.name}
+                                                ref={field.ref}
+                                                onChange={(e) => {
+                                                    field.onChange(e.target.files ? e.target.files[0] : null)
                                                 }}
                                             />
                                         </FormControl>
