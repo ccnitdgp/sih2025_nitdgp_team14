@@ -11,8 +11,9 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // Simplified to directly check the uid.
     function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+      return request.auth.uid == userId;
     }
 
     // Load current user's profile
@@ -21,6 +22,7 @@ service cloud.firestore {
     }
 
     function hasRole(role) {
+      // This check still requires reading the user doc, which is fine for rules on OTHER documents.
       return isSignedIn()
         && userDoc(request.auth.uid).data.role == role;
     }
@@ -54,8 +56,8 @@ service cloud.firestore {
         && request.auth.uid == userId
         && request.resource.data.id == userId;
 
-      // User reads/updates their own profile.
-      allow get, update: if isOwner(userId);
+      // User can always read/update their own profile. This rule is now self-contained.
+      allow get, update: if request.auth.uid == userId;
 
       // Public can query for patient count. Admins can list all users.
       allow list: if (request.query.where.role == 'patient') || isAdmin();
