@@ -1,12 +1,11 @@
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useUser, useFirestore, useCollection, useMemoFirebase, useFirebaseApp, addDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, query, where, doc, updateDoc } from 'firebase/firestore';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useFirebaseApp } from '@/firebase';
+import { collection, serverTimestamp, doc, updateDoc, addDoc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,6 +17,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Upload, FileText, Syringe, Scan, Loader2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useSearchParams } from 'next/navigation';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 const uploadSchema = z.object({
   patientId: z.string().min(1, 'Please select a patient.'),
@@ -60,29 +60,12 @@ export default function UploadDocumentsPage() {
   }, [searchParams, form]);
 
 
-   const appointmentsQuery = useMemoFirebase(() => {
+  const patientsCollectionRef = useMemoFirebase(() => {
     if (!doctorUser || !firestore) return null;
-    return query(
-      collection(firestore, 'appointments'),
-      where('doctorId', '==', doctorUser.uid)
-    );
+    return collection(firestore, `users/${doctorUser.uid}/patients`);
   }, [doctorUser, firestore]);
 
-  const { data: appointments, isLoading: isLoadingAppointments } = useCollection(appointmentsQuery);
-  
-  const uniquePatients = useMemo(() => {
-    if (!appointments) return [];
-    const patientMap = new Map();
-    appointments.forEach(appt => {
-        if (!patientMap.has(appt.patientId)) {
-            patientMap.set(appt.patientId, {
-                id: appt.patientId,
-                name: appt.patientName,
-            });
-        }
-    });
-    return Array.from(patientMap.values());
-  }, [appointments]);
+  const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsCollectionRef);
 
   const onSubmit = (values: z.infer<typeof uploadSchema>) => {
     if (!doctorUser || !firestore || !firebaseApp) return;
@@ -92,6 +75,7 @@ export default function UploadDocumentsPage() {
 
     const file = values.file[0];
     const storage = getStorage(firebaseApp);
+    // Use the patient's UID for the folder path
     const storageRef = ref(storage, `patient_documents/${values.patientId}/${Date.now()}_${file.name}`);
     const uploadTask = uploadBytesResumable(storageRef, file);
 
@@ -118,10 +102,8 @@ export default function UploadDocumentsPage() {
             if (values.documentType === 'Scan') recordType = 'scanReport';
             
             const healthRecordsRef = collection(firestore, 'users', values.patientId, 'healthRecords');
-            const newDocRef = doc(healthRecordsRef);
-
+            
             const reportData = {
-                id: newDocRef.id,
                 recordType: recordType,
                 details: {
                     name: values.documentName,
@@ -135,7 +117,10 @@ export default function UploadDocumentsPage() {
                 addedBy: doctorUser.uid,
             };
 
-            await addDocumentNonBlocking(healthRecordsRef, reportData);
+            const newDocRef = await addDocumentNonBlocking(healthRecordsRef, reportData);
+            if (newDocRef) {
+                await updateDoc(newDocRef, { id: newDocRef.id });
+            }
             
             toast({ title: 'Document Uploaded Successfully', description: `${file.name} has been saved to the patient's records.` });
             
@@ -169,16 +154,16 @@ export default function UploadDocumentsPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Select Patient</FormLabel>
-                       <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingAppointments}>
+                       <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingPatients}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder={isLoadingAppointments ? "Loading patients..." : "Choose a patient"} />
+                            <SelectValue placeholder={isLoadingPatients ? "Loading patients..." : "Choose a patient"} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {uniquePatients?.map(p => (
+                          {patients?.map(p => (
                             <SelectItem key={p.id} value={p.id}>
-                              {p.name}
+                              {p.firstName} {p.lastName}
                             </SelectItem>
                           ))}
                         </SelectContent>
