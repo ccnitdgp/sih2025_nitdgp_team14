@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils';
 import { CalendarIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import { DocumentManager } from '@/components/patient/document-manager';
 
 const profileSchema = z.object({
   firstName: z.string().min(2, "First name is required."),
@@ -295,58 +296,61 @@ export default function PatientProfilePage() {
                     </CardContent>
                   </Card>
                 ) : (
-                  <div className="grid grid-cols-1 gap-8 md:grid-cols-7">
-                      <div className="md:col-span-4 space-y-8">
-                        <Card>
-                            <CardHeader><CardTitle>Personal Information</CardTitle></CardHeader>
-                            <CardContent className="space-y-6">
-                                <ProfileDetail icon={FileText} label="Patient ID" value={userProfile.patientId} />
-                                <ProfileDetail icon={UserIcon} label="Full Name" value={`${userProfile.firstName} ${userProfile.lastName}`} />
-                                <ProfileDetail icon={Cake} label="Date of Birth" value={userProfile.dateOfBirth?.toDate ? `${userProfile.dateOfBirth.toDate().toLocaleDateString()} (${getAge(userProfile.dateOfBirth)} years old)` : 'Not Provided'} />
-                                <ProfileDetail icon={Users} label="Gender" value={userProfile.gender || 'N/A'} />
-                                <ProfileDetail icon={Droplet} label="Blood Group" value={userProfile.bloodGroup || 'N/A'} />
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader><CardTitle>Contact Details</CardTitle></CardHeader>
-                            <CardContent className="space-y-6">
-                                <ProfileDetail icon={Phone} label="Phone Number" value={userProfile.phoneNumber || 'N/A'} />
-                                <ProfileDetail icon={AtSign} label="Email Address" value={user?.email} />
-                                <ProfileDetail icon={Home} label="Full Address" value={`${userProfile.address?.fullAddress || ''}, ${userProfile.address?.city || ''}, ${userProfile.address?.state || ''}, ${userProfile.address?.country || ''} - ${userProfile.address?.pinCode || ''}`.replace(/, , /g, ', ').replace(/^, |, $/g, '').replace(/ - $/g, '') || 'N/A'} />
-                                {userProfile.emergencyContact?.name && (
-                                    <div className="flex items-start gap-4">
-                                        <Users className="h-5 w-5 text-destructive mt-1 flex-shrink-0" />
-                                        <div>
-                                            <p className="text-sm font-medium text-muted-foreground">Emergency Contact</p>
-                                            <p className="font-semibold">{userProfile.emergencyContact.name} ({userProfile.emergencyContact.relation})</p>
-                                            <p className="text-sm font-semibold">{userProfile.emergencyContact.phone}</p>
-                                        </div>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                      </div>
+                  <div className="space-y-8">
+                    <div className="grid grid-cols-1 gap-8 md:grid-cols-7">
+                        <div className="md:col-span-4 space-y-8">
+                          <Card>
+                              <CardHeader><CardTitle>Personal Information</CardTitle></CardHeader>
+                              <CardContent className="space-y-6">
+                                  <ProfileDetail icon={FileText} label="Patient ID" value={userProfile.patientId} />
+                                  <ProfileDetail icon={UserIcon} label="Full Name" value={`${userProfile.firstName} ${userProfile.lastName}`} />
+                                  <ProfileDetail icon={Cake} label="Date of Birth" value={userProfile.dateOfBirth?.toDate ? `${userProfile.dateOfBirth.toDate().toLocaleDateString()} (${getAge(userProfile.dateOfBirth)} years old)` : 'Not Provided'} />
+                                  <ProfileDetail icon={Users} label="Gender" value={userProfile.gender || 'N/A'} />
+                                  <ProfileDetail icon={Droplet} label="Blood Group" value={userProfile.bloodGroup || 'N/A'} />
+                              </CardContent>
+                          </Card>
+                          <Card>
+                              <CardHeader><CardTitle>Contact Details</CardTitle></CardHeader>
+                              <CardContent className="space-y-6">
+                                  <ProfileDetail icon={Phone} label="Phone Number" value={userProfile.phoneNumber || 'N/A'} />
+                                  <ProfileDetail icon={AtSign} label="Email Address" value={user?.email} />
+                                  <ProfileDetail icon={Home} label="Full Address" value={`${userProfile.address?.fullAddress || ''}, ${userProfile.address?.city || ''}, ${userProfile.address?.state || ''}, ${userProfile.address?.country || ''} - ${userProfile.address?.pinCode || ''}`.replace(/, , /g, ', ').replace(/^, |, $/g, '').replace(/ - $/g, '') || 'N/A'} />
+                                  {userProfile.emergencyContact?.name && (
+                                      <div className="flex items-start gap-4">
+                                          <Users className="h-5 w-5 text-destructive mt-1 flex-shrink-0" />
+                                          <div>
+                                              <p className="text-sm font-medium text-muted-foreground">Emergency Contact</p>
+                                              <p className="font-semibold">{userProfile.emergencyContact.name} ({userProfile.emergencyContact.relation})</p>
+                                              <p className="text-sm font-semibold">{userProfile.emergencyContact.phone}</p>
+                                          </div>
+                                      </div>
+                                  )}
+                              </CardContent>
+                          </Card>
+                        </div>
 
-                      <div className="md:col-span-3">
-                        <Card>
-                            <CardHeader>
-                                <div className='flex justify-between items-center'>
-                                    <CardTitle>Health Metrics</CardTitle>
-                                    <Button variant="ghost" size="sm" disabled><Sparkles className='mr-2'/> Analyze</Button>
-                                </div>
-                                <CardDescription>Your latest recorded health metrics.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                <ProfileDetail icon={Scale} label="Height" value={userProfile.healthMetrics?.height ? `${userProfile.healthMetrics.height} cm` : 'N/A'} />
-                                <ProfileDetail icon={Scale} label="Weight" value={userProfile.healthMetrics?.weight ? `${userProfile.healthMetrics.weight} kg` : 'N/A'} />
-                                <ProfileDetail icon={TrendingUp} label="Body Mass Index (BMI)" value={calculateBmi() || 'N/A'} />
-                                <ProfileDetail icon={Activity} label="Blood Pressure" value={userProfile.healthMetrics?.bloodPressure || 'N/A'} description="Last reading" />
-                                <ProfileDetail icon={Droplets} label="Blood Sugar" value={userProfile.healthMetrics?.bloodSugar ? `${userProfile.healthMetrics.bloodSugar} mg/dL` : 'N/A'} description="Fasting" />
-                                <ProfileDetail icon={HeartPulse} label="Pulse Rate" value={userProfile.healthMetrics?.pulseRate ? `${userProfile.healthMetrics.pulseRate} bpm` : 'N/A'} description="Resting" />
-                            </CardContent>
-                        </Card>
-                      </div>
+                        <div className="md:col-span-3 space-y-8">
+                          <Card>
+                              <CardHeader>
+                                  <div className='flex justify-between items-center'>
+                                      <CardTitle>Health Metrics</CardTitle>
+                                      <Button variant="ghost" size="sm" disabled><Sparkles className='mr-2'/> Analyze</Button>
+                                  </div>
+                                  <CardDescription>Your latest recorded health metrics.</CardDescription>
+                              </CardHeader>
+                              <CardContent className="space-y-6">
+                                  <ProfileDetail icon={Scale} label="Height" value={userProfile.healthMetrics?.height ? `${userProfile.healthMetrics.height} cm` : 'N/A'} />
+                                  <ProfileDetail icon={Scale} label="Weight" value={userProfile.healthMetrics?.weight ? `${userProfile.healthMetrics.weight} kg` : 'N/A'} />
+                                  <ProfileDetail icon={TrendingUp} label="Body Mass Index (BMI)" value={calculateBmi() || 'N/A'} />
+                                  <ProfileDetail icon={Activity} label="Blood Pressure" value={userProfile.healthMetrics?.bloodPressure || 'N/A'} description="Last reading" />
+                                  <ProfileDetail icon={Droplets} label="Blood Sugar" value={userProfile.healthMetrics?.bloodSugar ? `${userProfile.healthMetrics.bloodSugar} mg/dL` : 'N/A'} description="Fasting" />
+                                  <ProfileDetail icon={HeartPulse} label="Pulse Rate" value={userProfile.healthMetrics?.pulseRate ? `${userProfile.healthMetrics.pulseRate} bpm` : 'N/A'} description="Resting" />
+                              </CardContent>
+                          </Card>
+                          <DocumentManager userProfile={userProfile} userDocRef={userDocRef} />
+                        </div>
 
+                    </div>
                   </div>
                 )}
               </>
@@ -360,3 +364,5 @@ export default function PatientProfilePage() {
     </div>
   );
 }
+
+    

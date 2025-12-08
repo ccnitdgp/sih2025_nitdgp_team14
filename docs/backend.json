@@ -271,7 +271,15 @@
             "existingMedicalConditions": { "type": "string", "description": "Ongoing medical conditions like Diabetes, BP, etc." }
           }
         },
-        "languagesKnown": { "type": "array", "items": { "type": "string" } }
+        "languagesKnown": { "type": "array", "items": { "type": "string" } },
+        "verification": {
+          "type": "object",
+          "description": "Stores status and URLs for patient's verification documents.",
+          "properties": {
+            "birthCertificate": { "$ref": "#/backend/entities/VerificationDocument" },
+            "addressProof": { "$ref": "#/backend/entities/VerificationDocument" }
+          }
+        }
       },
       "required": [
         "id",
