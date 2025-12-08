@@ -156,7 +156,7 @@ export function Header() {
                   <Skeleton className="h-8 w-8 rounded-full" />
               </div>
             ) : user ? (
-              <>
+              <div className="flex items-center gap-2">
                 <ModeToggle />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -194,7 +194,7 @@ export function Header() {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-              </>
+              </div>
             ) : (
                 <div className="hidden sm:flex items-center gap-2">
                   <ModeToggle />
