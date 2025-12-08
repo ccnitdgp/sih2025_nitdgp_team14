@@ -3,29 +3,82 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     
-    // Helper function to check if a user is signed in
+    // -----------------------------
+    // Helpers
+    // -----------------------------
     function isSignedIn() {
       return request.auth != null;
     }
     
-    // Helper function to check if the user has the 'doctor' role in Firestore
+    function userDoc(uid) {
+      return get(/databases/$(database)/documents/users/$(uid));
+    }
+    
     function isDoctor() {
-      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor';
+      return isSignedIn() && userDoc(request.auth.uid).data.role == "doctor";
+    }
+    
+    function isPatient() {
+      return isSignedIn() && userDoc(request.auth.uid).data.role == "patient";
     }
 
-    // Doctors can upload their own verification documents
-    // The path matches: /doctor-verification/{doctorId}/{documentName}
-    match /doctor-verification/{userId}/{allPaths=**} {
-      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    // ---------------------------------
+    // Doctor Verification Files
+    //
+    // path: doctor-verification/{doctorId}/{fileName}
+    // Doctors can upload their own verification docs
+    // Admin can read all
+    // ---------------------------------
+    match /doctor-verification/{doctorId}/{fileName} {
+
+      // Doctor uploads own verification files
+      allow write: if isSignedIn()
+        && request.auth.uid == doctorId
+        && isDoctor();
+
+      // Doctor can read own documents
+      // Admin can read all
+      allow read: if isSignedIn()
+        && (
+          request.auth.uid == doctorId
+          || userDoc(request.auth.uid).data.role == "admin"
+        );
     }
 
-    // Doctors can upload documents for their patients
-    // The path matches: /patient_documents/{patientId}/{documentName}
-    match /patient_documents/{patientId}/{allPaths=**} {
-        // Allow write access if the requesting user is a doctor
-        allow write: if isDoctor();
-        // Allow read access to the patient who owns the record and the doctor
-        allow read: if isSignedIn() && (request.auth.uid == patientId || isDoctor());
+
+    // ---------------------------------
+    // Patient Medical Documents
+    //
+    // path: patient_documents/{patientId}/{fileName}
+    // Doctor uploads files for patients
+    // Patients can upload own files (lab reports, PDF)
+    // ---------------------------------
+    match /patient_documents/{patientId}/{fileName} {
+
+      // Patient uploads own medical files
+      allow write: if isSignedIn()
+        && request.auth.uid == patientId
+        && isPatient();
+
+      // Doctor uploads medical files for a patient
+      allow write: if isSignedIn()
+        && isDoctor();
+
+      // Patients download own files
+      // Doctor can view any patient’s file
+      allow read: if isSignedIn()
+        && (
+          request.auth.uid == patientId
+          || isDoctor()
+        );
+    }
+
+
+    // ---------------------------------
+    // Block everything else
+    // ---------------------------------
+    match /{allPaths=**} {
+      allow read, write: if false;
     }
   }
 }
