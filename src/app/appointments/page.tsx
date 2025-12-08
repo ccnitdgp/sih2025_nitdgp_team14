@@ -186,6 +186,7 @@ const FindDoctors = ({ t, userProfile: initialUserProfile, isUserProfileLoading:
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState<string | undefined>(undefined);
   const [appointmentType, setAppointmentType] = useState('In-Person');
+  const [bookingReason, setBookingReason] = useState('');
   const { toast } = useToast();
   const { user } = useUser();
   const firestore = useFirestore();
@@ -271,7 +272,8 @@ const FindDoctors = ({ t, userProfile: initialUserProfile, isUserProfileLoading:
     setSelectedDoctor(doctor);
     setSelectedDate(new Date());
     setSelectedTime(undefined);
-    setAppointmentType('In-Person');
+    setAppointmentType(doctor.teleconsultation ? 'In-Person' : 'In-Person'); // Default to in-person
+    setBookingReason('');
   };
 
   const handleCloseDialog = () => {
@@ -281,7 +283,8 @@ const FindDoctors = ({ t, userProfile: initialUserProfile, isUserProfileLoading:
   }
 
   const handleBookAppointment = () => {
-    if (!selectedDoctor || !selectedDate || !selectedTime || !user || !firestore || !userProfile) return;
+    if (!selectedDoctor || !user || !firestore || !userProfile) return;
+    if (appointmentType === 'In-Person' && (!selectedDate || !selectedTime)) return;
     if (!userProfile.patientId) {
         toast({
             variant: "destructive",
@@ -293,27 +296,33 @@ const FindDoctors = ({ t, userProfile: initialUserProfile, isUserProfileLoading:
     
     const newAppointmentRef = doc(collection(firestore, "appointments"));
     const patientName = `${userProfile.firstName} ${userProfile.lastName}`;
+    
+    const isVirtualRequest = appointmentType === 'Virtual';
 
     const newAppointment = {
         id: newAppointmentRef.id,
         doctorId: selectedDoctor.id,
         patientId: user.uid,
-        patientDisplayId: userProfile.patientId, // Store the user-facing patient ID
+        patientDisplayId: userProfile.patientId,
         patientName: patientName,
-        date: format(selectedDate, 'yyyy-MM-dd'),
-        time: selectedTime,
+        date: isVirtualRequest ? null : format(selectedDate!, 'yyyy-MM-dd'),
+        time: isVirtualRequest ? null : selectedTime,
+        meetLink: null,
         type: appointmentType,
         doctorName: selectedDoctor.name,
         specialty: selectedDoctor.specialty,
         location: selectedDoctor.location,
-        status: 'Scheduled',
+        status: isVirtualRequest ? 'Pending' : 'Scheduled',
+        reason: bookingReason,
     };
     
     addDocumentNonBlocking(collection(firestore, "appointments"), newAppointment);
 
     toast({
-      title: t('appointment_booked_title', 'Appointment Booked!'),
-      description: t('appointment_booked_desc', `Your appointment with ${selectedDoctor.name} on ${format(selectedDate, 'PPP')} at ${selectedTime} has been successfully scheduled.`),
+      title: isVirtualRequest ? 'Request Sent!' : t('appointment_booked_title', 'Appointment Booked!'),
+      description: isVirtualRequest 
+        ? `Your request for a virtual consultation with ${selectedDoctor.name} has been sent. You will be notified when it's approved.`
+        : t('appointment_booked_desc', `Your appointment with ${selectedDoctor.name} on ${format(selectedDate!, 'PPP')} at ${selectedTime} has been successfully scheduled.`),
     });
     handleCloseDialog();
   };
@@ -326,9 +335,10 @@ const FindDoctors = ({ t, userProfile: initialUserProfile, isUserProfileLoading:
     if (!doctorSearchQuery) {
         return specialtyFilteredDoctors;
     }
+    const query = doctorSearchQuery.toLowerCase();
     return specialtyFilteredDoctors.filter(doc => 
-        doc.name.toLowerCase().includes(doctorSearchQuery.toLowerCase()) ||
-        doc.location.toLowerCase().includes(doctorSearchQuery.toLowerCase())
+        doc.name.toLowerCase().includes(query) ||
+        doc.location.toLowerCase().includes(query)
     );
   }, [specialtyFilteredDoctors, doctorSearchQuery]);
 
@@ -349,7 +359,11 @@ const FindDoctors = ({ t, userProfile: initialUserProfile, isUserProfileLoading:
     ? getAvailableTimesForDate(selectedDoctor, selectedDate)
     : [];
 
-  const isBookingDisabled = !selectedDate || !selectedTime || isUserProfileLoading || !userProfile?.patientId;
+  const isBookingDisabled = (
+    (appointmentType === 'In-Person' && (!selectedDate || !selectedTime)) ||
+    (appointmentType === 'Virtual' && !bookingReason) ||
+    isUserProfileLoading || !userProfile?.patientId
+  );
 
     return (
         <>
@@ -463,7 +477,7 @@ const FindDoctors = ({ t, userProfile: initialUserProfile, isUserProfileLoading:
                 </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
-                 {selectedDoctor?.teleconsultation && (
+                {selectedDoctor?.teleconsultation && (
                     <div>
                         <Label>Appointment Type</Label>
                         <RadioGroup value={appointmentType} onValueChange={setAppointmentType} className="grid grid-cols-2 gap-4 mt-2">
@@ -483,48 +497,57 @@ const FindDoctors = ({ t, userProfile: initialUserProfile, isUserProfileLoading:
                         </RadioGroup>
                     </div>
                 )}
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <Button
-                            variant={"outline"}
-                            className={cn(
-                                "w-full justify-start text-left font-normal",
-                                !selectedDate && "text-muted-foreground"
-                            )}
-                        >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                        <Calendar
-                            mode="single"
-                            selected={selectedDate}
-                            onSelect={(date) => {
-                                setSelectedDate(date);
-                                setSelectedTime(undefined);
-                            }}
-                             disabled={(date) => {
-                                if (date < startOfDay(new Date())) return true;
-                                if (!selectedDoctor) return true;
-                                const availableTimes = getAvailableTimesForDate(selectedDoctor, date);
-                                return availableTimes.length === 0;
-                            }}
-                            initialFocus
-                        />
-                    </PopoverContent>
-                </Popover>
+                 {appointmentType === 'In-Person' ? (
+                     <>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                        "w-full justify-start text-left font-normal",
+                                        !selectedDate && "text-muted-foreground"
+                                    )}
+                                >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                                <Calendar
+                                    mode="single"
+                                    selected={selectedDate}
+                                    onSelect={(date) => {
+                                        setSelectedDate(date);
+                                        setSelectedTime(undefined);
+                                    }}
+                                    disabled={(date) => {
+                                        if (date < startOfDay(new Date())) return true;
+                                        if (!selectedDoctor) return true;
+                                        const availableTimes = getAvailableTimesForDate(selectedDoctor, date);
+                                        return availableTimes.length === 0;
+                                    }}
+                                    initialFocus
+                                />
+                            </PopoverContent>
+                        </Popover>
 
-                <Select onValueChange={setSelectedTime} value={selectedTime} disabled={!selectedDate || availableTimesForSelectedDate.length === 0}>
-                    <SelectTrigger>
-                        <SelectValue placeholder={availableTimesForSelectedDate.length > 0 ? t('select_time_prompt', 'Pick a time slot') : t('no_slots_available_text', 'No slots available')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {availableTimesForSelectedDate.map(time => (
-                            <SelectItem key={time} value={time}>{time}</SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+                        <Select onValueChange={setSelectedTime} value={selectedTime} disabled={!selectedDate || availableTimesForSelectedDate.length === 0}>
+                            <SelectTrigger>
+                                <SelectValue placeholder={availableTimesForSelectedDate.length > 0 ? t('select_time_prompt', 'Pick a time slot') : t('no_slots_available_text', 'No slots available')} />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {availableTimesForSelectedDate.map(time => (
+                                    <SelectItem key={time} value={time}>{time}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                     </>
+                 ) : (
+                    <div>
+                        <Label htmlFor='reason'>Reason for Consultation</Label>
+                        <Textarea id="reason" value={bookingReason} onChange={(e) => setBookingReason(e.target.value)} placeholder="Briefly describe your symptoms or reason for the virtual visit."/>
+                    </div>
+                 )}
                  <p className="text-xs text-muted-foreground">
                     A confirmation will be sent to your registered email address. The clinic will contact you if any changes are needed.
                 </p>
@@ -533,7 +556,7 @@ const FindDoctors = ({ t, userProfile: initialUserProfile, isUserProfileLoading:
                 <Button variant="outline" onClick={handleCloseDialog}>{t('cancel_button', 'Cancel')}</Button>
                 <Button onClick={handleBookAppointment} disabled={isBookingDisabled}>
                     {isUserProfileLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
-                    {isUserProfileLoading ? 'Loading Profile...' : t('confirm_booking_button', 'Confirm Booking')}
+                    {isUserProfileLoading ? 'Loading Profile...' : (appointmentType === 'Virtual' ? 'Request Appointment' : t('confirm_booking_button', 'Confirm Booking'))}
                 </Button>
             </DialogFooter>
             </DialogContent>
@@ -557,6 +580,7 @@ const MyAppointments = ({ t }) => {
     const { data: allAppointments, isLoading } = useCollection(appointmentsQuery);
 
     const upcomingAppointments = allAppointments?.filter(appt => appt.status === 'Scheduled');
+    const pendingAppointments = allAppointments?.filter(appt => appt.status === 'Pending');
 
     const handleCancelAppointment = () => {
         if (!appointmentToCancel || !firestore) return;
@@ -665,6 +689,20 @@ const MyAppointments = ({ t }) => {
                         )}
                     </Card>
                 )) : <p>No upcoming appointments.</p>}
+                 {pendingAppointments && pendingAppointments.length > 0 && (
+                     <div className="pt-4 border-t">
+                        <h3 className="font-semibold mb-2">Pending Requests</h3>
+                        {pendingAppointments.map(appt => (
+                             <Card key={appt.id} className="p-4 flex items-center justify-between bg-muted/50">
+                                <div>
+                                    <h4 className="font-semibold">Request to {appt.doctorName}</h4>
+                                    <p className="text-sm text-muted-foreground">{appt.reason}</p>
+                                </div>
+                                <Badge variant="secondary">Pending</Badge>
+                             </Card>
+                        ))}
+                     </div>
+                 )}
             </CardContent>
         </Card>
         
@@ -811,21 +849,23 @@ const HistoryTab = ({ t }) => {
 
     const pastAppointments = useMemo(() => {
         if (!allAppointments) return [];
-        const filtered = allAppointments
-            .filter(appt => appt.status !== 'Scheduled')
-            .sort((a,b) => parseISO(b.date).getTime() - parseISO(a.date).getTime());
+        const filteredByStatus = allAppointments
+            .filter(appt => appt.status !== 'Scheduled' && appt.status !== 'Pending')
+            .sort((a, b) => {
+                const dateA = a.date ? parseISO(a.date).getTime() : 0;
+                const dateB = b.date ? parseISO(b.date).getTime() : 0;
+                return dateB - dateA;
+            });
         
         if (!historySearchQuery) {
-            return filtered;
+            return filteredByStatus;
         }
 
-        try {
-            const searchDate = format(new Date(historySearchQuery), 'yyyy-MM-dd');
-             return filtered.filter(appt => appt.date === searchDate);
-        } catch (e) {
-            // Invalid date input, return unfiltered
-            return filtered;
-        }
+        const queryLower = historySearchQuery.toLowerCase();
+        return filteredByStatus.filter(appt =>
+            appt.doctorName.toLowerCase().includes(queryLower) ||
+            appt.specialty.toLowerCase().includes(queryLower)
+        );
 
     }, [allAppointments, historySearchQuery]);
 
@@ -839,7 +879,8 @@ const HistoryTab = ({ t }) => {
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input
-                        type="date"
+                        type="text"
+                        placeholder="Search by doctor or specialty..."
                         value={historySearchQuery}
                         onChange={(e) => setHistorySearchQuery(e.target.value)}
                         className="pl-10"
@@ -857,7 +898,7 @@ const HistoryTab = ({ t }) => {
                             <p className="text-sm text-muted-foreground">{appt.specialty}</p>
                              <div className="flex items-center gap-2 mt-2 text-sm">
                                 <CalendarIcon className="h-4 w-4" />
-                                <span>{format(new Date(appt.date), 'PPP')} at {appt.time}</span>
+                                <span>{appt.date ? format(new Date(appt.date), 'PPP') : 'N/A'} at {appt.time || 'N/A'}</span>
                             </div>
                              <div className="flex items-center gap-2 text-sm">
                                 {appt.type === 'Virtual' ? <Video className="h-4 w-4" /> : <MapPin className="h-4 w-4" />}
@@ -868,7 +909,7 @@ const HistoryTab = ({ t }) => {
                              <Badge variant={appt.status === 'Canceled' ? 'destructive' : 'secondary'}>{appt.status}</Badge>
                         </div>
                     </Card>
-                )) : <p className="text-center text-muted-foreground">No past appointments found{historySearchQuery && ` for ${format(new Date(historySearchQuery), 'PPP')}`}.</p>}
+                )) : <p className="text-center text-muted-foreground">No past appointments found{historySearchQuery && ` for "${historySearchQuery}"`}.</p>}
             </CardContent>
         </Card>
     )
