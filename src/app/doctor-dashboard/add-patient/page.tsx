@@ -115,17 +115,14 @@ export default function AddPatientPage() {
       setDocumentNonBlocking(newPatientDocRef, userProfile, { merge: true });
 
       // 2. Add a link to this patient in the doctor's own patient list.
-      const doctorPatientsColRef = collection(firestore, 'users', doctorUser.uid, 'patients');
-      const patientLinkDoc = {
-        patientId: newPatientFirebaseId, // The internal firebase UID
-        customPatientId: customPatientId, // The user-facing PT- ID
-        firstName: values.firstName,
-        lastName: values.lastName,
-        email: values.email
+      const patientLinkRef = doc(firestore, 'users', doctorUser.uid, 'patients', newPatientFirebaseId);
+      const patientLinkData = {
+          patientId: newPatientFirebaseId,
+          firstName: values.firstName,
+          lastName: values.lastName,
+          email: values.email
       };
-      // Use the internal firebase UID as the doc ID for the link for consistency.
-      const patientDocInDoctorList = doc(doctorPatientsColRef, newPatientFirebaseId);
-      setDocumentNonBlocking(patientDocInDoctorList, patientLinkDoc, {});
+      setDocumentNonBlocking(patientLinkRef, patientLinkData, {});
       
       toast({
         title: "Patient Profile Created",
