@@ -266,16 +266,16 @@ export default function AddPatientPage() {
                             )}
                         />
                          <div className="space-y-2">
+                            <FormLabel>Address</FormLabel>
                             <FormField
                                 control={form.control}
-                                name="fullAddress" // Use a valid field name here to associate the label
+                                name="fullAddress"
                                 render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Address</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Full Address" {...form.register('fullAddress')} />
+                                        <Input placeholder="Full Address" {...field} />
                                     </FormControl>
-                                    <FormMessage {...form.formState.errors.fullAddress} />
+                                    <FormMessage />
                                 </FormItem>
                                 )}
                             />
