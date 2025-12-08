@@ -96,6 +96,7 @@ export default function UploadDocumentsPage() {
 
     setIsSubmitting(true);
     setUploadProgress(0);
+    setFileName(file.name);
 
     const storage = getStorage(firebaseApp);
     const storageRef = ref(storage, `patient_documents/${values.patientId}/${Date.now()}-${file.name}`);
@@ -142,7 +143,7 @@ export default function UploadDocumentsPage() {
                     addedBy: doctorUser.uid,
                 };
                 
-                setDocumentNonBlocking(newDocRef, docData, {});
+                await setDocumentNonBlocking(newDocRef, docData, {});
 
                 toast({
                     title: "Upload Complete",
