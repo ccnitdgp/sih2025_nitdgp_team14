@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, Clock, User, FileText, CheckCircle, Pencil, Receipt, Building, Video, XCircle, Check, Loader2 } from 'lucide-react';
+import { Calendar, Clock, User, FileText, CheckCircle, Pencil, Receipt, Building, Video, XCircle, Check, Loader2, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -181,47 +181,6 @@ export default function DoctorAppointmentsPage() {
     toast({ title: "Appointment marked as complete."});
   }
 
-  const JoinCallButton = ({ appointment }) => {
-    const [isJoinable, setIsJoinable] = useState(false);
-
-    useEffect(() => {
-        const checkTime = () => {
-        const now = new Date();
-        const apptDateTime = parse(`${appointment.date} ${appointment.time}`, 'yyyy-MM-dd hh:mm a', new Date());
-        const fifteenMinutesBefore = addMinutes(apptDateTime, -15);
-        setIsJoinable(now >= fifteenMinutesBefore);
-        };
-
-        checkTime();
-        const interval = setInterval(checkTime, 60000); 
-
-        return () => clearInterval(interval);
-    }, [appointment.date, appointment.time]);
-    
-    const button = (
-        <Button asChild disabled={!isJoinable}>
-            <Link href={`/video-call/${appointment.id}`}><Video className="mr-2 h-4 w-4"/>Join Video Call</Link>
-        </Button>
-    );
-
-     if (!isJoinable) {
-        return (
-            <TooltipProvider>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                       <span>{button}</span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <p>You can join the call 15 minutes before the scheduled time.</p>
-                    </TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
-        );
-    }
-
-    return button;
-  };
-
 
   const AppointmentDetails = ({ appointment }: { appointment: any | null }) => {
     const firestore = useFirestore();
@@ -322,8 +281,12 @@ export default function DoctorAppointmentsPage() {
 
            {appointment.status === 'Scheduled' && (
              <div className="flex flex-wrap gap-2 pt-4 border-t">
-                {appointment.type === 'Virtual' && (
-                <JoinCallButton appointment={appointment} />
+                {appointment.type === 'Virtual' && appointment.meetLink && (
+                    <Button asChild>
+                        <a href={appointment.meetLink} target="_blank" rel="noopener noreferrer">
+                            <Video className="mr-2 h-4 w-4"/>Join Video Call <ExternalLink className="ml-2 h-4 w-4" />
+                        </a>
+                    </Button>
                 )}
                 <Button onClick={handleMarkAsComplete}><CheckCircle />Mark as Complete</Button>
                 <Button variant="outline" onClick={handleWritePrescription}><Pencil />Write Prescription</Button>

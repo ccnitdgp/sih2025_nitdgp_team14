@@ -8,7 +8,7 @@ import * as z from 'zod';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Lightbulb, Sparkles, MapPin, Calendar as CalendarIcon, Star, Clock, Search, ClipboardList, History, Video, GraduationCap, Loader2, ShieldCheck } from 'lucide-react';
+import { Lightbulb, Sparkles, MapPin, Calendar as CalendarIcon, Star, Clock, Search, ClipboardList, History, Video, GraduationCap, Loader2, ShieldCheck, ExternalLink } from 'lucide-react';
 import { getSpecialistSuggestion, type SymptomCheckerOutput } from '@/ai/flows/symptom-checker-flow';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
@@ -297,22 +297,20 @@ const FindDoctors = ({ t, userProfile: initialUserProfile, isUserProfileLoading:
     const newAppointmentRef = doc(collection(firestore, "appointments"));
     const patientName = `${userProfile.firstName} ${userProfile.lastName}`;
     
-    const isVirtualRequest = appointmentType === 'Virtual';
-
     const newAppointment = {
         id: newAppointmentRef.id,
         doctorId: selectedDoctor.id,
         patientId: user.uid,
         patientDisplayId: userProfile.patientId,
         patientName: patientName,
-        date: isVirtualRequest ? null : format(selectedDate!, 'yyyy-MM-dd'),
-        time: isVirtualRequest ? null : selectedTime,
+        date: appointmentType === 'Virtual' ? null : format(selectedDate!, 'yyyy-MM-dd'),
+        time: appointmentType === 'Virtual' ? null : selectedTime,
         meetLink: null,
         type: appointmentType,
         doctorName: selectedDoctor.name,
         specialty: selectedDoctor.specialty,
         location: selectedDoctor.location,
-        status: 'Pending', // ALWAYS Pending now
+        status: 'Pending',
         reason: bookingReason,
     };
     
@@ -609,6 +607,11 @@ const MyAppointments = ({ t }) => {
         const [isJoinable, setIsJoinable] = useState(false);
     
         useEffect(() => {
+            if (!appt.date || !appt.time) {
+                setIsJoinable(false);
+                return;
+            }
+
           const checkTime = () => {
             const now = new Date();
             const apptDateTime = parse(`${appt.date} ${appt.time}`, 'yyyy-MM-dd hh:mm a', new Date());
@@ -623,8 +626,8 @@ const MyAppointments = ({ t }) => {
         }, [appt.date, appt.time]);
     
         const button = (
-            <Button asChild disabled={!isJoinable}>
-                <Link href={`/video-call/${appt.id}`}><Video className="mr-2 h-4 w-4" />Join Call</Link>
+            <Button asChild disabled={!isJoinable || !appt.meetLink}>
+                <a href={appt.meetLink} target="_blank" rel="noopener noreferrer"><Video className="mr-2 h-4 w-4" />Join Call</a>
             </Button>
         );
 
