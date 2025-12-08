@@ -34,7 +34,8 @@ service cloud.firestore {
     // Is the current doctor the assigned doctor for the patient?
     // This is the most efficient check, performing only one `get`.
     function isDoctorAssignedToPatient(patientId) {
-      return isDoctor() && get(/databases/$(database)/documents/users/$(patientId)).data.doctorId == request.auth.uid;
+      let patientDoc = get(/databases/$(database)/documents/users/$(patientId));
+      return isDoctor() && patientDoc.data.doctorId == request.auth.uid;
     }
 
     // ============================================================
@@ -48,7 +49,7 @@ service cloud.firestore {
         && request.auth.uid == userId
         && request.resource.data.id == userId;
 
-      // User can always read/update their own profile. This rule is now self-contained.
+      // User can always read/update their own profile.
       // An assigned doctor can also read a patient's profile.
       allow get: if isSignedIn() && (isOwner(userId) || isDoctorAssignedToPatient(userId));
       
