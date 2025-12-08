@@ -164,7 +164,7 @@ export default function UploadDocumentsPage() {
                         </FormControl>
                         <SelectContent>
                           {patients?.map(p => (
-                            <SelectItem key={p.patientId} value={p.patientId}>
+                            <SelectItem key={p.id} value={p.id}>
                               {p.firstName} {p.lastName}
                             </SelectItem>
                           ))}
