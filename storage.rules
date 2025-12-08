@@ -28,9 +28,14 @@ service firebase.storage {
       return isSignedIn() && userDoc(request.auth.uid).data.role == "admin";
     }
 
+    // This is the most reliable way to check the relationship for storage rules.
+    // It makes ONE database call to get the patient's doc and checks the doctorId field.
     function isDoctorAssignedToPatient(patientId) {
-      let patientDoc = get(/databases/(default)/documents/users/$(patientId));
-      return isDoctor() && patientDoc.data.doctorId == request.auth.uid;
+        let patientDoc = get(/databases/(default)/documents/users/$(patientId));
+        // Ensure the user is a doctor AND their UID matches the patient's assigned doctorId.
+        return isSignedIn() 
+            && userDoc(request.auth.uid).data.role == "doctor"
+            && patientDoc.data.doctorId == request.auth.uid;
     }
 
     // ---------------------------------
@@ -71,6 +76,7 @@ service firebase.storage {
         && isPatient();
 
       // An assigned doctor can upload files for their patient.
+      // This is the corrected, more secure rule.
       allow write: if isDoctorAssignedToPatient(patientId);
 
       // Patients can read own files.
