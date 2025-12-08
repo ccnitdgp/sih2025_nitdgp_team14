@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, Clock, User, FileText, CheckCircle, Pencil, Receipt, Building, Video } from 'lucide-react';
+import { Calendar, Clock, User, FileText, CheckCircle, Pencil, Receipt, Building, Video, XCircle, Check, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -31,12 +31,19 @@ const billSchema = z.object({
   amount: z.coerce.number().min(1, 'Amount must be greater than 0.'),
 });
 
+const scheduleSchema = z.object({
+  date: z.string().min(1, 'Date is required.'),
+  time: z.string().min(1, 'Time is required.'),
+  meetLink: z.string().url('Must be a valid URL.').optional(),
+});
+
 
 export default function DoctorAppointmentsPage() {
   const { user } = useUser();
   const firestore = useFirestore();
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [isBillDialogOpen, setIsBillDialogOpen] = useState(false);
+  const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -54,27 +61,48 @@ export default function DoctorAppointmentsPage() {
       .sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [appointments]);
 
+   const pendingAppointments = useMemo(() => {
+    if (!appointments) return [];
+    return appointments
+      .filter(a => a.status === 'Pending')
+      .sort((a, b) => (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0));
+  }, [appointments]);
+
+
   const pastAppointments = useMemo(() => {
     if (!appointments) return [];
     return appointments
-      .filter(a => a.status !== 'Scheduled')
-      .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      .filter(a => a.status !== 'Scheduled' && a.status !== 'Pending')
+      .sort((a,b) => new Date(b.date).getTime() - new Date(b.date).getTime());
   }, [appointments]);
 
 
   useEffect(() => {
-    if (!selectedAppointment && upcomingAppointments && upcomingAppointments.length > 0) {
-      setSelectedAppointment(upcomingAppointments[0]);
+    if (!selectedAppointment) {
+      if (pendingAppointments && pendingAppointments.length > 0) {
+        setSelectedAppointment(pendingAppointments[0]);
+      } else if (upcomingAppointments && upcomingAppointments.length > 0) {
+        setSelectedAppointment(upcomingAppointments[0]);
+      }
     }
-  }, [upcomingAppointments, selectedAppointment]);
+  }, [upcomingAppointments, pendingAppointments, selectedAppointment]);
 
 
-  const form = useForm<z.infer<typeof billSchema>>({
+  const billForm = useForm<z.infer<typeof billSchema>>({
     resolver: zodResolver(billSchema),
     defaultValues: {
       description: '',
       category: 'Consultation',
       amount: 0,
+    },
+  });
+
+  const scheduleForm = useForm<z.infer<typeof scheduleSchema>>({
+    resolver: zodResolver(scheduleSchema),
+    defaultValues: {
+      date: '',
+      time: '',
+      meetLink: '',
     },
   });
 
@@ -112,7 +140,38 @@ export default function DoctorAppointmentsPage() {
       description: `A bill for Rs. ${values.amount} has been generated for ${selectedAppointment?.patientName}.`,
     });
     setIsBillDialogOpen(false);
-    form.reset();
+    billForm.reset();
+  }
+
+  const handleAcceptRequest = (appointment: any) => {
+    if (appointment.type === 'Virtual') {
+        setSelectedAppointment(appointment);
+        setIsScheduleDialogOpen(true);
+    } else { // In-Person
+        const apptRef = doc(firestore, 'appointments', appointment.id);
+        updateDocumentNonBlocking(apptRef, { status: 'Scheduled' });
+        toast({ title: "Appointment Accepted", description: `Appointment with ${appointment.patientName} has been scheduled.` });
+    }
+  };
+  
+  const handleScheduleSubmit = (values: z.infer<typeof scheduleSchema>) => {
+    if(!selectedAppointment || !firestore) return;
+    const apptRef = doc(firestore, 'appointments', selectedAppointment.id);
+    updateDocumentNonBlocking(apptRef, {
+        status: 'Scheduled',
+        date: values.date,
+        time: values.time,
+        meetLink: values.meetLink || null
+    });
+    toast({ title: "Appointment Scheduled", description: "The patient has been notified."});
+    setIsScheduleDialogOpen(false);
+  }
+
+  const handleRejectRequest = (appointment: any) => {
+      if(!firestore) return;
+      const apptRef = doc(firestore, 'appointments', appointment.id);
+      updateDocumentNonBlocking(apptRef, { status: 'Canceled' });
+      toast({ title: "Appointment Rejected", variant: "destructive"});
   }
   
   const handleMarkAsComplete = () => {
@@ -209,19 +268,19 @@ export default function DoctorAppointmentsPage() {
                 <Calendar className="h-5 w-5 text-primary" />
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Date</p>
-                  <p className="font-semibold">{new Date(appointment.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                  <p className="font-semibold">{appointment.date ? new Date(appointment.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'Pending'}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="h-5 w-5 text-primary" />
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Time</p>
-                  <p className="font-semibold">{appointment.time}</p>
+                  <p className="font-semibold">{appointment.time || 'Pending'}</p>
                 </div>
               </div>
             </div>
              <div className="mt-4 flex justify-end">
-                <Badge variant={appointment.status === 'Scheduled' ? 'secondary' : (appointment.status === 'Canceled' ? 'destructive' : 'default')}>{appointment.status}</Badge>
+                <Badge variant={appointment.status === 'Scheduled' ? 'secondary' : (appointment.status === 'Canceled' ? 'destructive' : (appointment.status === 'Pending' ? 'outline' : 'default'))}>{appointment.status}</Badge>
             </div>
           </div>
 
@@ -253,15 +312,24 @@ export default function DoctorAppointmentsPage() {
               <p className="text-muted-foreground italic">&quot;{appointment.reason || 'Not specified'}&quot;</p>
             </div>
           </div>
-
-          <div className="flex flex-wrap gap-2 pt-4 border-t">
-             {appointment.type === 'Virtual' && appointment.status === 'Scheduled' && (
-              <JoinCallButton appointment={appointment} />
+          
+           {appointment.status === 'Pending' && (
+              <div className="flex flex-wrap gap-2 pt-4 border-t">
+                  <Button onClick={() => handleAcceptRequest(appointment)}><Check className="mr-2 h-4 w-4" />Accept Request</Button>
+                  <Button variant="destructive" onClick={() => handleRejectRequest(appointment)}><XCircle className="mr-2 h-4 w-4" />Reject</Button>
+              </div>
             )}
-            <Button onClick={handleMarkAsComplete} disabled={appointment.status !== 'Scheduled'}><CheckCircle />Mark as Complete</Button>
-            <Button variant="outline" onClick={handleWritePrescription}><Pencil />Write Prescription</Button>
-            <Button variant="outline" onClick={() => setIsBillDialogOpen(true)}><Receipt />Generate Bill</Button>
-          </div>
+
+           {appointment.status === 'Scheduled' && (
+             <div className="flex flex-wrap gap-2 pt-4 border-t">
+                {appointment.type === 'Virtual' && (
+                <JoinCallButton appointment={appointment} />
+                )}
+                <Button onClick={handleMarkAsComplete}><CheckCircle />Mark as Complete</Button>
+                <Button variant="outline" onClick={handleWritePrescription}><Pencil />Write Prescription</Button>
+                <Button variant="outline" onClick={() => setIsBillDialogOpen(true)}><Receipt />Generate Bill</Button>
+            </div>
+           )}
 
         </CardContent>
       </Card>
@@ -283,7 +351,7 @@ export default function DoctorAppointmentsPage() {
                 <div className="space-y-1">
                     <p className="font-semibold">{appointment.patientName}</p>
                     {patientDisplayId && <p className="text-xs text-muted-foreground">{patientDisplayId}</p>}
-                    <p className="text-sm text-muted-foreground">{appointment.type} on {new Date(appointment.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                    <p className="text-sm text-muted-foreground">{appointment.type} on {appointment.date ? new Date(appointment.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Pending'}</p>
                 </div>
                 <p className="font-medium text-sm">{appointment.time}</p>
             </div>
@@ -295,11 +363,30 @@ export default function DoctorAppointmentsPage() {
     <div className="container mx-auto max-w-7xl px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
             <div className="md:col-span-1">
-                 <Tabs defaultValue="upcoming" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
+                 <Tabs defaultValue="pending" className="w-full">
+                    <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="pending">Requests ({pendingAppointments?.length || 0})</TabsTrigger>
                         <TabsTrigger value="upcoming">Upcoming ({upcomingAppointments?.length || 0})</TabsTrigger>
                         <TabsTrigger value="history">History ({pastAppointments?.length || 0})</TabsTrigger>
                     </TabsList>
+                    <TabsContent value="pending" className="mt-4">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Pending Requests</CardTitle>
+                                <CardDescription>You have {pendingAppointments?.length || 0} new requests.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-2 p-2">
+                                {isLoadingAppointments ? <p>Loading...</p> : pendingAppointments?.map(appt => (
+                                    <AppointmentListItem 
+                                        key={appt.id}
+                                        appointment={appt}
+                                        onSelect={setSelectedAppointment}
+                                        isSelected={selectedAppointment?.id === appt.id}
+                                    />
+                                ))}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
                     <TabsContent value="upcoming" className="mt-4">
                         <Card>
                             <CardHeader>
@@ -351,10 +438,10 @@ export default function DoctorAppointmentsPage() {
                         Create a new bill for {selectedAppointment?.patientName}. This will be visible to the patient immediately.
                     </DialogDescription>
                 </DialogHeader>
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(handleGenerateBill)} className="space-y-4">
+                <Form {...billForm}>
+                    <form onSubmit={billForm.handleSubmit(handleGenerateBill)} className="space-y-4">
                          <FormField
-                            control={form.control}
+                            control={billForm.control}
                             name="description"
                             render={({ field }) => (
                                 <FormItem>
@@ -367,7 +454,7 @@ export default function DoctorAppointmentsPage() {
                             )}
                         />
                         <FormField
-                            control={form.control}
+                            control={billForm.control}
                             name="category"
                             render={({ field }) => (
                                 <FormItem>
@@ -390,7 +477,7 @@ export default function DoctorAppointmentsPage() {
                             )}
                         />
                         <FormField
-                            control={form.control}
+                            control={billForm.control}
                             name="amount"
                             render={({ field }) => (
                                 <FormItem>
@@ -405,6 +492,34 @@ export default function DoctorAppointmentsPage() {
                         <DialogFooter>
                             <Button type="button" variant="outline" onClick={() => setIsBillDialogOpen(false)}>Cancel</Button>
                             <Button type="submit">Generate Bill</Button>
+                        </DialogFooter>
+                    </form>
+                </Form>
+            </DialogContent>
+        </Dialog>
+        
+        <Dialog open={isScheduleDialogOpen} onOpenChange={setIsScheduleDialogOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Schedule Virtual Appointment</DialogTitle>
+                    <DialogDescription>
+                        Set the date, time, and meeting link for the consultation with {selectedAppointment?.patientName}.
+                    </DialogDescription>
+                </DialogHeader>
+                <Form {...scheduleForm}>
+                    <form onSubmit={scheduleForm.handleSubmit(handleScheduleSubmit)} className="space-y-4">
+                        <FormField control={scheduleForm.control} name="date" render={({ field }) => (
+                           <FormItem><FormLabel>Date</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>
+                        )}/>
+                         <FormField control={scheduleForm.control} name="time" render={({ field }) => (
+                           <FormItem><FormLabel>Time</FormLabel><FormControl><Input type="time" {...field} /></FormControl><FormMessage /></FormItem>
+                        )}/>
+                        <FormField control={scheduleForm.control} name="meetLink" render={({ field }) => (
+                           <FormItem><FormLabel>Google Meet Link (Optional)</FormLabel><FormControl><Input placeholder="https://meet.google.com/..." {...field} /></FormControl><FormMessage /></FormItem>
+                        )}/>
+                        <DialogFooter>
+                            <Button type="button" variant="outline" onClick={() => setIsScheduleDialogOpen(false)}>Cancel</Button>
+                            <Button type="submit">Confirm Schedule</Button>
                         </DialogFooter>
                     </form>
                 </Form>

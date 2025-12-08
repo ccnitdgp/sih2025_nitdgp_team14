@@ -51,8 +51,8 @@ service cloud.firestore {
       // User reads/updates their own profile.
       allow get, update: if isOwner(userId);
 
-      // Admins can delete, public can query for patient count.
-      allow list: if request.query.where.role == 'patient' || isAdmin();
+      // Public can query for patient count. Admins can list all users.
+      allow list: if (request.query.where.role == 'patient') || isAdmin();
       allow delete: if isAdmin();
 
 
@@ -128,9 +128,15 @@ service cloud.firestore {
         // Anyone can view a doctor's public profile.
         allow get, list: if true;
         
-        // Only the doctor themselves or an admin can create/update.
-        allow create, update: if isSignedIn()
-          && (isOwner(doctorId) || isAdmin());
+        // A doctor can create their own profile.
+        allow create: if isOwner(doctorId);
+
+        // Admins can update any field.
+        // Doctors can update any field EXCEPT isVerified and verificationNote.
+        allow update: if isSignedIn() && (
+            isAdmin() || 
+            (isOwner(doctorId) && !('isVerified' in request.resource.data) && !('verificationNote' in request.resource.data))
+        );
     }
     
 
@@ -139,22 +145,62 @@ service cloud.firestore {
     // ============================================================
     match /appointments/{appointmentId} {
 
-        function isPatientForAppointment() {
-            return isSignedIn() && request.auth.uid == request.resource.data.patientId;
+        function isPatientForAppointment(doc) {
+            return isSignedIn() && request.auth.uid == doc.patientId;
         }
         
-        function isDoctorForAppointment() {
-            return isSignedIn() && request.auth.uid == request.resource.data.doctorId;
+        function isDoctorForAppointment(doc) {
+            return isSignedIn() && request.auth.uid == doc.doctorId;
         }
 
-        // Create: only patients can create appointments for themselves.
-        allow create: if isPatientForAppointment();
+        // CREATE: 
+        // - Patients can create for themselves, status must be 'Pending'.
+        allow create: if isPatientForAppointment(request.resource.data)
+            && request.resource.data.status == 'Pending';
         
-        // Read/Update: only the involved patient, doctor, or an admin.
-        allow get, update: if isSignedIn() && (
+        // READ: only the involved patient, doctor, or an admin.
+        allow get: if isSignedIn() && (
             isOwner(resource.data.patientId) || 
             isOwner(resource.data.doctorId) || 
             isAdmin()
+        );
+
+        // UPDATE:
+        // - A patient can only cancel ('status' to 'Canceled') their own 'Scheduled' or 'Pending' appointment.
+        // - A doctor can accept a pending request (In-Person or Virtual)
+        // - A doctor can reject a pending request.
+        // - A doctor can complete or cancel a scheduled appointment.
+        allow update: if isSignedIn() && (
+            isAdmin() ||
+            (isOwner(resource.data.patientId) && request.resource.data.status == 'Canceled' && (resource.data.status == 'Scheduled' || resource.data.status == 'Pending')) ||
+            (isOwner(resource.data.doctorId) && (
+                (
+                    // Accepting a pending In-Person request (just changing status)
+                    resource.data.status == 'Pending' &&
+                    request.resource.data.status == 'Scheduled' &&
+                    resource.data.type == 'In-Person' &&
+                    request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+                ) ||
+                (
+                    // Accepting a pending Virtual request (adding date, time, link, and changing status)
+                    resource.data.status == 'Pending' &&
+                    request.resource.data.status == 'Scheduled' &&
+                    resource.data.type == 'Virtual' &&
+                    request.resource.data.diff(resource.data).affectedKeys().hasAll(['status', 'date', 'time', 'meetLink'])
+                ) || 
+                (
+                    // Rejecting any pending request
+                    resource.data.status == 'Pending' &&
+                    request.resource.data.status == 'Canceled' &&
+                    request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+                ) ||
+                (
+                    // Completing or Cancelling a scheduled appointment
+                    resource.data.status == 'Scheduled' &&
+                    (request.resource.data.status == 'Completed' || request.resource.data.status == 'Canceled') &&
+                    request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+                )
+            ))
         );
 
         // LIST (QUERY): A user can query appointments only if they filter by their OWN patientId or doctorId.
@@ -198,11 +244,36 @@ service cloud.firestore {
         allow create, update, delete: if isAdmin();
     }
 
+    // ============================================================
+    // /vaccinationRegistrations/{registrationId}
+    // ============================================================
+    match /vaccinationRegistrations/{registrationId} {
+        // A user can create their own registration.
+        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+        
+        // A user can read their own registration, admins can read any.
+        allow get: if isSignedIn() && (isOwner(resource.data.userId) || isAdmin());
+        
+        // A user can list registrations they own, admins can list all.
+        allow list: if isSignedIn() && (request.query.where.userId == request.auth.uid || isAdmin());
+        
+        // Admins can delete registrations.
+        allow delete, update: if isAdmin();
+    }
+
 
     // ============================================================
     // /healthCamps/{healthCampId} (public)
     // ============================================================
     match /healthCamps/{healthCampId} {
+        allow get, list: if true;
+        allow create, update, delete: if isAdmin();
+    }
+    
+    // ============================================================
+    // /announcements/{announcementId} (public)
+    // ============================================================
+    match /announcements/{announcementId} {
         allow get, list: if true;
         allow create, update, delete: if isAdmin();
     }
@@ -217,19 +288,27 @@ service cloud.firestore {
         // Anyone can read posts.
         allow get, list: if true;
 
-        // Only the author or an admin can update/delete their own post.
-        // This is a simplified version. Let's separate like/view updates.
-        allow update: if isSignedIn() && 
+        // Allow owner/admin to update/delete.
+        allow update: if isSignedIn() &&
           (
             (isOwner(resource.data.authorId) || isAdmin()) ||
             (
-              // Allow anyone to increment like/view counts and add to likedBy
-              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount', 'viewCount', 'likedBy']) &&
+              // Allow any signed in user to increment the like count and add their own UID to likedBy
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount', 'likedBy']) &&
               request.resource.data.likeCount == resource.data.likeCount + 1 &&
               request.resource.data.likedBy.hasAll(resource.data.likedBy) &&
-              request.resource.data.likedBy.size() == resource.data.likedBy.size() + 1
+              request.resource.data.likedBy.size() == resource.data.likedBy.size() + 1 &&
+              request.auth.uid in request.resource.data.likedBy
             ) ||
             (
+              // Allow a user to decrement the like count and remove their own UID from likedBy
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount', 'likedBy']) &&
+              request.resource.data.likeCount == resource.data.likeCount - 1 &&
+              !request.resource.data.likedBy.hasAny([request.auth.uid]) &&
+              request.auth.uid in resource.data.likedBy
+            ) ||
+            (
+                // Allow anyone to increment viewCount
                 request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount']) &&
                 request.resource.data.viewCount == resource.data.viewCount + 1
             )
@@ -257,7 +336,7 @@ service cloud.firestore {
     match /feedback/{feedbackId} {
         // Any signed-in user can create feedback.
         allow create: if isSignedIn();
-        
+
         // Public can list feedback for testimonials if they query for high ratings and correct type
         allow list: if (
             request.query.where.rating >= 4 &&
@@ -269,5 +348,3 @@ service cloud.firestore {
     }
   }
 }
-
-    

@@ -312,17 +312,15 @@ const FindDoctors = ({ t, userProfile: initialUserProfile, isUserProfileLoading:
         doctorName: selectedDoctor.name,
         specialty: selectedDoctor.specialty,
         location: selectedDoctor.location,
-        status: isVirtualRequest ? 'Pending' : 'Scheduled',
+        status: 'Pending', // ALWAYS Pending now
         reason: bookingReason,
     };
     
     addDocumentNonBlocking(collection(firestore, "appointments"), newAppointment);
 
     toast({
-      title: isVirtualRequest ? 'Request Sent!' : t('appointment_booked_title', 'Appointment Booked!'),
-      description: isVirtualRequest 
-        ? `Your request for a virtual consultation with ${selectedDoctor.name} has been sent. You will be notified when it's approved.`
-        : t('appointment_booked_desc', `Your appointment with ${selectedDoctor.name} on ${format(selectedDate!, 'PPP')} at ${selectedTime} has been successfully scheduled.`),
+      title: 'Request Sent!',
+      description: `Your request for an appointment with ${selectedDoctor.name} has been sent. You will be notified when it's approved.`,
     });
     handleCloseDialog();
   };
@@ -361,7 +359,7 @@ const FindDoctors = ({ t, userProfile: initialUserProfile, isUserProfileLoading:
 
   const isBookingDisabled = (
     (appointmentType === 'In-Person' && (!selectedDate || !selectedTime)) ||
-    (appointmentType === 'Virtual' && !bookingReason) ||
+    (!bookingReason && appointmentType === 'Virtual') ||
     isUserProfileLoading || !userProfile?.patientId
   );
 
@@ -542,21 +540,20 @@ const FindDoctors = ({ t, userProfile: initialUserProfile, isUserProfileLoading:
                             </SelectContent>
                         </Select>
                      </>
-                 ) : (
-                    <div>
-                        <Label htmlFor='reason'>Reason for Consultation</Label>
-                        <Textarea id="reason" value={bookingReason} onChange={(e) => setBookingReason(e.target.value)} placeholder="Briefly describe your symptoms or reason for the virtual visit."/>
-                    </div>
-                 )}
+                 ) : null}
+                 <div>
+                    <Label htmlFor='reason'>Reason for Consultation</Label>
+                    <Textarea id="reason" value={bookingReason} onChange={(e) => setBookingReason(e.target.value)} placeholder="Briefly describe your symptoms or reason for the visit."/>
+                </div>
                  <p className="text-xs text-muted-foreground">
-                    A confirmation will be sent to your registered email address. The clinic will contact you if any changes are needed.
+                    Your request will be sent to the doctor for approval. You will be notified once it is confirmed.
                 </p>
             </div>
             <DialogFooter className="sm:justify-between">
                 <Button variant="outline" onClick={handleCloseDialog}>{t('cancel_button', 'Cancel')}</Button>
                 <Button onClick={handleBookAppointment} disabled={isBookingDisabled}>
                     {isUserProfileLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
-                    {isUserProfileLoading ? 'Loading Profile...' : (appointmentType === 'Virtual' ? 'Request Appointment' : t('confirm_booking_button', 'Confirm Booking'))}
+                    {isUserProfileLoading ? 'Loading Profile...' : 'Request Appointment'}
                 </Button>
             </DialogFooter>
             </DialogContent>
