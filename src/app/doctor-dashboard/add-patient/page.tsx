@@ -108,7 +108,7 @@ export default function AddPatientPage() {
             country: values.country,
             pinCode: values.pinCode,
         },
-        doctorId: doctorUser.uid,
+        doctorId: doctorUser.uid, // <-- THIS IS THE CRUCIAL FIX
       };
 
       // 1. Create the patient's user profile document in Firestore.
@@ -126,7 +126,7 @@ export default function AddPatientPage() {
       
       toast({
         title: "Patient Profile Created",
-        description: `${values.firstName} ${values.lastName}'s profile has been created. They can now sign up using their email address to access their account.`,
+        description: `${values.firstName} ${values.lastName}'s profile has been created and assigned to you.`,
       });
 
       router.push('/doctor-dashboard/patients');
@@ -303,3 +303,5 @@ export default function AddPatientPage() {
     </div>
   )
 }
+
+    

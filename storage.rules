@@ -32,7 +32,7 @@ service firebase.storage {
     // This performs a single document read.
     function isAssignedDoctor(patientId) {
       let patientDoc = get(/databases/(default)/documents/users/$(patientId));
-      return request.auth.uid == patientDoc.data.doctorId;
+      return isSignedIn() && isDoctor() && request.auth.uid == patientDoc.data.doctorId;
     }
 
     // ---------------------------------
@@ -74,7 +74,7 @@ service firebase.storage {
 
       // An assigned doctor can upload files for their patient.
       // This rule is now more efficient.
-      allow write: if isDoctor() && isAssignedDoctor(patientId);
+      allow write: if isAssignedDoctor(patientId);
 
       // Patients can read own files.
       // The assigned doctor can read their patient's files.
@@ -82,7 +82,7 @@ service firebase.storage {
       allow read: if isSignedIn()
         && (
           (isPatient() && request.auth.uid == patientId) ||
-          (isDoctor() && isAssignedDoctor(patientId)) ||
+          isAssignedDoctor(patientId) ||
           isAdmin()
         );
     }
@@ -96,3 +96,5 @@ service firebase.storage {
     }
   }
 }
+
+    
