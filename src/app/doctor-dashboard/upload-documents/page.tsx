@@ -61,14 +61,14 @@ export default function UploadDocumentsPage() {
   }, [searchParams, form]);
 
 
-  const appointmentsQuery = useMemoFirebase(() => {
+  const patientsQuery = useMemoFirebase(() => {
     if (!doctorUser || !firestore) return null;
     return query(
       collection(firestore, 'users', doctorUser.uid, 'patients')
     );
   }, [doctorUser, firestore]);
 
-  const { data: uniquePatients, isLoading: isLoadingAppointments } = useCollection(appointmentsQuery);
+  const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsQuery);
 
   const onSubmit = (values: z.infer<typeof uploadSchema>) => {
     if (!doctorUser || !firestore || !firebaseApp) return;
@@ -119,7 +119,7 @@ export default function UploadDocumentsPage() {
                 addedBy: doctorUser.uid,
             };
 
-            const newDocRef = await addDocumentNonBlocking(healthRecordsRef, reportData);
+            const newDocRef = await addDoc(healthRecordsRef, reportData);
             if(newDocRef){
                 updateDocumentNonBlocking(newDocRef, { id: newDocRef.id });
             }
@@ -156,14 +156,14 @@ export default function UploadDocumentsPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Select Patient</FormLabel>
-                       <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingAppointments}>
+                       <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingPatients}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder={isLoadingAppointments ? "Loading patients..." : "Choose a patient"} />
+                            <SelectValue placeholder={isLoadingPatients ? "Loading patients..." : "Choose a patient"} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {uniquePatients?.map(p => (
+                          {patients?.map(p => (
                             <SelectItem key={p.patientId} value={p.patientId}>
                               {p.firstName} {p.lastName}
                             </SelectItem>
@@ -290,5 +290,3 @@ export default function UploadDocumentsPage() {
     </div>
   );
 }
-
-    
