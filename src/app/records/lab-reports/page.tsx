@@ -93,25 +93,14 @@ export default function LabReportsPage() {
       return;
     }
     try {
-      const response = await fetch(report.details.downloadUrl);
-      if (!response.ok) {
-        throw new Error('Network response was not ok.');
-      }
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', report.details.fileName || 'download.pdf');
-      document.body.appendChild(link);
-      link.click();
-      link.parentNode?.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      // In a real scenario, you might want to use a more secure way to fetch if the URL is not public
+      window.open(report.details.downloadUrl, '_blank');
     } catch (error) {
       console.error('Download error:', error);
       toast({
         variant: "destructive",
         title: "Download failed",
-        description: "Could not download the file. Please check the network and try again.",
+        description: "Could not open the file. Please check popup blockers and try again.",
       });
     }
   };
