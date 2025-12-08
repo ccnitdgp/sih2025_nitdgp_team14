@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { FlaskConical, FileDown, Scan } from 'lucide-react';
+import { FlaskConical, FileDown, Scan, ShieldCheck, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, doc, query, where, or } from 'firebase/firestore';
@@ -23,11 +23,18 @@ import { useToast } from '@/hooks/use-toast';
 
 const languageFiles = { hi, bn, ta, te, mr };
 
-const ReportCard = ({ report, icon, onDownload, t }) => (
+const reportIcons = {
+  labReport: <FlaskConical className="h-5 w-5 text-primary" />,
+  scanReport: <Scan className="h-5 w-5 text-primary" />,
+  vaccinationRecord: <ShieldCheck className="h-5 w-5 text-primary" />,
+  other: <FileText className="h-5 w-5 text-primary" />,
+};
+
+const ReportCard = ({ report, onDownload, t }) => (
     <Card className="p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div className="flex items-center gap-4 flex-1">
             <div className="p-2 bg-primary/10 rounded-md">
-                {icon}
+                {reportIcons[report.recordType] || <FileText className="h-5 w-5 text-primary" />}
             </div>
             <div className="flex-1">
                 <h3 className="font-semibold text-lg">{report.details.name}</h3>
@@ -70,14 +77,11 @@ export default function LabReportsPage() {
     if (!user || !firestore) return null;
     return query(
         collection(firestore, `users/${user.uid}/healthRecords`),
-        where('recordType', 'in', ['labReport', 'scanReport'])
+        where('recordType', 'in', ['labReport', 'scanReport', 'vaccinationRecord', 'other'])
     );
   }, [user, firestore]);
   
   const { data: healthRecords, isLoading } = useCollection(healthRecordsQuery);
-
-  const labReports = useMemo(() => healthRecords?.filter(r => r.recordType === 'labReport') || [], [healthRecords]);
-  const scanReports = useMemo(() => healthRecords?.filter(r => r.recordType === 'scanReport') || [], [healthRecords]);
 
   const handleDownload = async (report: any) => {
     if (!report.details?.downloadUrl) {
@@ -132,50 +136,25 @@ export default function LabReportsPage() {
             <CardHeader>
                 <div className="flex items-center gap-3">
                 <FlaskConical className="h-6 w-6" />
-                <CardTitle className="text-2xl">{t('lab_reports_page_title', 'Lab & Scan Reports')}</CardTitle>
+                <CardTitle className="text-2xl">{t('lab_reports_page_title', 'Uploaded Reports')}</CardTitle>
                 </div>
                 <CardDescription>
-                    {t('lab_reports_page_desc', 'View and manage your diagnostic lab and scan reports.')}
+                    {t('lab_reports_page_desc', 'View and manage your diagnostic lab, scan, and other uploaded reports.')}
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-                <div>
-                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><FlaskConical className="h-5 w-5 text-primary" />{t('lab_reports_section_title', 'Lab Reports')}</h3>
-                    <div className="space-y-4">
-                        {isLoading ? <SkeletonLoader /> : labReports.length > 0 ? (
-                            labReports.map((report) => (
-                                <ReportCard 
-                                    key={report.id}
-                                    report={report}
-                                    icon={<FlaskConical className="h-5 w-5 text-primary" />}
-                                    onDownload={handleDownload}
-                                    t={t}
-                                />
-                            ))
-                        ) : (
-                          !isLoading && <p className="text-muted-foreground text-center py-4">{t('no_lab_reports_text', 'No lab reports uploaded yet.')}</p>
-                        )}
-                    </div>
-                </div>
-
-                <div className="border-t pt-6">
-                     <h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><Scan className="h-5 w-5 text-primary" />{t('scan_reports_section_title', 'Scans')}</h3>
-                    <div className="space-y-4">
-                        {isLoading ? <SkeletonLoader /> : scanReports.length > 0 ? (
-                            scanReports.map((report) => (
-                                <ReportCard 
-                                    key={report.id}
-                                    report={report}
-                                    icon={<Scan className="h-5 w-5 text-primary" />}
-                                    onDownload={handleDownload}
-                                    t={t}
-                                />
-                            ))
-                        ) : (
-                          !isLoading && <p className="text-muted-foreground text-center py-4">{t('no_scan_reports_text', 'No scan reports uploaded yet.')}</p>
-                        )}
-                    </div>
-                </div>
+                {isLoading ? <SkeletonLoader /> : healthRecords && healthRecords.length > 0 ? (
+                    healthRecords.map((report) => (
+                        <ReportCard 
+                            key={report.id}
+                            report={report}
+                            onDownload={handleDownload}
+                            t={t}
+                        />
+                    ))
+                ) : (
+                    !isLoading && <p className="text-muted-foreground text-center py-4">{t('no_lab_reports_text', 'No reports uploaded yet.')}</p>
+                )}
             </CardContent>
         </Card>
     </div>
