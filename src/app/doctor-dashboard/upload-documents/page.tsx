@@ -1,11 +1,12 @@
+
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, query, where, orderBy, doc } from 'firebase/firestore';
+import { useUser, useFirestore, addDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp, query, where, getDocs } from 'firebase/firestore';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -15,13 +16,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Upload, PlusCircle, Trash2, Loader2 } from 'lucide-react';
+import { Upload, PlusCircle, Trash2, Loader2, Search } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Combobox } from '@/components/ui/combobox';
 
 const documentSchema = z.object({
-  patientId: z.string().min(1, 'Please select a patient.'),
   documentName: z.string().min(3, 'Document name is required.'),
   organization: z.string().min(2, 'Issuing organization is required.'),
   documentType: z.enum(['labReport', 'scanReport', 'vaccinationRecord', 'other']),
@@ -33,64 +32,53 @@ export default function UploadDocumentsPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+  const [patientIdInput, setPatientIdInput] = useState('');
+  const [foundPatient, setFoundPatient] = useState<any | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
 
   const form = useForm<z.infer<typeof documentSchema>>({
     resolver: zodResolver(documentSchema),
     defaultValues: {
-      patientId: '',
       documentName: '',
       organization: '',
       documentType: undefined,
       file: undefined,
     },
   });
-  
-  const patientsQuery = useMemoFirebase(() => {
-    if (!doctorUser || !firestore) return null;
-    return query(
-      collection(firestore, 'users'),
-      where('role', '==', 'patient'),
-      where('doctorId', '==', doctorUser.uid)
-    );
-  }, [doctorUser, firestore]);
 
-  const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsQuery);
+  const handleFindPatient = async () => {
+    if (!patientIdInput.trim()) {
+      toast({ variant: 'destructive', title: 'Patient ID is required.' });
+      return;
+    }
+    setIsSearching(true);
+    setFoundPatient(null);
 
-  const patientOptions = useMemo(() => {
-    if (!patients) return [];
-    return patients.map(p => ({
-        value: p.id,
-        label: `${p.firstName} ${p.lastName}`
-    }));
-  }, [patients]);
+    try {
+      const q = query(collection(firestore, 'users'), where('patientId', '==', patientIdInput.trim()));
+      const querySnapshot = await getDocs(q);
 
-
-  useEffect(() => {
-    const subscription = form.watch((value, { name }) => {
-      if (name === 'patientId') {
-        setSelectedPatientId(value.patientId || null);
+      if (querySnapshot.empty) {
+        toast({ variant: 'destructive', title: 'Patient Not Found', description: 'No patient found with that ID.' });
+      } else {
+        const patientData = { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
+        setFoundPatient(patientData);
+        toast({ title: 'Patient Found', description: `${patientData.firstName} ${patientData.lastName} selected.` });
       }
-    });
-    return () => subscription.unsubscribe();
-  }, [form]);
-
-  const patientHealthRecordsQuery = useMemoFirebase(() => {
-    if (!selectedPatientId || !firestore) return null;
-    return query(
-      collection(firestore, `users/${selectedPatientId}/healthRecords`),
-      orderBy('dateCreated', 'desc')
-    );
-  }, [selectedPatientId, firestore]);
-  
-  const { data: healthRecords, isLoading: isLoadingRecords } = useCollection(patientHealthRecordsQuery);
+    } catch (error) {
+      console.error(error);
+      toast({ variant: 'destructive', title: 'Error finding patient' });
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const onSubmit = async (values: z.infer<typeof documentSchema>) => {
-    if (!doctorUser || !firestore) return;
+    if (!doctorUser || !firestore || !foundPatient) return;
     
     setIsSubmitting(true);
     const file = values.file;
-    const patientId = values.patientId;
+    const patientId = foundPatient.id;
     
     try {
         const storage = getStorage();
@@ -125,7 +113,9 @@ export default function UploadDocumentsPage() {
 
                 await addDocumentNonBlocking(healthRecordsRef, newRecordData);
                 toast({ title: 'Document Uploaded', description: 'The document has been added to the patient\'s records.' });
-                form.reset({ patientId: values.patientId, documentName: '', organization: '', documentType: undefined, file: undefined });
+                form.reset();
+                setPatientIdInput('');
+                setFoundPatient(null);
                 setIsSubmitting(false);
             }
         )
@@ -135,11 +125,6 @@ export default function UploadDocumentsPage() {
         setIsSubmitting(false);
     }
   };
-  
-  const handleDelete = (recordId: string) => {
-      // This functionality will be added in a future step.
-      toast({ title: 'Delete Clicked (Not Implemented)', description: `Would delete record ${recordId}`});
-  }
 
   return (
     <div className="container mx-auto max-w-7xl px-6 py-12 space-y-8">
@@ -150,158 +135,107 @@ export default function UploadDocumentsPage() {
                     <CardTitle>Upload Medical Document</CardTitle>
                 </div>
                 <CardDescription>
-                    Select a patient, fill in the document details, and upload the file.
+                    Enter a patient's Unique ID to find them, then fill in the document details and upload the file.
                 </CardDescription>
             </CardHeader>
             <CardContent>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                             <FormField
-                                control={form.control}
-                                name="patientId"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Patient</FormLabel>
-                                        <FormControl>
-                                            <Combobox
-                                                options={patientOptions}
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                placeholder={isLoadingPatients ? "Loading patients..." : "Select a patient"}
-                                                emptyMessage="No patients found."
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
+                        <div className="space-y-2">
+                          <FormLabel>Patient Unique ID</FormLabel>
+                          <div className="flex items-center space-x-2">
+                            <Input
+                              placeholder="Enter Patient ID (e.g., PT-XXXXXXXXXX)"
+                              value={patientIdInput}
+                              onChange={(e) => setPatientIdInput(e.target.value)}
+                              disabled={isSearching}
                             />
-                            <FormField
-                                control={form.control}
-                                name="documentType"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Document Type</FormLabel>
-                                        <Select onValueChange={field.onChange} value={field.value}>
-                                            <FormControl><SelectTrigger><SelectValue placeholder="Select a type..."/></SelectTrigger></FormControl>
-                                            <SelectContent>
-                                                <SelectItem value="labReport">Lab Report</SelectItem>
-                                                <SelectItem value="scanReport">Scan Report (X-Ray, MRI, etc.)</SelectItem>
-                                                <SelectItem value="vaccinationRecord">Vaccination Record</SelectItem>
-                                                <SelectItem value="other">Other</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                             <FormField
-                                control={form.control}
-                                name="documentName"
-                                render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Document Name</FormLabel>
-                                    <FormControl><Input placeholder="e.g., Full Blood Count" {...field} /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="organization"
-                                render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Issuing Organization</FormLabel>
-                                    <FormControl><Input placeholder="e.g., City Diagnostics Lab" {...field} /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                                )}
-                            />
-                             <FormField
-                                control={form.control}
-                                name="file"
-                                render={({ field }) => (
-                                    <FormItem className="md:col-span-2">
-                                        <FormLabel>File (PDF, PNG, JPG)</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                type="file"
-                                                accept="application/pdf,image/png,image/jpeg"
-                                                onBlur={field.onBlur}
-                                                name={field.name}
-                                                ref={field.ref}
-                                                onChange={(e) => {
-                                                    field.onChange(e.target.files?.[0]);
-                                                }}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                            <Button type="button" onClick={handleFindPatient} disabled={isSearching || !patientIdInput}>
+                              {isSearching ? <Loader2 className="animate-spin" /> : <Search />}
+                            </Button>
+                          </div>
+                          {foundPatient && (
+                            <p className="text-sm text-green-600 font-medium">
+                              Selected: {foundPatient.firstName} {foundPatient.lastName}
+                            </p>
+                          )}
                         </div>
-                        <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <PlusCircle className="mr-2 h-4 w-4"/>}
-                            {isSubmitting ? 'Uploading...' : 'Upload Document'}
-                        </Button>
+
+                        <fieldset disabled={!foundPatient || isSubmitting} className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <FormField
+                                    control={form.control}
+                                    name="documentType"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Document Type</FormLabel>
+                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                <FormControl><SelectTrigger><SelectValue placeholder="Select a type..."/></SelectTrigger></FormControl>
+                                                <SelectContent>
+                                                    <SelectItem value="labReport">Lab Report</SelectItem>
+                                                    <SelectItem value="scanReport">Scan Report (X-Ray, MRI, etc.)</SelectItem>
+                                                    <SelectItem value="vaccinationRecord">Vaccination Record</SelectItem>
+                                                    <SelectItem value="other">Other</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="documentName"
+                                    render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Document Name</FormLabel>
+                                        <FormControl><Input placeholder="e.g., Full Blood Count" {...field} /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="organization"
+                                    render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Issuing Organization</FormLabel>
+                                        <FormControl><Input placeholder="e.g., City Diagnostics Lab" {...field} /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="file"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>File (PDF, PNG, JPG)</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    type="file"
+                                                    accept="application/pdf,image/png,image/jpeg"
+                                                    onBlur={field.onBlur}
+                                                    name={field.name}
+                                                    ref={field.ref}
+                                                    onChange={(e) => {
+                                                        field.onChange(e.target.files?.[0]);
+                                                    }}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                            <Button type="submit" disabled={isSubmitting}>
+                                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <PlusCircle className="mr-2 h-4 w-4"/>}
+                                {isSubmitting ? 'Uploading...' : 'Upload Document'}
+                            </Button>
+                        </fieldset>
                     </form>
                 </Form>
             </CardContent>
         </Card>
-        
-        {selectedPatientId && (
-            <Card>
-                <CardHeader>
-                    <CardTitle>Uploaded Documents</CardTitle>
-                    <CardDescription>
-                        Previously uploaded documents for the selected patient.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="w-full overflow-x-auto">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Document Name</TableHead>
-                                    <TableHead>Type</TableHead>
-                                    <TableHead>Date Uploaded</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {isLoadingRecords ? (
-                                    [...Array(2)].map((_, i) => (
-                                        <TableRow key={i}>
-                                            <TableCell><Skeleton className="h-4 w-32"/></TableCell>
-                                            <TableCell><Skeleton className="h-4 w-24"/></TableCell>
-                                            <TableCell><Skeleton className="h-4 w-24"/></TableCell>
-                                            <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto"/></TableCell>
-                                        </TableRow>
-                                    ))
-                                ) : healthRecords && healthRecords.length > 0 ? (
-                                    healthRecords.map(doc => (
-                                        <TableRow key={doc.id}>
-                                            <TableCell className="font-medium">{doc.details?.name}</TableCell>
-                                            <TableCell>{doc.recordType}</TableCell>
-                                            <TableCell>{doc.dateCreated ? format(doc.dateCreated.toDate(), 'PPP') : 'N/A'}</TableCell>
-                                            <TableCell className="text-right">
-                                                <Button variant="ghost" size="icon" onClick={() => handleDelete(doc.id)}>
-                                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={4} className="text-center h-24">No documents found for this patient.</TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </div>
-                </CardContent>
-            </Card>
-        )}
     </div>
   )
 }
