@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from "react";
@@ -107,7 +108,7 @@ export default function AddPatientPage() {
             country: values.country,
             pinCode: values.pinCode,
         },
-        doctorId: doctorUser.uid, // This creates the formal link needed by security rules
+        doctorId: doctorUser.uid, // THIS IS THE FIX: Explicitly link the patient to this doctor
       };
 
       // Create the patient's user profile document in Firestore.
@@ -292,3 +293,5 @@ export default function AddPatientPage() {
     </div>
   )
 }
+
+    
