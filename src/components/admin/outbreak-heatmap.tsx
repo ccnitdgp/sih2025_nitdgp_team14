@@ -4,7 +4,7 @@
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.heat';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { LatLngExpression } from 'leaflet';
 import dynamic from 'next/dynamic';
 import L from 'leaflet';
@@ -45,20 +45,8 @@ const HeatmapLayer = () => {
     return null;
 };
 
-// Dynamic import to ensure Leaflet is loaded on the client side
-const OutbreakHeatmapComponent = () => {
-    const mapRef = useRef<L.Map | null>(null);
+const OutbreakHeatmapInner = () => {
     const position: LatLngExpression = [28.6139, 77.2090]; // Center map on Delhi
-
-    useEffect(() => {
-        // Cleanup function to run when the component is unmounted or re-rendered
-        return () => {
-            if (mapRef.current) {
-                mapRef.current.remove();
-                mapRef.current = null;
-            }
-        };
-    }, []);
 
     return (
         <MapContainer
@@ -67,7 +55,6 @@ const OutbreakHeatmapComponent = () => {
             scrollWheelZoom={false}
             style={{ height: '100%', width: '100%' }}
             className='rounded-lg'
-            whenCreated={map => { mapRef.current = map; }}
         >
             <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -78,7 +65,7 @@ const OutbreakHeatmapComponent = () => {
     );
 };
 
-export const OutbreakHeatmap = dynamic(() => Promise.resolve(OutbreakHeatmapComponent), {
+export const OutbreakHeatmap = dynamic(() => Promise.resolve(OutbreakHeatmapInner), {
     ssr: false,
     loading: () => <div className="h-full w-full bg-muted animate-pulse rounded-lg" />
 });
