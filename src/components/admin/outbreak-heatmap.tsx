@@ -50,6 +50,16 @@ const OutbreakHeatmapComponent = () => {
     const mapRef = useRef<L.Map | null>(null);
     const position: LatLngExpression = [28.6139, 77.2090]; // Center map on Delhi
 
+    useEffect(() => {
+        // Cleanup function to run when the component is unmounted or re-rendered
+        return () => {
+            if (mapRef.current) {
+                mapRef.current.remove();
+                mapRef.current = null;
+            }
+        };
+    }, []);
+
     return (
         <MapContainer
             center={position}
