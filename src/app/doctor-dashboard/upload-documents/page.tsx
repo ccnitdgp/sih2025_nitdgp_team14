@@ -218,11 +218,11 @@ export default function UploadDocumentsPage() {
                                 name="file"
                                 render={({ field }) => (
                                     <FormItem className="md:col-span-2">
-                                        <FormLabel>File (PDF only)</FormLabel>
+                                        <FormLabel>File (PDF, PNG, JPG)</FormLabel>
                                         <FormControl>
                                             <Input
                                                 type="file"
-                                                accept="application/pdf"
+                                                accept="application/pdf,image/png,image/jpeg"
                                                 onBlur={field.onBlur}
                                                 name={field.name}
                                                 ref={field.ref}
@@ -301,5 +301,3 @@ export default function UploadDocumentsPage() {
     </div>
   )
 }
-
-    
