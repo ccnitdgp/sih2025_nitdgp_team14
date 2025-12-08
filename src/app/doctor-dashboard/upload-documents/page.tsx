@@ -36,7 +36,7 @@ export default function UploadDocumentsPage() {
   const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
-  const [fileName, setFileName] = useState('');
+  const [fileName, setFileName] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof uploadSchema>>({
     resolver: zodResolver(uploadSchema),
@@ -44,98 +44,123 @@ export default function UploadDocumentsPage() {
       patientId: '',
       documentType: 'Lab Report',
       documentName: '',
-      issuer: ''
+      issuer: '',
     },
   });
   
   useEffect(() => {
     const patientId = searchParams.get('patientId');
-    const docType = searchParams.get('type') as 'Lab Report' | 'Vaccination' | 'Scan';
-
+    const type = searchParams.get('type');
     if (patientId) {
-      form.setValue('patientId', patientId);
+        form.setValue('patientId', patientId);
     }
-    if (docType && ['Lab Report', 'Vaccination', 'Scan'].includes(docType)) {
-      form.setValue('documentType', docType);
+    if (type && ['Lab Report', 'Vaccination', 'Scan'].includes(type)) {
+        form.setValue('documentType', type as 'Lab Report' | 'Vaccination' | 'Scan');
     }
   }, [searchParams, form]);
 
 
-  const patientsQuery = useMemoFirebase(() => {
+   const appointmentsQuery = useMemoFirebase(() => {
     if (!doctorUser || !firestore) return null;
     return query(
-      collection(firestore, 'users', doctorUser.uid, 'patients')
+      collection(firestore, 'appointments'),
+      where('doctorId', '==', doctorUser.uid)
     );
   }, [doctorUser, firestore]);
 
-  const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsQuery);
+  const { data: appointments, isLoading: isLoadingAppointments } = useCollection(appointmentsQuery);
+  
+  const uniquePatients = useMemo(() => {
+    if (!appointments) return [];
+    const patientMap = new Map();
+    appointments.forEach(appt => {
+        if (!patientMap.has(appt.patientId)) {
+            patientMap.set(appt.patientId, {
+                id: appt.patientId,
+                name: appt.patientName,
+            });
+        }
+    });
+    return Array.from(patientMap.values());
+  }, [appointments]);
+
 
   const onSubmit = (values: z.infer<typeof uploadSchema>) => {
-    if (!doctorUser || !firestore || !firebaseApp) return;
+    if (!doctorUser || !firebaseApp) {
+      toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to upload documents.' });
+      return;
+    }
+    
+    const file = values.file[0];
+    if (!file) return;
 
     setIsSubmitting(true);
     setUploadProgress(0);
 
-    const file = values.file[0];
     const storage = getStorage(firebaseApp);
-    const storageRef = ref(storage, `patient_documents/${values.patientId}/${Date.now()}_${file.name}`);
+    const storageRef = ref(storage, `patient_documents/${values.patientId}/${Date.now()}-${file.name}`);
     const uploadTask = uploadBytesResumable(storageRef, file);
 
-    uploadTask.on('state_changed',
+    uploadTask.on(
+        'state_changed',
         (snapshot) => {
             const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
             setUploadProgress(progress);
         },
         (error) => {
-            console.error("Upload failed:", error);
+            console.error('Upload failed:', error);
             toast({
-                variant: 'destructive',
-                title: 'Upload Failed',
-                description: 'There was an error uploading your file. Please check permissions and try again.'
+                variant: "destructive",
+                title: "Upload Failed",
+                description: "Permission denied or network error. Please check your connection and try again.",
             });
             setIsSubmitting(false);
             setUploadProgress(null);
         },
         async () => {
-            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            try {
+                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                const healthRecordsRef = collection(firestore, `users/${values.patientId}/healthRecords`);
+                
+                let recordType = 'labReport';
+                if (values.documentType === 'Vaccination') recordType = 'vaccinationRecord';
+                if (values.documentType === 'Scan') recordType = 'scanReport';
+                
+                const newDocRef = doc(healthRecordsRef);
+                const docData = {
+                    id: newDocRef.id,
+                    recordType: recordType,
+                    details: {
+                        name: values.documentName,
+                        date: new Date().toISOString().split('T')[0],
+                        issuer: values.issuer,
+                        downloadUrl: downloadURL,
+                        fileName: file.name
+                    },
+                    dateCreated: serverTimestamp(),
+                    userId: values.patientId,
+                    addedBy: doctorUser.uid,
+                };
+                
+                setDocumentNonBlocking(newDocRef, docData, {});
 
-            let recordType = 'labReport'; // default
-            if (values.documentType === 'Vaccination') recordType = 'vaccinationRecord';
-            if (values.documentType === 'Scan') recordType = 'scanReport';
-            
-            const healthRecordsRef = collection(firestore, 'users', values.patientId, 'healthRecords');
-            
-            const reportData = {
-                recordType: recordType,
-                details: {
-                    name: values.documentName,
-                    issuer: values.issuer,
-                    date: new Date().toISOString().split('T')[0],
-                    fileName: file.name,
-                    downloadUrl: downloadURL,
-                },
-                dateCreated: serverTimestamp(),
-                userId: values.patientId,
-                addedBy: doctorUser.uid,
-            };
-
-            const newDocRef = await addDoc(healthRecordsRef, reportData);
-            if(newDocRef){
-                updateDocumentNonBlocking(newDocRef, { id: newDocRef.id });
+                toast({
+                    title: "Upload Complete",
+                    description: `${values.documentName} has been successfully added to the patient's record.`,
+                });
+                
+                form.reset();
+                setFileName(null);
+            } catch (error) {
+                 toast({
+                    variant: "destructive",
+                    title: "Failed to Save Record",
+                    description: "The file was uploaded, but the record could not be saved.",
+                });
+            } finally {
+                setIsSubmitting(false);
+                setUploadProgress(null);
             }
-            
-            toast({ title: 'Document Uploaded Successfully', description: `${file.name} has been saved to the patient\'s records.` });
-            
-            form.reset({
-              patientId: '',
-              documentType: 'Lab Report',
-              documentName: '',
-              issuer: '',
-              file: null,
-            });
-            setFileName('');
-            setIsSubmitting(false);
-            setUploadProgress(null);
         }
     );
   };
@@ -156,16 +181,16 @@ export default function UploadDocumentsPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Select Patient</FormLabel>
-                       <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingPatients}>
+                       <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingAppointments}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder={isLoadingPatients ? "Loading patients..." : "Choose a patient"} />
+                            <SelectValue placeholder={isLoadingAppointments ? "Loading patients..." : "Choose a patient"} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {patients?.map(p => (
+                          {uniquePatients?.map(p => (
                             <SelectItem key={p.id} value={p.id}>
-                              {p.firstName} {p.lastName}
+                              {p.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
