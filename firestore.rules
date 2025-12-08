@@ -29,7 +29,13 @@ service cloud.firestore {
     function isDoctor()  { return hasRole("doctor"); }
     function isAdmin()   { return hasRole("admin"); }
 
-    // Is the current doctor linked to this patient via PatientLink?
+    // Is the current doctor the assigned doctor for the patient?
+    function isDoctorAssignedToPatient(patientId) {
+      let patientDoc = get(/databases/$(database)/documents/users/$(patientId));
+      return isDoctor() && patientDoc.data.doctorId == request.auth.uid;
+    }
+    
+    // Is the current doctor linked to this patient via PatientLink? (Legacy, less direct)
     function isAssignedDoctorForUser(userId) {
       return isDoctor()
         && exists(
@@ -76,19 +82,19 @@ service cloud.firestore {
           && newRecordUserMatchesPath()
           && (
             isOwner(userId) ||
-            isAssignedDoctorForUser(userId) ||
+            isDoctorAssignedToPatient(userId) ||
             isAdmin()
           );
 
         // Read/list/update/delete:
         // - patient owner
-        // - assigned doctor (via PatientLink)
+        // - assigned doctor (via patient's doctorId field)
         // - admin
         allow get, list, update, delete: if isSignedIn()
           && existingRecordUserMatchesPath()
           && (
             isOwner(userId) ||
-            isAssignedDoctorForUser(userId) ||
+            isDoctorAssignedToPatient(userId) ||
             isAdmin()
           );
       }
@@ -354,5 +360,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
