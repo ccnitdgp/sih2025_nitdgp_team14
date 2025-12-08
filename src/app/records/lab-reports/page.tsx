@@ -11,9 +11,9 @@ import {
 import { FlaskConical, FileDown, Scan, ShieldCheck, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, doc, query, where, or } from 'firebase/firestore';
+import { collection, doc, query, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import hi from '@/lib/locales/hi.json';
 import bn from '@/lib/locales/bn.json';
 import ta from '@/lib/locales/ta.json';
@@ -93,7 +93,6 @@ export default function LabReportsPage() {
       return;
     }
     try {
-      // In a real scenario, you might want to use a more secure way to fetch if the URL is not public
       window.open(report.details.downloadUrl, '_blank');
     } catch (error) {
       console.error('Download error:', error);
