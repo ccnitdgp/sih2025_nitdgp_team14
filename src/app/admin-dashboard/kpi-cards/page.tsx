@@ -78,6 +78,7 @@ export default function KpiCardsPage() {
     const currentYear = getYear(now);
 
     return appointments?.filter(appt => {
+      if (!appt.date) return false; // Add this check to skip appointments without a date
       const apptDate = parseISO(appt.date);
       return getMonth(apptDate) === currentMonth && getYear(apptDate) === currentYear;
     }).length || 0;
