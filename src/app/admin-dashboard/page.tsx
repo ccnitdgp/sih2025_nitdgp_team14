@@ -32,7 +32,6 @@ import {
   Megaphone,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { OutbreakHeatmap } from '@/components/admin/outbreak-heatmap';
 import Link from 'next/link';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
@@ -391,20 +390,6 @@ export default function AdminDashboardPage() {
 
             </div>
            </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-1 gap-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Outbreak Heatmap</CardTitle>
-                <CardDescription>
-                  Geographic distribution of recent flu cases (Sample data for Delhi).
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="h-[400px]">
-                <OutbreakHeatmap />
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </div>
     </div>
