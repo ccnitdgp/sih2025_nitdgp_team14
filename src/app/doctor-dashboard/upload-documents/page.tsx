@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
 import { collection, serverTimestamp, query, where, orderBy, doc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
@@ -46,7 +46,6 @@ export default function UploadDocumentsPage() {
     },
   });
   
-  // Correctly fetch all patients assigned to this doctor
   const patientsQuery = useMemoFirebase(() => {
     if (!doctorUser || !firestore) return null;
     return query(
@@ -129,10 +128,8 @@ export default function UploadDocumentsPage() {
   };
   
   const handleDelete = (recordId: string) => {
-      if(!selectedPatientId || !firestore) return;
-      const docRef = doc(firestore, 'users', selectedPatientId, 'healthRecords', recordId);
-      deleteDocumentNonBlocking(docRef);
-      toast({ title: 'Document Deleted', variant: 'destructive'});
+      // This functionality will be added in a future step.
+      toast({ title: 'Delete Clicked (Not Implemented)', description: `Would delete record ${recordId}`});
   }
 
   return (
