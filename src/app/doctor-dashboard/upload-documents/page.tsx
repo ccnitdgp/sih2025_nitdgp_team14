@@ -114,7 +114,6 @@ export default function UploadDocumentsPage() {
     form.reset();
     setPatientIdInput('');
     setFoundPatient(null);
-    setIsSubmitting(false);
 
     // Handle the upload completion in the background
     uploadTask.on(
@@ -122,7 +121,13 @@ export default function UploadDocumentsPage() {
         null, // We can add a progress handler here if needed in the future
         (error) => {
             console.error("Upload failed:", error);
+            setIsSubmitting(false); // Re-enable form on failure
             // Optionally notify the user of the failure
+            toast({
+              variant: 'destructive',
+              title: "Upload Failed",
+              description: "There was an error uploading your file. Please try again."
+            })
         },
         async () => {
             try {
@@ -132,8 +137,10 @@ export default function UploadDocumentsPage() {
                 setDocumentNonBlocking(recordToUpdateRef, {
                     'details.downloadUrl': downloadURL
                 }, { merge: true });
+                setIsSubmitting(false); // Re-enable form on success
             } catch (error) {
                 console.error("Failed to get download URL or update Firestore:", error);
+                setIsSubmitting(false);
             }
         }
     );
@@ -242,7 +249,7 @@ export default function UploadDocumentsPage() {
                             </div>
                             <Button type="submit" disabled={isSubmitting}>
                                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <PlusCircle className="mr-2 h-4 w-4"/>}
-                                {isSubmitting ? 'Starting Upload...' : 'Upload Document'}
+                                {isSubmitting ? 'Uploading...' : 'Upload Document'}
                             </Button>
                         </fieldset>
                     </form>
