@@ -145,22 +145,68 @@ service cloud.firestore {
     // ============================================================
     match /appointments/{appointmentId} {
 
-        function isPatientForAppointment() {
-            return isSignedIn() && request.auth.uid == request.resource.data.patientId;
+        function isPatientForAppointment(doc) {
+            return isSignedIn() && request.auth.uid == doc.patientId;
         }
         
-        function isDoctorForAppointment() {
-            return isSignedIn() && request.auth.uid == request.resource.data.doctorId;
+        function isDoctorForAppointment(doc) {
+            return isSignedIn() && request.auth.uid == doc.doctorId;
         }
 
-        // Create: only patients can create appointments for themselves.
-        allow create: if isPatientForAppointment();
+        // CREATE: 
+        // - Patients can create for themselves.
+        // - If type is virtual, status must be 'Pending', and no time/date/link can be set.
+        // - If type is in-person, status must be 'Scheduled' and date/time must be present.
+        allow create: if isPatientForAppointment(request.resource.data) && (
+            (
+                request.resource.data.type == 'Virtual' &&
+                request.resource.data.status == 'Pending' &&
+                !('date' in request.resource.data) &&
+                !('time' in request.resource.data) &&
+                !('meetLink' in request.resource.data)
+            ) ||
+            (
+                request.resource.data.type == 'In-Person' &&
+                request.resource.data.status == 'Scheduled' &&
+                'date' in request.resource.data &&
+                'time' in request.resource.data
+            )
+        );
         
-        // Read/Update: only the involved patient, doctor, or an admin.
-        allow get, update: if isSignedIn() && (
+        // READ: only the involved patient, doctor, or an admin.
+        allow get: if isSignedIn() && (
             isOwner(resource.data.patientId) || 
             isOwner(resource.data.doctorId) || 
             isAdmin()
+        );
+
+        // UPDATE:
+        // - A patient can only cancel ('status' to 'Canceled')
+        // - A doctor can update status to 'Completed' or 'Canceled'
+        // - A doctor can update a 'Pending' request to 'Scheduled', adding date/time/link
+        allow update: if isSignedIn() && (
+            isAdmin() ||
+            (isOwner(resource.data.patientId) && request.resource.data.status == 'Canceled' && resource.data.status == 'Scheduled') ||
+            (isOwner(resource.data.doctorId) && (
+                (
+                    // Accepting a pending virtual request
+                    resource.data.status == 'Pending' &&
+                    request.resource.data.status == 'Scheduled' &&
+                    request.resource.data.diff(resource.data).affectedKeys().hasAll(['status', 'date', 'time', 'meetLink'])
+                ) || 
+                (
+                    // Rejecting a pending virtual request
+                    resource.data.status == 'Pending' &&
+                    request.resource.data.status == 'Canceled' &&
+                    request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+                ) ||
+                (
+                    // Completing or Cancelling a scheduled appointment
+                    resource.data.status == 'Scheduled' &&
+                    (request.resource.data.status == 'Completed' || request.resource.data.status == 'Canceled') &&
+                    request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+                )
+            ))
         );
 
         // LIST (QUERY): A user can query appointments only if they filter by their OWN patientId or doctorId.
