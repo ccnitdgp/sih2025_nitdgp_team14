@@ -392,15 +392,15 @@ export default function AdminDashboardPage() {
             </div>
            </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-1 gap-8">
             <Card>
               <CardHeader>
                 <CardTitle>Outbreak Heatmap</CardTitle>
                 <CardDescription>
-                  Geographic distribution of recent flu cases.
+                  Geographic distribution of recent flu cases (Sample data for Delhi).
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="h-[400px]">
                 <OutbreakHeatmap />
               </CardContent>
             </Card>
