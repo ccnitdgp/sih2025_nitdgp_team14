@@ -16,9 +16,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Upload, PlusCircle, Trash2, Loader2, Search } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Upload, PlusCircle, Loader2, Search } from 'lucide-react';
+import { BackButton } from '@/components/layout/back-button';
 
 const documentSchema = z.object({
   documentName: z.string().min(3, 'Document name is required.'),
@@ -105,24 +104,16 @@ export default function UploadDocumentsPage() {
         addedBy: doctorUser.uid,
     };
 
-    // Immediately create the document record, non-blockingly
     addDocumentNonBlocking(healthRecordsRef, newRecordData);
     
     toast({ title: 'Upload Started', description: 'Your document is being uploaded and will appear in the patient\'s records shortly.' });
     
-    // Reset form and UI state immediately
-    form.reset();
-    setPatientIdInput('');
-    setFoundPatient(null);
-
-    // Handle the upload completion in the background
     uploadTask.on(
         'state_changed',
-        null, // We can add a progress handler here if needed in the future
+        null, 
         (error) => {
             console.error("Upload failed:", error);
-            setIsSubmitting(false); // Re-enable form on failure
-            // Optionally notify the user of the failure
+            setIsSubmitting(false); 
             toast({
               variant: 'destructive',
               title: "Upload Failed",
@@ -132,22 +123,26 @@ export default function UploadDocumentsPage() {
         async () => {
             try {
                 const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                // Now update the document with the final URL
                 const recordToUpdateRef = doc(firestore, 'users', patientId, 'healthRecords', newRecordData.id);
                 setDocumentNonBlocking(recordToUpdateRef, {
                     'details.downloadUrl': downloadURL
                 }, { merge: true });
-                setIsSubmitting(false); // Re-enable form on success
+
             } catch (error) {
                 console.error("Failed to get download URL or update Firestore:", error);
+            } finally {
                 setIsSubmitting(false);
+                form.reset();
+                setPatientIdInput('');
+                setFoundPatient(null);
             }
         }
     );
   };
 
   return (
-    <div className="container mx-auto max-w-7xl px-6 py-12 space-y-8">
+    <div className="container mx-auto max-w-4xl px-6 py-12 space-y-8">
+        <BackButton />
         <Card>
             <CardHeader>
                 <div className="flex items-center gap-3">
@@ -181,7 +176,7 @@ export default function UploadDocumentsPage() {
                           )}
                         </div>
 
-                        <fieldset disabled={!foundPatient || isSubmitting} className="space-y-6">
+                        <div className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <FormField
                                     control={form.control}
@@ -189,7 +184,7 @@ export default function UploadDocumentsPage() {
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>Document Type</FormLabel>
-                                            <Select onValueChange={field.onChange} value={field.value}>
+                                            <Select onValueChange={field.onChange} value={field.value} disabled={!foundPatient || isSubmitting}>
                                                 <FormControl><SelectTrigger><SelectValue placeholder="Select a type..."/></SelectTrigger></FormControl>
                                                 <SelectContent>
                                                     <SelectItem value="labReport">Lab Report</SelectItem>
@@ -208,7 +203,7 @@ export default function UploadDocumentsPage() {
                                     render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Document Name</FormLabel>
-                                        <FormControl><Input placeholder="e.g., Full Blood Count" {...field} /></FormControl>
+                                        <FormControl><Input placeholder="e.g., Full Blood Count" {...field} disabled={!foundPatient || isSubmitting} /></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                     )}
@@ -219,7 +214,7 @@ export default function UploadDocumentsPage() {
                                     render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Issuing Organization</FormLabel>
-                                        <FormControl><Input placeholder="e.g., City Diagnostics Lab" {...field} /></FormControl>
+                                        <FormControl><Input placeholder="e.g., City Diagnostics Lab" {...field} disabled={!foundPatient || isSubmitting} /></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                     )}
@@ -240,6 +235,7 @@ export default function UploadDocumentsPage() {
                                                     onChange={(e) => {
                                                         field.onChange(e.target.files?.[0]);
                                                     }}
+                                                    disabled={!foundPatient || isSubmitting}
                                                 />
                                             </FormControl>
                                             <FormMessage />
@@ -247,11 +243,11 @@ export default function UploadDocumentsPage() {
                                     )}
                                 />
                             </div>
-                            <Button type="submit" disabled={isSubmitting}>
+                            <Button type="submit" disabled={!foundPatient || isSubmitting}>
                                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <PlusCircle className="mr-2 h-4 w-4"/>}
                                 {isSubmitting ? 'Uploading...' : 'Upload Document'}
                             </Button>
-                        </fieldset>
+                        </div>
                     </form>
                 </Form>
             </CardContent>
