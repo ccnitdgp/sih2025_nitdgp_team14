@@ -11,8 +11,9 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // Simplified to directly check the uid.
     function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+      return request.auth.uid == userId;
     }
 
     // Load current user's profile
@@ -21,6 +22,7 @@ service cloud.firestore {
     }
 
     function hasRole(role) {
+      // This check still requires reading the user doc, which is fine for rules on OTHER documents.
       return isSignedIn()
         && userDoc(request.auth.uid).data.role == role;
     }
@@ -29,7 +31,13 @@ service cloud.firestore {
     function isDoctor()  { return hasRole("doctor"); }
     function isAdmin()   { return hasRole("admin"); }
 
-    // Is the current doctor linked to this patient via PatientLink?
+    // Is the current doctor the assigned doctor for the patient?
+    function isDoctorAssignedToPatient(patientId) {
+      let patientDoc = get(/databases/$(database)/documents/users/$(patientId));
+      return isDoctor() && patientDoc.data.doctorId == request.auth.uid;
+    }
+    
+    // Is the current doctor linked to this patient via PatientLink? (Legacy, less direct)
     function isAssignedDoctorForUser(userId) {
       return isDoctor()
         && exists(
@@ -48,8 +56,8 @@ service cloud.firestore {
         && request.auth.uid == userId
         && request.resource.data.id == userId;
 
-      // User reads/updates their own profile.
-      allow get, update: if isOwner(userId);
+      // User can always read/update their own profile. This rule is now self-contained.
+      allow get, update: if request.auth.uid == userId;
 
       // Public can query for patient count. Admins can list all users.
       allow list: if (request.query.where.role == 'patient') || isAdmin();
@@ -76,19 +84,19 @@ service cloud.firestore {
           && newRecordUserMatchesPath()
           && (
             isOwner(userId) ||
-            isAssignedDoctorForUser(userId) ||
+            isDoctorAssignedToPatient(userId) ||
             isAdmin()
           );
 
         // Read/list/update/delete:
         // - patient owner
-        // - assigned doctor (via PatientLink)
+        // - assigned doctor (via patient's doctorId field)
         // - admin
         allow get, list, update, delete: if isSignedIn()
           && existingRecordUserMatchesPath()
           && (
             isOwner(userId) ||
-            isAssignedDoctorForUser(userId) ||
+            isDoctorAssignedToPatient(userId) ||
             isAdmin()
           );
       }
@@ -110,8 +118,8 @@ service cloud.firestore {
       // ----------------------------------------------
       match /patients/{patientId} {
 
-        // Only the doctor who owns this /users/{doctorId} doc
-        // or an admin can manage these links.
+        // This collection is no longer used for core permissions.
+        // It can be managed by doctors or admins for their own reference.
         allow create, get, list, update, delete: if isSignedIn()
           && (
             (isOwner(userId) && isDoctor()) ||
@@ -154,9 +162,24 @@ service cloud.firestore {
         }
 
         // CREATE: 
-        // - Patients can create for themselves, status must be 'Pending'.
-        allow create: if isPatientForAppointment(request.resource.data)
-            && request.resource.data.status == 'Pending';
+        // - Patients can create for themselves.
+        // - If type is virtual, status must be 'Pending', and no time/date/link can be set.
+        // - If type is in-person, status must be 'Scheduled' and date/time must be present.
+        allow create: if isPatientForAppointment(request.resource.data) && (
+            (
+                request.resource.data.type == 'Virtual' &&
+                request.resource.data.status == 'Pending' &&
+                !('date' in request.resource.data) &&
+                !('time' in request.resource.data) &&
+                !('meetLink' in request.resource.data)
+            ) ||
+            (
+                request.resource.data.type == 'In-Person' &&
+                request.resource.data.status == 'Scheduled' &&
+                'date' in request.resource.data &&
+                'time' in request.resource.data
+            )
+        );
         
         // READ: only the involved patient, doctor, or an admin.
         allow get: if isSignedIn() && (
@@ -166,30 +189,21 @@ service cloud.firestore {
         );
 
         // UPDATE:
-        // - A patient can only cancel ('status' to 'Canceled') their own 'Scheduled' or 'Pending' appointment.
-        // - A doctor can accept a pending request (In-Person or Virtual)
-        // - A doctor can reject a pending request.
-        // - A doctor can complete or cancel a scheduled appointment.
+        // - A patient can only cancel ('status' to 'Canceled')
+        // - A doctor can update status to 'Completed' or 'Canceled'
+        // - A doctor can update a 'Pending' request to 'Scheduled', adding date/time/link
         allow update: if isSignedIn() && (
             isAdmin() ||
-            (isOwner(resource.data.patientId) && request.resource.data.status == 'Canceled' && (resource.data.status == 'Scheduled' || resource.data.status == 'Pending')) ||
+            (isOwner(resource.data.patientId) && request.resource.data.status == 'Canceled' && resource.data.status == 'Scheduled') ||
             (isOwner(resource.data.doctorId) && (
                 (
-                    // Accepting a pending In-Person request (just changing status)
+                    // Accepting a pending virtual request
                     resource.data.status == 'Pending' &&
                     request.resource.data.status == 'Scheduled' &&
-                    resource.data.type == 'In-Person' &&
-                    request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
-                ) ||
-                (
-                    // Accepting a pending Virtual request (adding date, time, link, and changing status)
-                    resource.data.status == 'Pending' &&
-                    request.resource.data.status == 'Scheduled' &&
-                    resource.data.type == 'Virtual' &&
                     request.resource.data.diff(resource.data).affectedKeys().hasAll(['status', 'date', 'time', 'meetLink'])
                 ) || 
                 (
-                    // Rejecting any pending request
+                    // Rejecting a pending virtual request
                     resource.data.status == 'Pending' &&
                     request.resource.data.status == 'Canceled' &&
                     request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])

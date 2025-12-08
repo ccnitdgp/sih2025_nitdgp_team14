@@ -108,21 +108,11 @@ export default function AddPatientPage() {
             country: values.country,
             pinCode: values.pinCode,
         },
-        doctorId: doctorUser.uid, // <-- THIS IS THE CRUCIAL FIX
+        doctorId: doctorUser.uid, // <-- This is the crucial fix
       };
 
       // 1. Create the patient's user profile document in Firestore.
       setDocumentNonBlocking(newPatientDocRef, userProfile, { merge: true });
-
-      // 2. Add a link to this patient in the doctor's own patient list.
-      const patientLinkRef = doc(firestore, 'users', doctorUser.uid, 'patients', newPatientFirebaseId);
-      const patientLinkData = {
-          patientId: newPatientFirebaseId,
-          firstName: values.firstName,
-          lastName: values.lastName,
-          email: values.email
-      };
-      setDocumentNonBlocking(patientLinkRef, patientLinkData, {});
       
       toast({
         title: "Patient Profile Created",
@@ -303,5 +293,3 @@ export default function AddPatientPage() {
     </div>
   )
 }
-
-    
