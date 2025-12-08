@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { Logo } from '@/components/logo';
+import Link from 'next/link';
 
 const adminNavLinks = [
   { href: "/admin-dashboard", label: "Dashboard Overview" },
@@ -63,12 +64,13 @@ export default function AdminDashboardLayout({
             {adminNavLinks.map((link) => (
               <SidebarMenuItem key={link.href}>
                 <SidebarMenuButton
-                  href={link.href}
                   isActive={pathname === link.href}
                   asChild
                 >
-                  {link.icon && <link.icon />}
-                  <span>{link.label}</span>
+                  <Link href={link.href}>
+                    {link.icon && <link.icon />}
+                    <span>{link.label}</span>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
