@@ -18,7 +18,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Upload, FileText, Syringe, Scan, Loader2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useSearchParams } from 'next/navigation';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { BackButton } from '@/components/layout/back-button';
 
 const uploadSchema = z.object({
@@ -130,9 +129,7 @@ export default function UploadDocumentsPage() {
                     addedBy: doctorUser.uid,
                 };
                 
-                // This is a non-blocking write. The UI will update instantly.
-                // Any errors (like permission errors) are handled globally.
-                addDoc(healthRecordsRef, docData);
+                await addDoc(healthRecordsRef, docData);
 
                 toast({
                     title: "Upload Complete",
@@ -181,7 +178,7 @@ export default function UploadDocumentsPage() {
                         <SelectContent>
                           {patients?.map(p => (
                             <SelectItem key={p.id} value={p.id}>
-                              {p.firstName} {p.lastName}
+                              {p.firstName} {p.lastName} (ID: {p.patientId})
                             </SelectItem>
                           ))}
                         </SelectContent>
