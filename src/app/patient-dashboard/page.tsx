@@ -30,6 +30,55 @@ interface IWindow extends Window {
   webkitSpeechRecognition: any;
 }
 
+const DashboardSkeleton = () => (
+    <div className="space-y-12">
+        <div>
+            <Skeleton className="h-10 w-1/2" />
+            <Skeleton className="h-5 w-3/4 mt-2" />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            <div className="lg:col-span-2 space-y-8">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <Skeleton className="h-48 rounded-lg" />
+                    <Skeleton className="h-48 rounded-lg" />
+                    <Skeleton className="h-48 rounded-lg" />
+                </div>
+                <Card>
+                    <CardHeader>
+                        <Skeleton className="h-7 w-1/2" />
+                        <Skeleton className="h-4 w-3/4" />
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <Skeleton className="h-24 w-full" />
+                        <Skeleton className="h-10 w-1/3" />
+                    </CardContent>
+                </Card>
+            </div>
+            <div className="space-y-8">
+                <Card>
+                    <CardHeader>
+                        <Skeleton className="h-7 w-1/2" />
+                        <Skeleton className="h-4 w-3/4" />
+                    </CardHeader>
+                    <CardContent className="flex flex-col items-center text-center">
+                        <Skeleton className="h-28 w-28 rounded-full mb-4" />
+                        <Skeleton className="h-6 w-3/4" />
+                        <Skeleton className="h-4 w-1/2 mt-2" />
+                    </CardContent>
+                </Card>
+                <Skeleton className="h-72 w-full rounded-lg" />
+            </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
+            <Skeleton className="h-48 rounded-lg" />
+            <Skeleton className="h-48 rounded-lg" />
+            <Skeleton className="h-48 rounded-lg" />
+        </div>
+    </div>
+);
+
+
 export default function PatientDashboardPage() {
   const { user } = useUser();
   const firestore = useFirestore();
@@ -38,7 +87,7 @@ export default function PatientDashboardPage() {
 
   const [question, setQuestion] = useState('');
   const [language, setLanguage] = useState('en');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [assistantResponse, setAssistantResponse] = useState<HealthAssistantOutput | null>(null);
 
   const [isAssistantResponseOpen, setIsAssistantResponseOpen] = useState(true);
@@ -53,7 +102,7 @@ export default function PatientDashboardPage() {
     return doc(firestore, 'users', user.uid);
   }, [user, firestore]);
 
-  const { data: userProfile } = useDoc(userDocRef);
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc(userDocRef);
 
   const billsQuery = useMemoFirebase(() => {
     if (!user || !firestore) return null;
@@ -174,7 +223,7 @@ export default function PatientDashboardPage() {
 
   const handleGetInformation = async () => {
     if (!question) return;
-    setIsLoading(true);
+    setIsLoadingAI(true);
     setAssistantResponse(null);
     try {
       const result = await getHealthInformation({ question, language });
@@ -187,9 +236,19 @@ export default function PatientDashboardPage() {
         description: t('ai_assistant_failed_desc', 'The AI service is currently busy. Please wait a moment and try again.'),
       });
     } finally {
-      setIsLoading(false);
+      setIsLoadingAI(false);
     }
   };
+  
+  if (isProfileLoading) {
+      return (
+        <div className="bg-muted/40 min-h-screen">
+          <div className="container mx-auto max-w-7xl px-6 py-12">
+            <DashboardSkeleton />
+          </div>
+        </div>
+      );
+  }
 
 
   return (
@@ -289,8 +348,8 @@ export default function PatientDashboardPage() {
                                   </SelectContent>
                               </Select>
                           </div>
-                          <Button onClick={handleGetInformation} disabled={isLoading || !question}>
-                            {isLoading ? t('getting_info_button_loading', 'Getting Information...') : t('get_info_button', 'Get Information')}
+                          <Button onClick={handleGetInformation} disabled={isLoadingAI || !question}>
+                            {isLoadingAI ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/>{t('getting_info_button_loading', 'Getting Information...')}</> : t('get_info_button', 'Get Information')}
                           </Button>
                       </CardContent>
                   </Card>
