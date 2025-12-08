@@ -5,9 +5,9 @@ import { useState, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useUser, useFirestore, setDocumentNonBlocking } from '@/firebase';
-import { collection, query, where, getDocs, doc, serverTimestamp, addDoc } from 'firebase/firestore';
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { useUser, useFirestore } from '@/firebase';
+import { collection, query, where, getDocs, doc, serverTimestamp, addDoc, setDoc } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
@@ -45,7 +45,7 @@ export default function UploadDocumentsPage() {
       file: undefined,
     },
   });
-  const { control, handleSubmit, reset, register } = form;
+  const { control, handleSubmit, reset } = form;
 
   const handleFindPatient = async () => {
     if (!patientIdInput.trim()) {
@@ -88,11 +88,9 @@ export default function UploadDocumentsPage() {
         const storage = getStorage();
         const storageRef = ref(storage, `patient_documents/${patientId}/${Date.now()}-${file.name}`);
         
-        // Step 1: Await the file upload
-        const uploadTask = await uploadBytesResumable(storageRef, file);
-        const downloadURL = await getDownloadURL(uploadTask.ref);
+        await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(storageRef);
 
-        // Step 2: Await the database record creation
         const healthRecordsRef = collection(firestore, 'users', patientId, 'healthRecords');
         
         const newRecordData = {
@@ -110,7 +108,7 @@ export default function UploadDocumentsPage() {
         };
 
         const newDocRef = await addDoc(healthRecordsRef, newRecordData);
-        await setDocumentNonBlocking(doc(healthRecordsRef, newDocRef.id), { id: newDocRef.id }, { merge: true });
+        await setDoc(doc(healthRecordsRef, newDocRef.id), { id: newDocRef.id }, { merge: true });
 
         toast({ title: 'Upload Complete', description: `${file.name} has been successfully uploaded.` });
         
@@ -144,102 +142,106 @@ export default function UploadDocumentsPage() {
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="space-y-6">
-                    <div className="space-y-2">
-                        <FormLabel>Patient Unique ID</FormLabel>
-                        <div className="flex items-center space-x-2">
-                        <Input
-                            placeholder="Enter Patient ID (e.g., PT-XXXXXXXXXX)"
-                            value={patientIdInput}
-                            onChange={(e) => setPatientIdInput(e.target.value)}
-                            disabled={isSearching}
-                        />
-                        <Button type="button" onClick={handleFindPatient} disabled={isSearching || !patientIdInput}>
-                            {isSearching ? <Loader2 className="animate-spin" /> : <Search />}
-                        </Button>
+                <Form {...form}>
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                        <div className="space-y-2">
+                           <FormItem>
+                                <FormLabel>Patient Unique ID</FormLabel>
+                                <div className="flex items-center space-x-2">
+                                    <FormControl>
+                                        <Input
+                                            placeholder="Enter Patient ID (e.g., PT-XXXXXXXXXX)"
+                                            value={patientIdInput}
+                                            onChange={(e) => setPatientIdInput(e.target.value)}
+                                            disabled={isSearching}
+                                        />
+                                    </FormControl>
+                                    <Button type="button" onClick={handleFindPatient} disabled={isSearching || !patientIdInput}>
+                                        {isSearching ? <Loader2 className="animate-spin" /> : <Search />}
+                                    </Button>
+                                </div>
+                                <FormMessage />
+                            </FormItem>
+
+                            {foundPatient && (
+                                <p className="text-sm text-green-600 font-medium">
+                                    Selected: {foundPatient.firstName} {foundPatient.lastName}
+                                </p>
+                            )}
                         </div>
-                        {foundPatient && (
-                        <p className="text-sm text-green-600 font-medium">
-                            Selected: {foundPatient.firstName} {foundPatient.lastName}
-                        </p>
-                        )}
-                    </div>
-                    
-                    <Form {...form}>
-                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <FormField
-                                    control={control}
-                                    name="documentType"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Document Type</FormLabel>
-                                            <Select onValueChange={field.onChange} value={field.value} disabled={!foundPatient || isSubmitting}>
-                                                <FormControl><SelectTrigger><SelectValue placeholder="Select a type..."/></SelectTrigger></FormControl>
-                                                <SelectContent>
-                                                    <SelectItem value="labReport">Lab Report</SelectItem>
-                                                    <SelectItem value="scanReport">Scan Report (X-Ray, MRI, etc.)</SelectItem>
-                                                    <SelectItem value="vaccinationRecord">Vaccination Record</SelectItem>
-                                                    <SelectItem value="other">Other</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={control}
-                                    name="documentName"
-                                    render={({ field }) => (
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormField
+                                control={control}
+                                name="documentType"
+                                render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Document Name</FormLabel>
-                                        <FormControl><Input placeholder="e.g., Full Blood Count" {...field} disabled={!foundPatient || isSubmitting} /></FormControl>
+                                        <FormLabel>Document Type</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value} disabled={!foundPatient || isSubmitting}>
+                                            <FormControl><SelectTrigger><SelectValue placeholder="Select a type..."/></SelectTrigger></FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="labReport">Lab Report</SelectItem>
+                                                <SelectItem value="scanReport">Scan Report (X-Ray, MRI, etc.)</SelectItem>
+                                                <SelectItem value="vaccinationRecord">Vaccination Record</SelectItem>
+                                                <SelectItem value="other">Other</SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                         <FormMessage />
                                     </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={control}
-                                    name="organization"
-                                    render={({ field }) => (
+                                )}
+                            />
+                            <FormField
+                                control={control}
+                                name="documentName"
+                                render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Document Name</FormLabel>
+                                    <FormControl><Input placeholder="e.g., Full Blood Count" {...field} disabled={!foundPatient || isSubmitting} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={control}
+                                name="organization"
+                                render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Issuing Organization</FormLabel>
+                                    <FormControl><Input placeholder="e.g., City Diagnostics Lab" {...field} disabled={!foundPatient || isSubmitting}/></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={control}
+                                name="file"
+                                render={({ field: { onChange, onBlur, name, ref } }) => (
                                     <FormItem>
-                                        <FormLabel>Issuing Organization</FormLabel>
-                                        <FormControl><Input placeholder="e.g., City Diagnostics Lab" {...field} disabled={!foundPatient || isSubmitting}/></FormControl>
+                                        <FormLabel>File (PDF, PNG, JPG)</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type="file"
+                                                accept="application/pdf,image/png,image/jpeg"
+                                                onBlur={onBlur}
+                                                name={name}
+                                                ref={ref}
+                                                onChange={(e) => {
+                                                    onChange(e.target.files?.[0]);
+                                                }}
+                                                disabled={!foundPatient || isSubmitting}
+                                            />
+                                        </FormControl>
                                         <FormMessage />
                                     </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={control}
-                                    name="file"
-                                    render={({ field: { onChange, onBlur, name, ref } }) => (
-                                        <FormItem>
-                                            <FormLabel>File (PDF, PNG, JPG)</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    type="file"
-                                                    accept="application/pdf,image/png,image/jpeg"
-                                                    onBlur={onBlur}
-                                                    name={name}
-                                                    ref={ref}
-                                                    onChange={(e) => {
-                                                        onChange(e.target.files?.[0]);
-                                                    }}
-                                                    disabled={!foundPatient || isSubmitting}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
-                            <Button type="submit" disabled={!foundPatient || isSubmitting}>
-                                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <PlusCircle className="mr-2 h-4 w-4"/>}
-                                {isSubmitting ? 'Uploading...' : 'Upload Document'}
-                            </Button>
-                        </form>
-                    </Form>
-                </div>
+                                )}
+                            />
+                        </div>
+                        <Button type="submit" disabled={!foundPatient || isSubmitting}>
+                            {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <PlusCircle className="mr-2 h-4 w-4"/>}
+                            {isSubmitting ? 'Uploading...' : 'Upload Document'}
+                        </Button>
+                    </form>
+                </Form>
             </CardContent>
         </Card>
     </div>
