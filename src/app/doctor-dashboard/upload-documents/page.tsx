@@ -95,19 +95,20 @@ export default function UploadDocumentsPage() {
     
     setIsSubmitting(true);
     const file = values.file;
-    const patientId = values.patientId;
+    const patientId = values.patientId; // Use the patientId from the form values
     
     try {
         const storage = getStorage();
+        // Use the correct patientId (which is the UID) for the storage path
         const storageRef = ref(storage, `patient_documents/${patientId}/${Date.now()}-${file.name}`);
         const uploadTask = uploadBytesResumable(storageRef, file);
         
         uploadTask.on(
             'state_changed',
-            null,
+            null, // We can add a progress handler here if needed
             (error) => {
                 console.error("Upload failed:", error);
-                toast({ variant: 'destructive', title: 'Upload Failed', description: 'Could not upload the file.'});
+                toast({ variant: 'destructive', title: 'Upload Failed', description: 'Could not upload the file. Please check permissions.'});
                 setIsSubmitting(false);
             },
             async () => {
@@ -136,7 +137,7 @@ export default function UploadDocumentsPage() {
         )
     } catch(e) {
         console.error(e)
-        toast({ variant: 'destructive', title: 'Error', description: 'An unexpected error occurred.'});
+        toast({ variant: 'destructive', title: 'Error', description: 'An unexpected error occurred during the upload process.'});
         setIsSubmitting(false);
     }
   };
@@ -232,17 +233,19 @@ export default function UploadDocumentsPage() {
                              <FormField
                                 control={form.control}
                                 name="file"
-                                render={({ field: { onChange, onBlur, name, ref } }) => (
+                                render={({ field }) => (
                                     <FormItem className="md:col-span-2">
                                         <FormLabel>File (PDF only)</FormLabel>
                                         <FormControl>
                                             <Input
                                                 type="file"
                                                 accept="application/pdf"
-                                                ref={ref}
-                                                name={name}
-                                                onBlur={onBlur}
-                                                onChange={(e) => onChange(e.target.files?.[0])}
+                                                onBlur={field.onBlur}
+                                                name={field.name}
+                                                ref={field.ref}
+                                                onChange={(e) => {
+                                                    field.onChange(e.target.files?.[0]);
+                                                }}
                                             />
                                         </FormControl>
                                         <FormMessage />
