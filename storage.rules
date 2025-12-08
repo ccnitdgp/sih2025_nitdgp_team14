@@ -1,4 +1,3 @@
-
 rules_version = '2';
 
 service firebase.storage {
@@ -11,8 +10,9 @@ service firebase.storage {
       return request.auth != null;
     }
     
+    // In STORAGE rules we must use (default), NOT $(database)
     function userDoc(uid) {
-      return get(/databases/$(database)/documents/users/$(uid));
+      return get(/databases/(default)/documents/users/$(uid));
     }
     
     function isDoctor() {
@@ -23,11 +23,16 @@ service firebase.storage {
       return isSignedIn() && userDoc(request.auth.uid).data.role == "patient";
     }
 
-    // Is the current doctor linked to this patient via PatientLink?
+    function isAdmin() {
+      return isSignedIn() && userDoc(request.auth.uid).data.role == "admin";
+    }
+
+    // If you actually use /users/{doctorId}/patients/{patientId}, keep this.
+    // If not, you can remove it later.
     function isAssignedDoctorForUser(userId) {
       return isDoctor()
         && exists(
-          /databases/$(database)/documents/users/$(request.auth.uid)/patients/$(userId)
+          /databases/(default)/documents/users/$(request.auth.uid)/patients/$(userId)
         );
     }
 
@@ -45,12 +50,11 @@ service firebase.storage {
         && request.auth.uid == doctorId
         && isDoctor();
 
-      // Doctor can read own documents
-      // Admin can read all
+      // Doctor can read own docs, admin can read all
       allow read: if isSignedIn()
         && (
-          request.auth.uid == doctorId
-          || userDoc(request.auth.uid).data.role == "admin"
+          request.auth.uid == doctorId ||
+          isAdmin()
         );
     }
 
@@ -60,7 +64,7 @@ service firebase.storage {
     //
     // path: patient_documents/{patientId}/{fileName}
     // Doctor uploads files for patients
-    // Patients can upload own files (lab reports, PDF)
+    // Patients can upload own files
     // ---------------------------------
     match /patient_documents/{patientId}/{fileName} {
 
@@ -69,15 +73,17 @@ service firebase.storage {
         && request.auth.uid == patientId
         && isPatient();
 
-      // Doctor can upload medical files for a patient IF they are assigned to that patient.
-      allow write: if isSignedIn() && isAssignedDoctorForUser(patientId);
+      // Doctor can upload medical files for ANY patient (dev-friendly).
+      // If you want to restrict, replace isDoctor() with isAssignedDoctorForUser(patientId)
+      allow write: if isSignedIn()
+        && isDoctor();
 
-      // Patients download own files
-      // Doctor can view files for a patient they are assigned to.
+      // Patients read own files; any doctor can read patient files.
+      // For stricter: use isAssignedDoctorForUser(patientId) instead of isDoctor()
       allow read: if isSignedIn()
         && (
-          (isPatient() && request.auth.uid == patientId)
-          || isAssignedDoctorForUser(patientId)
+          (isPatient() && request.auth.uid == patientId) ||
+          isDoctor()
         );
     }
 
