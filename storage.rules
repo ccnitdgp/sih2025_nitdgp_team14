@@ -11,7 +11,6 @@ service firebase.storage {
       return request.auth != null;
     }
     
-    // In STORAGE rules we must use (default), NOT $(database)
     function userDoc(uid) {
       return get(/databases/(default)/documents/users/$(uid));
     }
@@ -28,10 +27,9 @@ service firebase.storage {
       return isSignedIn() && userDoc(request.auth.uid).data.role == "admin";
     }
 
-    // Checks if the requesting doctor is linked to the target user (patient)
-    function isAssignedDoctorForUser(userId) {
-      return isDoctor()
-        && exists(/databases/(default)/documents/users/$(request.auth.uid)/patients/$(userId));
+    function isDoctorAssignedToPatient(patientId) {
+      let patientDoc = get(/databases/(default)/documents/users/$(patientId));
+      return isDoctor() && patientDoc.data.doctorId == request.auth.uid;
     }
 
     // ---------------------------------
@@ -72,14 +70,15 @@ service firebase.storage {
         && isPatient();
 
       // An assigned doctor can upload files for their patient.
-      allow write: if isAssignedDoctorForUser(patientId);
+      allow write: if isDoctorAssignedToPatient(patientId);
 
       // Patients can read own files.
       // An assigned doctor can read their patient's files.
+      // Admins can read any file.
       allow read: if isSignedIn()
         && (
           (isPatient() && request.auth.uid == patientId) ||
-          isAssignedDoctorForUser(patientId) ||
+          isDoctorAssignedToPatient(patientId) ||
           isAdmin()
         );
     }
@@ -93,3 +92,5 @@ service firebase.storage {
     }
   }
 }
+
+    
