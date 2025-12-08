@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useUser, useFirestore, useCollection, useMemoFirebase, useFirebaseApp, updateDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useFirebaseApp } from '@/firebase';
 import { collection, serverTimestamp, doc, addDoc, query, where } from 'firebase/firestore';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
@@ -19,6 +19,7 @@ import { Upload, FileText, Syringe, Scan, Loader2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useSearchParams } from 'next/navigation';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { BackButton } from '@/components/layout/back-button';
 
 const uploadSchema = z.object({
   patientId: z.string().min(1, 'Please select a patient.'),
@@ -60,30 +61,16 @@ export default function UploadDocumentsPage() {
   }, [searchParams, form]);
 
 
-   const appointmentsQuery = useMemoFirebase(() => {
+  const patientsQuery = useMemoFirebase(() => {
     if (!doctorUser || !firestore) return null;
     return query(
-      collection(firestore, 'appointments'),
+      collection(firestore, 'users'),
+      where('role', '==', 'patient'),
       where('doctorId', '==', doctorUser.uid)
     );
   }, [doctorUser, firestore]);
 
-  const { data: appointments, isLoading: isLoadingAppointments } = useCollection(appointmentsQuery);
-  
-  const uniquePatients = useMemo(() => {
-    if (!appointments) return [];
-    const patientMap = new Map();
-    appointments.forEach(appt => {
-        if (!patientMap.has(appt.patientId)) {
-            patientMap.set(appt.patientId, {
-                id: appt.patientId,
-                name: appt.patientName,
-            });
-        }
-    });
-    return Array.from(patientMap.values());
-  }, [appointments]);
-
+  const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsQuery);
 
   const onSubmit = (values: z.infer<typeof uploadSchema>) => {
     if (!doctorUser || !firebaseApp) {
@@ -143,7 +130,9 @@ export default function UploadDocumentsPage() {
                     addedBy: doctorUser.uid,
                 };
                 
-                await setDocumentNonBlocking(newDocRef, docData, {});
+                // This is a non-blocking write. The UI will update instantly.
+                // Any errors (like permission errors) are handled globally.
+                addDoc(healthRecordsRef, docData);
 
                 toast({
                     title: "Upload Complete",
@@ -168,10 +157,11 @@ export default function UploadDocumentsPage() {
 
   return (
     <div className="container mx-auto max-w-2xl px-6 py-12 space-y-8">
+        <BackButton />
       <Card>
         <CardHeader>
           <CardTitle>Upload Medical Document</CardTitle>
-          <CardDescription>Upload lab reports, vaccination records, or scans for a patient.</CardDescription>
+          <CardDescription>Upload lab reports, vaccination records, or scans for an assigned patient.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -182,16 +172,16 @@ export default function UploadDocumentsPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Select Patient</FormLabel>
-                       <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingAppointments}>
+                       <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingPatients}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder={isLoadingAppointments ? "Loading patients..." : "Choose a patient"} />
+                            <SelectValue placeholder={isLoadingPatients ? "Loading patients..." : "Choose a patient"} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {uniquePatients?.map(p => (
+                          {patients?.map(p => (
                             <SelectItem key={p.id} value={p.id}>
-                              {p.name}
+                              {p.firstName} {p.lastName}
                             </SelectItem>
                           ))}
                         </SelectContent>
