@@ -17,7 +17,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Combobox } from '@/components/ui/combobox';
 import { CalendarIcon, PlusCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -37,15 +36,6 @@ const prescriptionSchema = z.object({
   dosage: z.string().min(1, 'Dosage and instructions are required.'),
   endDate: z.date().optional(),
 });
-
-const medications = [
-  { value: 'dolo', label: 'Dolo' },
-  { value: 'paracitomol', label: 'Paracitomol' },
-  { value: 'gylintus', label: 'Gylintus' },
-  { value: 'metformin', label: 'Metformin' },
-  { value: 'amoxicillin', label: 'Amoxicillin' },
-  { value: 'amlodipine', label: 'Amlodipine' },
-];
 
 export default function DoctorPrescriptionsPage() {
   const { user: doctorUser } = useUser();
@@ -80,30 +70,17 @@ export default function DoctorPrescriptionsPage() {
       dosage: '',
     },
   });
-
-  const appointmentsQuery = useMemoFirebase(() => {
+  
+  const patientsQuery = useMemoFirebase(() => {
     if (!doctorUser || !firestore) return null;
     return query(
-      collection(firestore, 'appointments'),
+      collection(firestore, 'users'),
+      where('role', '==', 'patient'),
       where('doctorId', '==', doctorUser.uid)
     );
   }, [doctorUser, firestore]);
 
-  const { data: appointments, isLoading: isLoadingAppointments } = useCollection(appointmentsQuery);
-
-  const uniquePatients = useMemo(() => {
-    if (!appointments) return [];
-    const patientMap = new Map();
-    appointments.forEach(appt => {
-        if (!patientMap.has(appt.patientId)) {
-            patientMap.set(appt.patientId, {
-                id: appt.patientId,
-                name: appt.patientName,
-            });
-        }
-    });
-    return Array.from(patientMap.values());
-  }, [appointments]);
+  const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsQuery);
 
   const issuedPrescriptionsQuery = useMemoFirebase(() => {
     if (!doctorUser || !firestore) return null;
@@ -122,12 +99,12 @@ export default function DoctorPrescriptionsPage() {
     
     const prescriptionsRef = collection(firestore, 'prescriptions');
     const newPrescriptionRef = doc(prescriptionsRef);
-    const selectedPatient = uniquePatients?.find(p => p.id === values.patientId);
+    const selectedPatient = patients?.find(p => p.id === values.patientId);
 
     const prescriptionData = {
         id: newPrescriptionRef.id,
         patientId: values.patientId,
-        patientName: selectedPatient?.name || 'Unknown Patient',
+        patientName: selectedPatient ? `${selectedPatient.firstName} ${selectedPatient.lastName}` : 'Unknown Patient',
         doctorId: doctorUser.uid,
         doctorName: `Dr. ${userProfile.firstName} ${userProfile.lastName}`,
         medication: values.medicationName,
@@ -181,16 +158,16 @@ export default function DoctorPrescriptionsPage() {
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>{t('patient_label', 'Patient')}</FormLabel>
-                                        <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingAppointments}>
+                                        <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingPatients}>
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder={isLoadingAppointments ? t('loading_patients', 'Loading patients...') : t('select_patient', 'Select a patient')} />
+                                                    <SelectValue placeholder={isLoadingPatients ? t('loading_patients', 'Loading patients...') : t('select_patient', 'Select a patient')} />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {uniquePatients?.map(p => (
+                                                {patients?.map(p => (
                                                     <SelectItem key={p.id} value={p.id}>
-                                                        {p.name}
+                                                        {p.firstName} {p.lastName}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -206,7 +183,7 @@ export default function DoctorPrescriptionsPage() {
                                     <FormItem>
                                         <FormLabel>{t('medication_name_label', 'Medication Name')}</FormLabel>
                                         <FormControl>
-                                            <Input placeholder={t('search_medication_placeholder', 'Search medication...')} {...field} />
+                                            <Input placeholder={t('search_medication_placeholder', 'e.g., Paracetamol')} {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

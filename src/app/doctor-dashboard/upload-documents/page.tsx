@@ -1,12 +1,12 @@
 
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useState, useMemo, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, query, where, orderBy, doc, DocumentReference } from 'firebase/firestore';
+import { collection, serverTimestamp, query, where, orderBy, doc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Upload, PlusCircle, FileText, Trash2, FileDown, Loader2 } from 'lucide-react';
+import { Upload, PlusCircle, Trash2, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
@@ -45,31 +45,18 @@ export default function UploadDocumentsPage() {
       file: undefined,
     },
   });
-
-  const appointmentsQuery = useMemoFirebase(() => {
+  
+  // Correctly fetch all patients assigned to this doctor
+  const patientsQuery = useMemoFirebase(() => {
     if (!doctorUser || !firestore) return null;
     return query(
-      collection(firestore, 'appointments'),
+      collection(firestore, 'users'),
+      where('role', '==', 'patient'),
       where('doctorId', '==', doctorUser.uid)
     );
   }, [doctorUser, firestore]);
 
-  const { data: appointments, isLoading: isLoadingAppointments } = useCollection(appointmentsQuery);
-  
-  const uniquePatients = useMemo(() => {
-    if (!appointments) return [];
-    const patientMap = new Map();
-    appointments.forEach(appt => {
-        if (!patientMap.has(appt.patientId)) {
-            patientMap.set(appt.patientId, {
-                id: appt.patientId,
-                name: appt.patientName,
-            });
-        }
-    });
-    return Array.from(patientMap.values());
-  }, [appointments]);
-
+  const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsQuery);
 
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
@@ -95,20 +82,19 @@ export default function UploadDocumentsPage() {
     
     setIsSubmitting(true);
     const file = values.file;
-    const patientId = values.patientId; // Use the patientId from the form values
+    const patientId = values.patientId;
     
     try {
         const storage = getStorage();
-        // Use the correct patientId (which is the UID) for the storage path
         const storageRef = ref(storage, `patient_documents/${patientId}/${Date.now()}-${file.name}`);
         const uploadTask = uploadBytesResumable(storageRef, file);
         
         uploadTask.on(
             'state_changed',
-            null, // We can add a progress handler here if needed
+            null,
             (error) => {
                 console.error("Upload failed:", error);
-                toast({ variant: 'destructive', title: 'Upload Failed', description: 'Could not upload the file. Please check permissions.'});
+                toast({ variant: 'destructive', title: 'Upload Failed', description: 'Could not upload the file. Please check storage permissions.'});
                 setIsSubmitting(false);
             },
             async () => {
@@ -171,16 +157,16 @@ export default function UploadDocumentsPage() {
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Patient</FormLabel>
-                                        <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingAppointments}>
+                                        <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingPatients}>
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder={isLoadingAppointments ? "Loading patients..." : "Select a patient"} />
+                                                    <SelectValue placeholder={isLoadingPatients ? "Loading patients..." : "Select a patient"} />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {uniquePatients?.map(p => (
+                                                {patients?.map(p => (
                                                     <SelectItem key={p.id} value={p.id}>
-                                                        {p.name}
+                                                        {p.firstName} {p.lastName}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -214,7 +200,7 @@ export default function UploadDocumentsPage() {
                                 render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Document Name</FormLabel>
-                                    <FormControl><Input placeholder="e.g., Full Blood Count" {...field} value={field.value || ''} /></FormControl>
+                                    <FormControl><Input placeholder="e.g., Full Blood Count" {...field} /></FormControl>
                                     <FormMessage />
                                 </FormItem>
                                 )}
@@ -225,7 +211,7 @@ export default function UploadDocumentsPage() {
                                 render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Issuing Organization</FormLabel>
-                                    <FormControl><Input placeholder="e.g., City Diagnostics Lab" {...field} value={field.value || ''} /></FormControl>
+                                    <FormControl><Input placeholder="e.g., City Diagnostics Lab" {...field} /></FormControl>
                                     <FormMessage />
                                 </FormItem>
                                 )}

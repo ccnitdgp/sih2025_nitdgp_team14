@@ -38,11 +38,7 @@ const addPatientSchema = z.object({
   gender: z.string().min(1, { message: "Gender is required."}),
   phoneNumber: z.string().min(10, { message: "Phone number must be at least 10 digits." }),
   email: z.string().email({ message: "Invalid email address." }),
-  fullAddress: z.string().min(1, { message: "Address is required." }),
-  city: z.string().min(1, "City is required."),
-  state: z.string().min(1, "State is required."),
-  country: z.string().min(1, "Country is required."),
-  pinCode: z.string().min(1, { message: "Pin Code is required." }),
+  address: z.string().min(1, { message: "Address is required." }),
 });
 
 const generatePatientId = () => {
@@ -69,11 +65,7 @@ export default function AddPatientPage() {
       gender: undefined,
       phoneNumber: "",
       email: "",
-      fullAddress: "",
-      city: "",
-      state: "",
-      country: "",
-      pinCode: "",
+      address: "",
     },
   });
 
@@ -100,14 +92,13 @@ export default function AddPatientPage() {
         dateOfBirth: values.dateOfBirth,
         gender: values.gender,
         phoneNumber: values.phoneNumber,
-        address: {
-            fullAddress: values.fullAddress,
-            city: values.city,
-            state: values.state,
-            country: values.country,
-            pinCode: values.pinCode,
+        address: { // Storing as a simple string as per the schema change
+            fullAddress: values.address,
+            city: '',
+            state: '',
+            country: '',
+            pinCode: ''
         },
-        // This is the critical fix: ensuring the doctorId is always set.
         doctorId: doctorUser.uid,
       };
 
@@ -267,18 +258,19 @@ export default function AddPatientPage() {
                                 </FormItem>
                             )}
                         />
-                        <div className="space-y-2">
-                             <FormLabel>Address</FormLabel>
-                             <FormField control={form.control} name="fullAddress" render={({ field }) => (<FormItem><FormControl><Input placeholder="Full Address" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <FormField control={form.control} name="city" render={({ field }) => (<FormItem><FormControl><Input placeholder="City" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                <FormField control={form.control} name="state" render={({ field }) => (<FormItem><FormControl><Input placeholder="State" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                              </div>
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <FormField control={form.control} name="country" render={({ field }) => (<FormItem><FormControl><Input placeholder="Country" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                <FormField control={form.control} name="pinCode" render={({ field }) => (<FormItem><FormControl><Input placeholder="Pin Code" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                              </div>
-                        </div>
+                         <FormField
+                            control={form.control}
+                            name="address"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Full Address</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="House No, Street, City, State, ZIP" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                         <div className="flex justify-end gap-2">
                              <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
                              <Button type="submit" disabled={isLoading}>
@@ -292,5 +284,3 @@ export default function AddPatientPage() {
     </div>
   )
 }
-
-    
