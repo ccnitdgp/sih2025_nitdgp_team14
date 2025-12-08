@@ -126,8 +126,7 @@ type AuthDialogProps = {
   onOpenChange?: (open: boolean) => void;
 };
 
-// This is a placeholder. In a real app, you'd have a system to assign doctors.
-const HARDCODED_DOCTOR_ID = "Y43GFgpcD3QY6xGM3f83hTzYV5i2";
+
 const generatePatientId = () => {
     const chars = '0123456789';
     let result = 'PT-';
@@ -174,7 +173,6 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
       emergencyContactName: "",
       emergencyContactPhone: "",
       emergencyContactRelation: "",
-      doctorId: HARDCODED_DOCTOR_ID,
       height: '' as any,
       weight: '' as any,
     },
@@ -206,10 +204,11 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
   }
 
   async function onSignupSubmit(values: z.infer<typeof signupSchema>) {
+    if (!firestore) return;
+
     try {
         const usersRef = collection(firestore, 'users');
         
-        // Check if phone number already exists
         const phoneQuery = query(usersRef, where("phoneNumber", "==", values.phoneNumber));
         const phoneQuerySnapshot = await getDocs(phoneQuery);
         if (!phoneQuerySnapshot.empty) {
@@ -223,86 +222,87 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
 
         const emailQuery = query(usersRef, where("email", "==", values.email));
         const emailQuerySnapshot = await getDocs(emailQuery);
-
-        let userProfileData: any = {
-            id: '', // Will be set later
-            firstName: values.firstName,
-            lastName: values.lastName,
-            role: values.role,
-            email: values.email,
-            dateOfBirth: values.dateOfBirth,
-            gender: values.gender,
-            phoneNumber: values.phoneNumber,
-            address: {
-                fullAddress: values.fullAddress,
-                city: values.city,
-                state: values.state,
-                country: values.country,
-                pinCode: values.pinCode,
-            },
-        };
-
-        if (values.role === 'patient') {
-             const customPatientId = generatePatientId();
-            Object.assign(userProfileData, {
-                patientId: customPatientId,
-                doctorId: HARDCODED_DOCTOR_ID,
-                bloodGroup: values.bloodGroup,
-                emergencyContact: {
-                    name: values.emergencyContactName,
-                    phone: values.emergencyContactPhone,
-                    relation: values.emergencyContactRelation,
-                },
-                healthMetrics: {
-                    height: values.height,
-                    weight: values.weight,
-                }
+         if (!emailQuerySnapshot.empty) {
+            toast({
+                variant: "destructive",
+                title: "Sign up failed",
+                description: "An account with this email already exists.",
             });
+            return;
         }
 
         const fullName = `${values.firstName} ${values.lastName}`;
+        const userCredential = await initiateEmailSignUp(auth, values.email, values.password, fullName, values.phoneNumber);
+        const user = userCredential.user;
 
-        if (!emailQuerySnapshot.empty) {
-            // Email exists, this user was likely pre-registered by a doctor.
-            // We'll update their record with a new auth UID.
-            const userCredential = await initiateEmailSignUp(auth, values.email, values.password, fullName, values.phoneNumber);
-            const user = userCredential.user;
-            
+        const unclaimedProfilesRef = collection(firestore, 'unclaimedProfiles');
+        const unclaimedProfileQuery = query(unclaimedProfilesRef, where("email", "==", values.email));
+        const unclaimedSnapshot = await getDocs(unclaimedProfileQuery);
+
+        let finalUserProfileData: any;
+
+        if (!unclaimedSnapshot.empty) {
+            const unclaimedDoc = unclaimedSnapshot.docs[0];
+            finalUserProfileData = { ...unclaimedDoc.data() };
+            // Move from unclaimed to users collection
             const batch = writeBatch(firestore);
-
-            // Delete the old, un-owned document
-            const oldDocRef = emailQuerySnapshot.docs[0].ref;
-            batch.delete(oldDocRef);
-
-            // Create a new document with the correct UID
-            const newDocRef = doc(firestore, 'users', user.uid);
-            userProfileData.id = user.uid; // Set the correct ID
-            batch.set(newDocRef, userProfileData);
-
+            const newUserDocRef = doc(firestore, 'users', user.uid);
+            batch.set(newUserDocRef, { ...finalUserProfileData, id: user.uid });
+            batch.delete(unclaimedDoc.ref);
             await batch.commit();
 
         } else {
-            // This is a brand new user.
-            const userCredential = await initiateEmailSignUp(auth, values.email, values.password, fullName, values.phoneNumber);
-            const user = userCredential.user;
-            
-            userProfileData.id = user.uid; // Set the correct ID
+             finalUserProfileData = {
+                id: user.uid,
+                firstName: values.firstName,
+                lastName: values.lastName,
+                role: values.role,
+                email: values.email,
+                dateOfBirth: values.dateOfBirth,
+                gender: values.gender,
+                phoneNumber: values.phoneNumber,
+                address: {
+                    fullAddress: values.fullAddress,
+                    city: values.city,
+                    state: values.state,
+                    country: values.country,
+                    pinCode: values.pinCode,
+                },
+            };
+
+            if (values.role === 'patient') {
+                const customPatientId = generatePatientId();
+                Object.assign(finalUserProfileData, {
+                    patientId: customPatientId,
+                    bloodGroup: values.bloodGroup,
+                    emergencyContact: {
+                        name: values.emergencyContactName,
+                        phone: values.emergencyContactPhone,
+                        relation: values.emergencyContactRelation,
+                    },
+                    healthMetrics: {
+                        height: values.height,
+                        weight: values.weight,
+                    }
+                });
+            }
             const newUserDocRef = doc(firestore, 'users', user.uid);
-            setDocumentNonBlocking(newUserDocRef, userProfileData, {});
-            
-             // If the user is a doctor, create their public profile
+            await setDocumentNonBlocking(newUserDocRef, finalUserProfileData, {});
+
             if (values.role === 'doctor') {
                 const publicDoctorProfile = {
                     id: user.uid,
                     firstName: values.firstName,
                     lastName: values.lastName,
-                    specialty: "General Physician", // Placeholder
+                    specialty: "General Physician", 
                     city: values.city,
                     state: values.state,
                     country: values.country,
+                    isVerified: false,
+                    verificationNote: 'Profile created. Awaiting document submission and verification.'
                 };
                 const doctorDocRef = doc(firestore, 'doctors', user.uid);
-                setDocumentNonBlocking(doctorDocRef, publicDoctorProfile, {});
+                await setDocumentNonBlocking(doctorDocRef, publicDoctorProfile, {});
             }
         }
         
@@ -783,3 +783,5 @@ export function AuthDialog({ trigger, defaultTab = "login", onOpenChange }: Auth
     </Dialog>
   );
 }
+
+    

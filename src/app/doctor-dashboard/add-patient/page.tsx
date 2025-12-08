@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useFirestore, useUser, setDocumentNonBlocking } from "@/firebase";
+import { useFirestore, useUser, addDocumentNonBlocking } from "@/firebase";
 import { doc, collection } from 'firebase/firestore';
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
@@ -86,12 +86,9 @@ export default function AddPatientPage() {
     setIsLoading(true);
 
     try {
-      const newPatientDocRef = doc(collection(firestore, 'users'));
-      const newPatientFirebaseId = newPatientDocRef.id;
       const customPatientId = generatePatientId();
 
       const userProfile = {
-        id: newPatientFirebaseId,
         patientId: customPatientId,
         firstName: values.firstName,
         lastName: values.lastName,
@@ -110,11 +107,13 @@ export default function AddPatientPage() {
         doctorId: doctorUser.uid,
       };
 
-      setDocumentNonBlocking(newPatientDocRef, userProfile, { merge: true });
+      // Create a document in a temporary `unclaimedProfiles` collection
+      const unclaimedProfileRef = doc(collection(firestore, 'unclaimedProfiles'));
+      await addDocumentNonBlocking(collection(firestore, 'unclaimedProfiles'), { id: unclaimedProfileRef.id, ...userProfile });
       
       toast({
-        title: "Patient Profile Created",
-        description: `${values.firstName} ${values.lastName}'s profile has been created and assigned to you.`,
+        title: "Patient Pre-registered",
+        description: `${values.firstName} ${values.lastName} has been pre-registered. They need to sign up with the email ${values.email} to claim their profile.`,
       });
 
       router.push('/doctor-dashboard/patients');
@@ -123,7 +122,7 @@ export default function AddPatientPage() {
       toast({
         variant: "destructive",
         title: "Failed to Add Patient",
-        description: "An unexpected error occurred while creating the patient profile.",
+        description: "An unexpected error occurred while pre-registering the patient.",
       });
       console.error("Add patient error:", error);
     } finally {
@@ -140,7 +139,7 @@ export default function AddPatientPage() {
                     <CardTitle>Add a New Patient</CardTitle>
                 </div>
                 <CardDescription>
-                    Enter the patient's details to create their profile. They will be added to your patient list and can create their own login later.
+                    Enter the patient's details to create their profile. They will be added to your patient list and can claim their profile by signing up with the same email.
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -291,3 +290,5 @@ export default function AddPatientPage() {
     </div>
   )
 }
+
+    
