@@ -27,15 +27,6 @@ import Link from 'next/link';
 const languageFiles = { hi, bn, ta, te, mr };
 
 const PrescriptionCard = ({ item, t }) => {
-    const handleDownload = (prescription: any) => {
-        const link = document.createElement('a');
-        link.href = dummyPdfContent;
-        link.download = `prescription-${prescription.medication.replace(/\s+/g, '-')}-${prescription.date}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
-
     return (
         <Card className="p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
             <div className="flex-1">
@@ -49,10 +40,6 @@ const PrescriptionCard = ({ item, t }) => {
             </div>
             <div className="flex items-center gap-2">
                  {item.status !== 'Active' && <Button asChild size="sm"><Link href="/appointments">Book Again</Link></Button>}
-                 <Button variant="outline" size="sm" onClick={() => handleDownload(item)}>
-                    <FileDown className="mr-2 h-4 w-4"/>
-                    {t('download_button', 'Download')}
-                </Button>
             </div>
         </Card>
     );
