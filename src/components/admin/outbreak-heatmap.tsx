@@ -4,7 +4,7 @@
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.heat';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { LatLngExpression } from 'leaflet';
 import dynamic from 'next/dynamic';
 
@@ -29,12 +29,20 @@ const HeatmapLayer = () => {
 
     useEffect(() => {
         const L = require('leaflet');
+        // Check if a heatmap layer already exists and remove it
+        map.eachLayer((layer) => {
+            if (layer instanceof (L.HeatLayer as any)) {
+                map.removeLayer(layer);
+            }
+        });
+        
         (L.heatLayer as any)(addressPoints, {
             radius: 25,
             blur: 15,
             maxZoom: 18,
             gradient: {0.4: 'blue', 0.65: 'lime', 1: 'red'}
         }).addTo(map);
+
     }, [map]);
 
     return null;
@@ -43,9 +51,23 @@ const HeatmapLayer = () => {
 // Dynamic import to ensure Leaflet is loaded on the client side
 const OutbreakHeatmapComponent = () => {
     const position: LatLngExpression = [28.6139, 77.2090]; // Center map on Delhi
+    const [mapId, setMapId] = useState('map');
+
+    useEffect(() => {
+        // This is a workaround for Next.js HMR. 
+        // We force a remount of the map container by changing its key.
+        setMapId(`map-${Date.now()}`);
+    }, []);
 
     return (
-        <MapContainer center={position} zoom={12} scrollWheelZoom={false} style={{ height: '100%', width: '100%' }} className='rounded-lg'>
+        <MapContainer
+            key={mapId}
+            center={position} 
+            zoom={12} 
+            scrollWheelZoom={false} 
+            style={{ height: '100%', width: '100%' }} 
+            className='rounded-lg'
+        >
             <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
