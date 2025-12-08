@@ -70,11 +70,8 @@ service firebase.storage {
         && request.auth.uid == patientId
         && isPatient();
 
-      // ** SIMPLIFIED RULE **
-      // Any authenticated doctor can upload files for a patient.
-      // This is a more permissive rule for development to ensure the upload functionality works.
-      // For production, you would tighten this to use `isDoctorAssignedToPatient(patientId)`.
-      allow write: if isDoctor();
+      // An assigned doctor can upload files for their patient.
+      allow write: if isDoctorAssignedToPatient(patientId);
 
       // Patients can read own files.
       // The assigned doctor can read their patient's files.

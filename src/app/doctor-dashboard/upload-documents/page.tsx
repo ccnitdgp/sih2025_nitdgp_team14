@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Upload, FileText, Syringe, Scan, Loader2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { useSearchParams } from 'next/navigation';
 
 const uploadSchema = z.object({
   patientId: z.string().min(1, 'Please select a patient.'),
@@ -31,6 +32,7 @@ export default function UploadDocumentsPage() {
   const firestore = useFirestore();
   const firebaseApp = useFirebaseApp();
   const { toast } = useToast();
+  const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [fileName, setFileName] = useState('');
@@ -44,6 +46,19 @@ export default function UploadDocumentsPage() {
       issuer: ''
     },
   });
+  
+  useEffect(() => {
+    const patientId = searchParams.get('patientId');
+    const docType = searchParams.get('type') as 'Lab Report' | 'Vaccination' | 'Scan';
+
+    if (patientId) {
+      form.setValue('patientId', patientId);
+    }
+    if (docType && ['Lab Report', 'Vaccination', 'Scan'].includes(docType)) {
+      form.setValue('documentType', docType);
+    }
+  }, [searchParams, form]);
+
 
    const appointmentsQuery = useMemoFirebase(() => {
     if (!doctorUser || !firestore) return null;
@@ -90,7 +105,7 @@ export default function UploadDocumentsPage() {
             toast({
                 variant: 'destructive',
                 title: 'Upload Failed',
-                description: 'There was an error uploading your file. Please try again.'
+                description: 'There was an error uploading your file. Please check permissions and try again.'
             });
             setIsSubmitting(false);
             setUploadProgress(null);
@@ -124,7 +139,13 @@ export default function UploadDocumentsPage() {
             
             toast({ title: 'Document Uploaded Successfully', description: `${file.name} has been saved to the patient's records.` });
             
-            form.reset();
+            form.reset({
+              patientId: '',
+              documentType: 'Lab Report',
+              documentName: '',
+              issuer: '',
+              file: null,
+            });
             setFileName('');
             setIsSubmitting(false);
             setUploadProgress(null);
@@ -148,7 +169,7 @@ export default function UploadDocumentsPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Select Patient</FormLabel>
-                       <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoadingAppointments}>
+                       <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingAppointments}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder={isLoadingAppointments ? "Loading patients..." : "Choose a patient"} />
