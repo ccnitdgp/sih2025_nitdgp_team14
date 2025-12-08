@@ -39,31 +39,16 @@ export default function UploadDocumentsPage() {
     resolver: zodResolver(documentSchema),
   });
   
-  const fileRef = form.register("file");
-
   const appointmentsQuery = useMemoFirebase(() => {
     if (!doctorUser || !firestore) return null;
     return query(
-      collection(firestore, 'appointments'),
+      collection(firestore, 'users'),
+      where('role', '==', 'patient'),
       where('doctorId', '==', doctorUser.uid)
     );
   }, [doctorUser, firestore]);
 
-  const { data: appointments, isLoading: isLoadingAppointments } = useCollection(appointmentsQuery);
-
-  const uniquePatients = useMemo(() => {
-    if (!appointments) return [];
-    const patientMap = new Map();
-    appointments.forEach(appt => {
-        if (!patientMap.has(appt.patientId)) {
-            patientMap.set(appt.patientId, {
-                id: appt.patientId,
-                name: appt.patientName,
-            });
-        }
-    });
-    return Array.from(patientMap.values());
-  }, [appointments]);
+  const { data: patients, isLoading: isLoadingAppointments } = useCollection(appointmentsQuery);
 
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
@@ -124,7 +109,7 @@ export default function UploadDocumentsPage() {
 
                 await addDocumentNonBlocking(healthRecordsRef, newRecordData);
                 toast({ title: 'Document Uploaded', description: 'The document has been added to the patient\'s records.' });
-                form.reset({ patientId: values.patientId, documentName: '', organization: '', documentType: undefined, file: undefined });
+                form.reset({ patientId: values.patientId, documentName: '', organization: '', documentType: undefined });
                 setIsSubmitting(false);
             }
         )
@@ -171,9 +156,9 @@ export default function UploadDocumentsPage() {
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {uniquePatients?.map(p => (
+                                                {patients?.map(p => (
                                                     <SelectItem key={p.id} value={p.id}>
-                                                        {p.name}
+                                                        {p.firstName} {p.lastName}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -226,11 +211,18 @@ export default function UploadDocumentsPage() {
                              <FormField
                                 control={form.control}
                                 name="file"
-                                render={({ field }) => (
+                                render={({ field: { onChange, ...fieldProps } }) => (
                                     <FormItem className="md:col-span-2">
                                         <FormLabel>File (PDF only)</FormLabel>
                                         <FormControl>
-                                            <Input type="file" accept="application/pdf" {...fileRef} />
+                                            <Input 
+                                                type="file" 
+                                                accept="application/pdf"
+                                                {...fieldProps}
+                                                onChange={(event) => {
+                                                    onChange(event.target.files && event.target.files[0]);
+                                                }}
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
