@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
@@ -45,17 +45,31 @@ export default function UploadDocumentsPage() {
       file: undefined,
     },
   });
-  
-  const patientsQuery = useMemoFirebase(() => {
+
+  const appointmentsQuery = useMemoFirebase(() => {
     if (!doctorUser || !firestore) return null;
     return query(
-      collection(firestore, 'users'),
-      where('role', '==', 'patient'),
+      collection(firestore, 'appointments'),
       where('doctorId', '==', doctorUser.uid)
     );
   }, [doctorUser, firestore]);
 
-  const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsQuery);
+  const { data: appointments, isLoading: isLoadingAppointments } = useCollection(appointmentsQuery);
+  
+  const uniquePatients = useMemo(() => {
+    if (!appointments) return [];
+    const patientMap = new Map();
+    appointments.forEach(appt => {
+        if (!patientMap.has(appt.patientId)) {
+            patientMap.set(appt.patientId, {
+                id: appt.patientId,
+                name: appt.patientName,
+            });
+        }
+    });
+    return Array.from(patientMap.values());
+  }, [appointments]);
+
 
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
@@ -156,16 +170,16 @@ export default function UploadDocumentsPage() {
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Patient</FormLabel>
-                                        <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingPatients}>
+                                        <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingAppointments}>
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder={isLoadingPatients ? "Loading patients..." : "Select a patient"} />
+                                                    <SelectValue placeholder={isLoadingAppointments ? "Loading patients..." : "Select a patient"} />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {patients?.map(p => (
+                                                {uniquePatients?.map(p => (
                                                     <SelectItem key={p.id} value={p.id}>
-                                                        {p.firstName} {p.lastName}
+                                                        {p.name}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
