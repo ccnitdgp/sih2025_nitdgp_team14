@@ -86,7 +86,6 @@ export default function AddPatientPage() {
     setIsLoading(true);
 
     try {
-      // Create a new patient profile document with a new unique ID
       const newPatientDocRef = doc(collection(firestore, 'users'));
       const newPatientFirebaseId = newPatientDocRef.id;
       const customPatientId = generatePatientId();
@@ -108,10 +107,10 @@ export default function AddPatientPage() {
             country: values.country,
             pinCode: values.pinCode,
         },
-        doctorId: doctorUser.uid, // THIS IS THE FIX: Explicitly link the patient to this doctor
+        // This is the critical fix: ensuring the doctorId is always set.
+        doctorId: doctorUser.uid,
       };
 
-      // Create the patient's user profile document in Firestore.
       setDocumentNonBlocking(newPatientDocRef, userProfile, { merge: true });
       
       toast({
