@@ -47,7 +47,6 @@ const HeatmapLayer = () => {
 // Dynamic import to ensure Leaflet is loaded on the client side
 const OutbreakHeatmapComponent = () => {
     const position: LatLngExpression = [28.6139, 77.2090]; // Center map on Delhi
-    const mapRef = useRef<HTMLDivElement>(null);
     const mapInstance = useRef<L.Map | null>(null);
 
     useEffect(() => {
