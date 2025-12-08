@@ -135,10 +135,8 @@ export default function UploadDocumentsPage() {
                 addedBy: doctorUser.uid,
             };
 
-            const newDocRef = await addDocumentNonBlocking(healthRecordsRef, reportData);
-            if (newDocRef) {
-                await updateDoc(newDocRef, { id: newDocRef.id });
-            }
+            const newDocRef = doc(healthRecordsRef)
+            await setDocumentNonBlocking(newDocRef, { ...reportData, id: newDocRef.id }, {});
             
             toast({ title: 'Document Uploaded Successfully', description: `${file.name} has been saved to the patient's records.` });
             
@@ -274,6 +272,7 @@ export default function UploadDocumentsPage() {
                                 <Input 
                                     type="file" 
                                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                    accept="image/*,.pdf"
                                     onChange={(e) => {
                                         field.onChange(e.target.files);
                                         const file = e.target.files?.[0];
