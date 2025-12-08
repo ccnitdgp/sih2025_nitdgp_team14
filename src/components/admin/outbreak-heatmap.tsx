@@ -7,6 +7,7 @@ import 'leaflet.heat';
 import { useEffect, useRef } from 'react';
 import { LatLngExpression } from 'leaflet';
 import dynamic from 'next/dynamic';
+import L from 'leaflet';
 
 // Sample data: [latitude, longitude, intensity]
 const addressPoints: [number, number, number][] = [
@@ -28,17 +29,17 @@ const HeatmapLayer = () => {
     const map = useMap();
 
     useEffect(() => {
-        const L = require('leaflet');
-        // Ensure this runs only once per map instance by checking for a custom property
-        if (!(map as any)._heatmapLayer) {
-            const heatLayer = (L.heatLayer as any)(addressPoints, {
-                radius: 25,
-                blur: 15,
-                maxZoom: 18,
-                gradient: {0.4: 'blue', 0.65: 'lime', 1: 'red'}
-            }).addTo(map);
-            (map as any)._heatmapLayer = heatLayer;
-        }
+        // leaflet-heat plugin is not typed, so we need to assert its existence on L
+        const heat = (L as any).heatLayer(addressPoints, {
+            radius: 25,
+            blur: 15,
+            maxZoom: 18,
+            gradient: {0.4: 'blue', 0.65: 'lime', 1: 'red'}
+        }).addTo(map);
+
+        return () => {
+            map.removeLayer(heat);
+        };
     }, [map]);
 
     return null;
@@ -46,19 +47,8 @@ const HeatmapLayer = () => {
 
 // Dynamic import to ensure Leaflet is loaded on the client side
 const OutbreakHeatmapComponent = () => {
+    const mapRef = useRef<L.Map | null>(null);
     const position: LatLngExpression = [28.6139, 77.2090]; // Center map on Delhi
-    const mapInstance = useRef<L.Map | null>(null);
-
-    useEffect(() => {
-        // This effect hook handles the cleanup.
-        // It's crucial for preventing the "Map container is already initialized" error during development with HMR.
-        return () => {
-            if (mapInstance.current) {
-                mapInstance.current.remove();
-                mapInstance.current = null;
-            }
-        };
-    }, []);
 
     return (
         <MapContainer
@@ -67,7 +57,7 @@ const OutbreakHeatmapComponent = () => {
             scrollWheelZoom={false}
             style={{ height: '100%', width: '100%' }}
             className='rounded-lg'
-            whenCreated={map => { mapInstance.current = map; }}
+            whenCreated={map => { mapRef.current = map; }}
         >
             <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
