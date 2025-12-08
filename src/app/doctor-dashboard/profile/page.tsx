@@ -98,20 +98,20 @@ export default function DoctorProfilePage() {
       specialty: '',
       qualifications: '',
       licenseNumber: '',
-      yearsOfExperience: undefined,
+      yearsOfExperience: '' as any,
       designation: '',
       clinic: '',
       registrationNumber: '',
       issuingCouncil: '',
-      issuedYear: undefined,
+      issuedYear: '' as any,
       treatmentsAndProcedures: '',
       conditionsHandled: '',
       teleconsultation: false,
       workingHours: '',
       availableDays: '',
-      appointmentDuration: undefined,
-      clinicFee: undefined,
-      onlineFee: undefined,
+      appointmentDuration: '' as any,
+      clinicFee: '' as any,
+      onlineFee: '' as any,
     }
   });
 
@@ -127,13 +127,13 @@ export default function DoctorProfilePage() {
         specialty: publicProfile.specialty || '',
         qualifications: publicProfile.qualifications || '',
         licenseNumber: publicProfile.licenseNumber || '',
-        yearsOfExperience: publicProfile.yearsOfExperience || undefined,
+        yearsOfExperience: publicProfile.yearsOfExperience || '',
         designation: publicProfile.designation || '',
         clinic: publicProfile.clinic || '',
         
         registrationNumber: publicProfile.registrationDetails?.registrationNumber || '',
         issuingCouncil: publicProfile.registrationDetails?.issuingCouncil || '',
-        issuedYear: publicProfile.registrationDetails?.issuedYear || undefined,
+        issuedYear: publicProfile.registrationDetails?.issuedYear || '',
 
         treatmentsAndProcedures: publicProfile.treatmentsAndProcedures || '',
         conditionsHandled: publicProfile.conditionsHandled || '',
@@ -141,10 +141,10 @@ export default function DoctorProfilePage() {
 
         workingHours: publicProfile.availability?.workingHours || '',
         availableDays: publicProfile.availability?.availableDays || '',
-        appointmentDuration: publicProfile.availability?.appointmentDuration || undefined,
+        appointmentDuration: publicProfile.availability?.appointmentDuration || '',
 
-        clinicFee: publicProfile.pricing?.clinicFee || undefined,
-        onlineFee: publicProfile.pricing?.onlineFee || undefined,
+        clinicFee: publicProfile.pricing?.clinicFee || '',
+        onlineFee: publicProfile.pricing?.onlineFee || '',
       });
     }
   }, [userProfile, publicProfile, form, isEditing]);
@@ -479,3 +479,5 @@ export default function DoctorProfilePage() {
     </div>
   );
 }
+
+    
