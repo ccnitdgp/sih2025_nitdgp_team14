@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useUser, useFirestore, addDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, query, where, getDocs } from 'firebase/firestore';
+import { collection, serverTimestamp, query, where, getDocs, doc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -97,7 +97,9 @@ export default function UploadDocumentsPage() {
                 const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
                 
                 const healthRecordsRef = collection(firestore, 'users', patientId, 'healthRecords');
+                const newRecordRef = doc(healthRecordsRef);
                 const newRecordData = {
+                    id: newRecordRef.id,
                     recordType: values.documentType,
                     details: {
                         name: values.documentName,
@@ -237,5 +239,5 @@ export default function UploadDocumentsPage() {
             </CardContent>
         </Card>
     </div>
-  )
+  );
 }
