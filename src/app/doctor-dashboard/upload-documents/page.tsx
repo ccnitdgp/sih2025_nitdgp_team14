@@ -5,8 +5,8 @@ import { useState, useMemo, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useUser, useFirestore, useCollection, useMemoFirebase, useFirebaseApp } from '@/firebase';
-import { collection, serverTimestamp, doc, updateDoc, addDoc, query, where } from 'firebase/firestore';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useFirebaseApp, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp, doc, addDoc, query, where } from 'firebase/firestore';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -64,26 +64,11 @@ export default function UploadDocumentsPage() {
   const appointmentsQuery = useMemoFirebase(() => {
     if (!doctorUser || !firestore) return null;
     return query(
-      collection(firestore, 'appointments'),
-      where('doctorId', '==', doctorUser.uid)
+      collection(firestore, 'users', doctorUser.uid, 'patients')
     );
   }, [doctorUser, firestore]);
 
-  const { data: appointments, isLoading: isLoadingAppointments } = useCollection(appointmentsQuery);
-
-  const uniquePatients = useMemo(() => {
-    if (!appointments) return [];
-    const patientMap = new Map();
-    appointments.forEach(appt => {
-        if (!patientMap.has(appt.patientId)) {
-            patientMap.set(appt.patientId, {
-                id: appt.patientId,
-                name: appt.patientName,
-            });
-        }
-    });
-    return Array.from(patientMap.values());
-  }, [appointments]);
+  const { data: uniquePatients, isLoading: isLoadingAppointments } = useCollection(appointmentsQuery);
 
   const onSubmit = (values: z.infer<typeof uploadSchema>) => {
     if (!doctorUser || !firestore || !firebaseApp) return;
@@ -93,7 +78,6 @@ export default function UploadDocumentsPage() {
 
     const file = values.file[0];
     const storage = getStorage(firebaseApp);
-    // Use the patient's UID for the folder path
     const storageRef = ref(storage, `patient_documents/${values.patientId}/${Date.now()}_${file.name}`);
     const uploadTask = uploadBytesResumable(storageRef, file);
 
@@ -135,10 +119,12 @@ export default function UploadDocumentsPage() {
                 addedBy: doctorUser.uid,
             };
 
-            const newDocRef = doc(healthRecordsRef)
-            await setDocumentNonBlocking(newDocRef, { ...reportData, id: newDocRef.id }, {});
+            const newDocRef = await addDocumentNonBlocking(healthRecordsRef, reportData);
+            if(newDocRef){
+                updateDocumentNonBlocking(newDocRef, { id: newDocRef.id });
+            }
             
-            toast({ title: 'Document Uploaded Successfully', description: `${file.name} has been saved to the patient's records.` });
+            toast({ title: 'Document Uploaded Successfully', description: `${file.name} has been saved to the patient\'s records.` });
             
             form.reset({
               patientId: '',
@@ -178,8 +164,8 @@ export default function UploadDocumentsPage() {
                         </FormControl>
                         <SelectContent>
                           {uniquePatients?.map(p => (
-                            <SelectItem key={p.id} value={p.id}>
-                              {p.name}
+                            <SelectItem key={p.patientId} value={p.patientId}>
+                              {p.firstName} {p.lastName}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -304,3 +290,5 @@ export default function UploadDocumentsPage() {
     </div>
   );
 }
+
+    
