@@ -46,7 +46,7 @@ export default function UploadDocumentsPage() {
     },
   });
   
-  const appointmentsQuery = useMemoFirebase(() => {
+  const patientsQuery = useMemoFirebase(() => {
     if (!doctorUser || !firestore) return null;
     return query(
       collection(firestore, 'users'),
@@ -55,7 +55,7 @@ export default function UploadDocumentsPage() {
     );
   }, [doctorUser, firestore]);
 
-  const { data: patients, isLoading: isLoadingAppointments } = useCollection(appointmentsQuery);
+  const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsQuery);
 
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
@@ -156,10 +156,10 @@ export default function UploadDocumentsPage() {
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Patient</FormLabel>
-                                        <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingAppointments}>
+                                        <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingPatients}>
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder={isLoadingAppointments ? "Loading patients..." : "Select a patient"} />
+                                                    <SelectValue placeholder={isLoadingPatients ? "Loading patients..." : "Select a patient"} />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
@@ -199,7 +199,7 @@ export default function UploadDocumentsPage() {
                                 render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Document Name</FormLabel>
-                                    <FormControl><Input placeholder="e.g., Full Blood Count" {...field} /></FormControl>
+                                    <FormControl><Input placeholder="e.g., Full Blood Count" {...field} value={field.value || ''} /></FormControl>
                                     <FormMessage />
                                 </FormItem>
                                 )}
@@ -210,7 +210,7 @@ export default function UploadDocumentsPage() {
                                 render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Issuing Organization</FormLabel>
-                                    <FormControl><Input placeholder="e.g., City Diagnostics Lab" {...field} /></FormControl>
+                                    <FormControl><Input placeholder="e.g., City Diagnostics Lab" {...field} value={field.value || ''} /></FormControl>
                                     <FormMessage />
                                 </FormItem>
                                 )}
@@ -218,19 +218,17 @@ export default function UploadDocumentsPage() {
                              <FormField
                                 control={form.control}
                                 name="file"
-                                render={({ field }) => (
+                                render={({ field: { onChange, onBlur, name, ref } }) => (
                                     <FormItem className="md:col-span-2">
                                         <FormLabel>File (PDF only)</FormLabel>
                                         <FormControl>
                                             <Input
                                                 type="file"
                                                 accept="application/pdf"
-                                                onBlur={field.onBlur}
-                                                name={field.name}
-                                                ref={field.ref}
-                                                onChange={(e) => {
-                                                    field.onChange(e.target.files ? e.target.files[0] : null)
-                                                }}
+                                                ref={ref}
+                                                name={name}
+                                                onBlur={onBlur}
+                                                onChange={(e) => onChange(e.target.files?.[0])}
                                             />
                                         </FormControl>
                                         <FormMessage />
