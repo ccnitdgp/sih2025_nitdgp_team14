@@ -37,6 +37,12 @@ export default function UploadDocumentsPage() {
 
   const form = useForm<z.infer<typeof documentSchema>>({
     resolver: zodResolver(documentSchema),
+    defaultValues: {
+      patientId: '',
+      documentName: '',
+      organization: '',
+      documentType: undefined,
+    },
   });
   
   const appointmentsQuery = useMemoFirebase(() => {
@@ -220,7 +226,10 @@ export default function UploadDocumentsPage() {
                                                 accept="application/pdf"
                                                 {...fieldProps}
                                                 onChange={(event) => {
-                                                    onChange(event.target.files && event.target.files[0]);
+                                                    const file = event.target.files?.[0];
+                                                    if (file) {
+                                                        onChange(file);
+                                                    }
                                                 }}
                                             />
                                         </FormControl>
