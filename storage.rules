@@ -11,28 +11,23 @@ service firebase.storage {
       return request.auth != null;
     }
     
-    // In STORAGE rules we must use (default), NOT $(database)
-    function userDoc(uid) {
-      return get(/databases/(default)/documents/users/$(uid));
+    function isDoctor(uid) {
+      return exists(/databases/(default)/documents/users/$(uid)) && get(/databases/(default)/documents/users/$(uid)).data.role == "doctor";
     }
     
-    function isDoctor() {
-      return isSignedIn() && userDoc(request.auth.uid).data.role == "doctor";
-    }
-    
-    function isPatient() {
-      return isSignedIn() && userDoc(request.auth.uid).data.role == "patient";
+    function isPatient(uid) {
+      return exists(/databases/(default)/documents/users/$(uid)) && get(/databases/(default)/documents/users/$(uid)).data.role == "patient";
     }
 
-    function isAdmin() {
-      return isSignedIn() && userDoc(request.auth.uid).data.role == "admin";
+    function isAdmin(uid) {
+      return exists(/databases/(default)/documents/users/$(uid)) && get(/databases/(default)/documents/users/$(uid)).data.role == "admin";
     }
     
     // Efficiently checks if the requesting doctor is assigned to the patient.
-    // This performs a single document read.
+    // This performs a single document read and is the authoritative check.
     function isAssignedDoctor(patientId) {
       let patientDoc = get(/databases/(default)/documents/users/$(patientId));
-      return isSignedIn() && isDoctor() && request.auth.uid == patientDoc.data.doctorId;
+      return isSignedIn() && isDoctor(request.auth.uid) && request.auth.uid == patientDoc.data.doctorId;
     }
 
     // ---------------------------------
@@ -43,17 +38,13 @@ service firebase.storage {
     // Admin can read all
     // ---------------------------------
     match /doctor-verification/{doctorId}/{fileName} {
-
-      // Doctor uploads own verification files
       allow write: if isSignedIn()
-        && request.auth.uid == doctorId
-        && isDoctor();
+        && request.auth.uid == doctorId;
 
-      // Doctor can read own docs, admin can read all
       allow read: if isSignedIn()
         && (
           request.auth.uid == doctorId ||
-          isAdmin()
+          isAdmin(request.auth.uid)
         );
     }
 
@@ -62,28 +53,24 @@ service firebase.storage {
     // Patient Medical Documents
     //
     // path: patient_documents/{patientId}/{fileName}
-    // Doctors can upload files for patients.
+    // Doctors can upload files for patients they are assigned to.
     // Patients can upload their own files.
     // ---------------------------------
     match /patient_documents/{patientId}/{fileName} {
 
-      // Patient uploads own medical files.
-      allow write: if isSignedIn()
-        && request.auth.uid == patientId
-        && isPatient();
+      // Allow write if the user is the patient themselves, or the assigned doctor, or an admin.
+      allow write: if isSignedIn() && (
+        (isPatient(request.auth.uid) && request.auth.uid == patientId) ||
+        isAssignedDoctor(patientId) ||
+        isAdmin(request.auth.uid)
+      );
 
-      // An assigned doctor can upload files for their patient.
-      // This rule is now more efficient.
-      allow write: if isAssignedDoctor(patientId);
-
-      // Patients can read own files.
-      // The assigned doctor can read their patient's files.
-      // Admins can read any file.
+      // Allow read if the user is the patient, their assigned doctor, or an admin.
       allow read: if isSignedIn()
         && (
-          (isPatient() && request.auth.uid == patientId) ||
+          (isPatient(request.auth.uid) && request.auth.uid == patientId) ||
           isAssignedDoctor(patientId) ||
-          isAdmin()
+          isAdmin(request.auth.uid)
         );
     }
 
@@ -96,5 +83,3 @@ service firebase.storage {
     }
   }
 }
-
-    

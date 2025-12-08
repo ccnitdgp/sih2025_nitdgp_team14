@@ -32,17 +32,9 @@ service cloud.firestore {
     function isAdmin()   { return hasRole("admin"); }
 
     // Is the current doctor the assigned doctor for the patient?
+    // This is the most efficient check, performing only one `get`.
     function isDoctorAssignedToPatient(patientId) {
-      let patientDoc = get(/databases/$(database)/documents/users/$(patientId));
-      return isDoctor() && patientDoc.data.doctorId == request.auth.uid;
-    }
-    
-    // Is the current doctor linked to this patient via PatientLink? (Legacy, less direct)
-    function isAssignedDoctorForUser(userId) {
-      return isDoctor()
-        && exists(
-          /databases/$(database)/documents/users/$(request.auth.uid)/patients/$(userId)
-        );
+      return isDoctor() && get(/databases/$(database)/documents/users/$(patientId)).data.doctorId == request.auth.uid;
     }
 
     // ============================================================
@@ -57,7 +49,12 @@ service cloud.firestore {
         && request.resource.data.id == userId;
 
       // User can always read/update their own profile. This rule is now self-contained.
-      allow get, update: if request.auth.uid == userId;
+      // An assigned doctor can also read a patient's profile.
+      allow get: if isSignedIn() && (isOwner(userId) || isDoctorAssignedToPatient(userId));
+      
+      // Only the user can update their own profile.
+      allow update: if isSignedIn() && isOwner(userId);
+
 
       // Public can query for patient count. Admins can list all users.
       allow list: if (request.query.where.role == 'patient') || isAdmin();
@@ -110,21 +107,6 @@ service cloud.firestore {
         // Only the owner (or admin) can manage their notifications.
         allow create, get, list, update, delete: if isSignedIn()
           && (isOwner(userId) || isAdmin());
-      }
-
-
-      // ----------------------------------------------
-      // /users/{doctorId}/patients/{patientId} (PatientLink)
-      // ----------------------------------------------
-      match /patients/{patientId} {
-
-        // Only the doctor who owns this /users/{doctorId} doc
-        // or an admin can manage these links.
-        allow create, get, list, update, delete: if isSignedIn()
-          && (
-            (isOwner(userId) && isDoctor()) ||
-            isAdmin()
-          );
       }
     }
 
@@ -362,5 +344,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
