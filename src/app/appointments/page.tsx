@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { Calendar } from '@/components/ui/calendar';
-import { format, addDays, startOfDay, addMinutes, getDay, setHours, setMinutes, parse } from 'date-fns';
+import { format, addDays, startOfDay, addMinutes, getDay, setHours, setMinutes, parse, parseISO } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUser, useDoc, useFirestore, useMemoFirebase, useCollection, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase';
 import { doc, collection, query, where } from 'firebase/firestore';
@@ -50,6 +50,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { BackButton } from '@/components/layout/back-button';
+import { Input } from '@/components/ui/input';
 
 
 const languageFiles = { hi, bn, ta, te, mr };
@@ -180,6 +181,7 @@ const FindDoctors = ({ t, userProfile: initialUserProfile, isUserProfileLoading:
   const [symptoms, setSymptoms] = useState('');
   const [suggestion, setSuggestion] = useState<SymptomCheckerOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [doctorSearchQuery, setDoctorSearchQuery] = useState('');
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState<string | undefined>(undefined);
@@ -316,12 +318,22 @@ const FindDoctors = ({ t, userProfile: initialUserProfile, isUserProfileLoading:
     handleCloseDialog();
   };
 
-  const filteredDoctors = suggestion && !isLoadingDoctors
+  const specialtyFilteredDoctors = suggestion && !isLoadingDoctors
     ? doctors.filter(doc => doc.specialty === suggestion.specialistSuggestion)
     : doctors;
-    
-  const doctorsToShow = filteredDoctors.length > 0 ? filteredDoctors : doctors;
 
+  const searchedDoctors = useMemo(() => {
+    if (!doctorSearchQuery) {
+        return specialtyFilteredDoctors;
+    }
+    return specialtyFilteredDoctors.filter(doc => 
+        doc.name.toLowerCase().includes(doctorSearchQuery.toLowerCase()) ||
+        doc.location.toLowerCase().includes(doctorSearchQuery.toLowerCase())
+    );
+  }, [specialtyFilteredDoctors, doctorSearchQuery]);
+
+  const doctorsToShow = doctorSearchQuery ? searchedDoctors : (specialtyFilteredDoctors.length > 0 ? specialtyFilteredDoctors : doctors);
+    
   const getAvailableTimesForDate = (doctor: Doctor, date: Date) => {
       const dateString = format(date, 'yyyy-MM-dd');
       const allSlots = doctor.availableSlots[dateString] || [];
@@ -337,7 +349,7 @@ const FindDoctors = ({ t, userProfile: initialUserProfile, isUserProfileLoading:
     ? getAvailableTimesForDate(selectedDoctor, selectedDate)
     : [];
 
-    const isBookingDisabled = !selectedDate || !selectedTime || isUserProfileLoading || !userProfile?.patientId;
+  const isBookingDisabled = !selectedDate || !selectedTime || isUserProfileLoading || !userProfile?.patientId;
 
     return (
         <>
@@ -377,10 +389,20 @@ const FindDoctors = ({ t, userProfile: initialUserProfile, isUserProfileLoading:
             </Card>
 
             <div>
-                <h2 className="text-3xl font-bold tracking-tight mb-6">
-                    {suggestion && filteredDoctors.length > 0 ? t('suggested_specialists_title', `Suggested ${suggestion.specialistSuggestion}s`) : t('doctors_near_you_title', 'Doctors Near You')}
+                <h2 className="text-3xl font-bold tracking-tight mb-4">
+                    {suggestion && specialtyFilteredDoctors.length > 0 ? t('suggested_specialists_title', `Suggested ${suggestion.specialistSuggestion}s`) : t('doctors_near_you_title', 'Doctors Near You')}
                 </h2>
-                {suggestion && !isLoadingDoctors && filteredDoctors.length === 0 && (
+                <div className="relative mb-6">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input
+                        type="text"
+                        placeholder="Search by doctor's name or location..."
+                        value={doctorSearchQuery}
+                        onChange={(e) => setDoctorSearchQuery(e.target.value)}
+                        className="pl-10"
+                    />
+                </div>
+                {suggestion && !isLoadingDoctors && specialtyFilteredDoctors.length === 0 && (
                     <p className="text-center text-muted-foreground mb-6">
                         {t('no_doctors_found_text', 'No doctors found for the suggested specialty. Showing all doctors.')}
                     </p>
@@ -776,16 +798,37 @@ const RescheduleDialog = ({ t, appointment, onConfirm, onOpenChange }) => {
 };
 
 const HistoryTab = ({ t }) => {
-     const { user } = useUser();
+    const { user } = useUser();
     const firestore = useFirestore();
+    const [historySearchQuery, setHistorySearchQuery] = useState('');
+
     const appointmentsQuery = useMemoFirebase(() => {
         if (!user || !firestore) return null;
         return query(collection(firestore, 'appointments'), where('patientId', '==', user.uid));
     }, [user, firestore]);
 
-    const { data: allAppointments } = useCollection(appointmentsQuery);
+    const { data: allAppointments, isLoading } = useCollection(appointmentsQuery);
 
-     const pastAppointments = allAppointments?.filter(appt => appt.status !== 'Scheduled');
+    const pastAppointments = useMemo(() => {
+        if (!allAppointments) return [];
+        const filtered = allAppointments
+            .filter(appt => appt.status !== 'Scheduled')
+            .sort((a,b) => parseISO(b.date).getTime() - parseISO(a.date).getTime());
+        
+        if (!historySearchQuery) {
+            return filtered;
+        }
+
+        try {
+            const searchDate = format(new Date(historySearchQuery), 'yyyy-MM-dd');
+             return filtered.filter(appt => appt.date === searchDate);
+        } catch (e) {
+            // Invalid date input, return unfiltered
+            return filtered;
+        }
+
+    }, [allAppointments, historySearchQuery]);
+
     return (
          <Card>
             <CardHeader>
@@ -793,7 +836,17 @@ const HistoryTab = ({ t }) => {
                 <CardDescription>{t('appointment_history_desc', 'Here are your past appointments.')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                {pastAppointments && pastAppointments.length > 0 ? pastAppointments.map(appt => (
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input
+                        type="date"
+                        value={historySearchQuery}
+                        onChange={(e) => setHistorySearchQuery(e.target.value)}
+                        className="pl-10"
+                    />
+                </div>
+                {isLoading ? <p>Loading history...</p> :
+                pastAppointments && pastAppointments.length > 0 ? pastAppointments.map(appt => (
                     <Card key={appt.id} className="p-4 flex flex-col sm:flex-row items-start gap-4">
                          <Avatar className="h-16 w-16">
                             <AvatarImage src={`https://picsum.photos/seed/${appt.doctorId}/200`} />
@@ -812,13 +865,10 @@ const HistoryTab = ({ t }) => {
                             </div>
                         </div>
                         <div className="flex flex-col sm:flex-row items-center gap-2 self-start sm:self-center">
-                             {appt.status === 'Completed' && (
-                                <Button>{t('book_again_button', 'Book Again')}</Button>
-                             )}
                              <Badge variant={appt.status === 'Canceled' ? 'destructive' : 'secondary'}>{appt.status}</Badge>
                         </div>
                     </Card>
-                )) : <p>No past appointments.</p>}
+                )) : <p className="text-center text-muted-foreground">No past appointments found{historySearchQuery && ` for ${format(new Date(historySearchQuery), 'PPP')}`}.</p>}
             </CardContent>
         </Card>
     )
