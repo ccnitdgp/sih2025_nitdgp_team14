@@ -8,10 +8,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { FlaskConical, PlusCircle, FileDown } from 'lucide-react';
+import { FlaskConical, PlusCircle, FileDown, Scan } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
+import { collection, query, where, orderBy } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
@@ -24,7 +24,8 @@ export function LabReportsTab({ patientId }: { patientId: string }) {
     if (!patientId || !firestore) return null;
     return query(
       collection(firestore, `users/${patientId}/healthRecords`),
-      where('recordType', 'in', ['labReport', 'scanReport'])
+      where('recordType', 'in', ['labReport', 'scanReport', 'other']),
+      orderBy('dateCreated', 'desc')
     );
   }, [patientId, firestore]);
   
@@ -101,11 +102,16 @@ export function LabReportsTab({ patientId }: { patientId: string }) {
             healthRecords
               .map((report) => (
               <Card key={report.id} className="p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                  <div className="flex-1">
-                      <h3 className="font-semibold text-lg">{report.details.name}</h3>
-                      <p className="text-sm text-muted-foreground mt-1">
-                          Date: {report.details.date} - Issued by: {report.details.issuer}
-                      </p>
+                  <div className="flex items-center gap-4 flex-1">
+                      <div className="p-2 bg-primary/10 rounded-md">
+                          {report.recordType === 'scanReport' ? <Scan className="h-5 w-5 text-primary" /> : <FlaskConical className="h-5 w-5 text-primary" />}
+                      </div>
+                      <div className="flex-1">
+                          <h3 className="font-semibold text-lg">{report.details.name}</h3>
+                          <p className="text-sm text-muted-foreground mt-1">
+                              Date: {report.details.date} - Issued by: {report.details.issuer}
+                          </p>
+                      </div>
                   </div>
                    <Button variant="outline" size="sm" onClick={() => handleDownload(report)}>
                       <FileDown className="mr-2 h-4 w-4"/>
