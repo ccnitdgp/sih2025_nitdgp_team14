@@ -45,9 +45,12 @@ service cloud.firestore {
     match /users/{userId} {
 
       // Create own profile: id field must match auth.uid & path.
+      // A doctor can create a profile for a patient.
       allow create: if isSignedIn()
-        && request.auth.uid == userId
-        && request.resource.data.id == userId;
+        && (
+            (request.auth.uid == userId && request.resource.data.id == userId) || 
+            (isDoctor() && request.resource.data.role == 'patient')
+        );
 
       // User can always read/update their own profile.
       // An assigned doctor can also read a patient's profile.
@@ -58,7 +61,8 @@ service cloud.firestore {
 
 
       // Public can query for patient count. Admins can list all users.
-      allow list: if (request.query.where.role == 'patient') || isAdmin();
+      // Doctors can list patients assigned to them.
+      allow list: if (request.query.where.role == 'patient') || isAdmin() || (isDoctor() && request.query.where.doctorId == request.auth.uid);
       allow delete: if isAdmin();
 
 
@@ -148,21 +152,7 @@ service cloud.firestore {
         // - Patients can create for themselves.
         // - If type is virtual, status must be 'Pending', and no time/date/link can be set.
         // - If type is in-person, status must be 'Scheduled' and date/time must be present.
-        allow create: if isPatientForAppointment(request.resource.data) && (
-            (
-                request.resource.data.type == 'Virtual' &&
-                request.resource.data.status == 'Pending' &&
-                !('date' in request.resource.data) &&
-                !('time' in request.resource.data) &&
-                !('meetLink' in request.resource.data)
-            ) ||
-            (
-                request.resource.data.type == 'In-Person' &&
-                request.resource.data.status == 'Scheduled' &&
-                'date' in request.resource.data &&
-                'time' in request.resource.data
-            )
-        );
+        allow create: if isPatientForAppointment(request.resource.data) || (isDoctor() && request.resource.data.doctorId == request.auth.uid);
         
         // READ: only the involved patient, doctor, or an admin.
         allow get: if isSignedIn() && (
@@ -345,3 +335,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
