@@ -19,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Upload, PlusCircle, Trash2, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Combobox } from '@/components/ui/combobox';
 
 const documentSchema = z.object({
   patientId: z.string().min(1, 'Please select a patient.'),
@@ -56,6 +57,15 @@ export default function UploadDocumentsPage() {
   }, [doctorUser, firestore]);
 
   const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsQuery);
+
+  const patientOptions = useMemo(() => {
+    if (!patients) return [];
+    return patients.map(p => ({
+        value: p.id,
+        label: `${p.firstName} ${p.lastName}`
+    }));
+  }, [patients]);
+
 
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
@@ -154,20 +164,15 @@ export default function UploadDocumentsPage() {
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Patient</FormLabel>
-                                        <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingPatients}>
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder={isLoadingPatients ? "Loading patients..." : "Select a patient"} />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                {patients?.map(p => (
-                                                    <SelectItem key={p.id} value={p.id}>
-                                                        {p.firstName} {p.lastName}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
+                                        <FormControl>
+                                            <Combobox
+                                                options={patientOptions}
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                                placeholder={isLoadingPatients ? "Loading patients..." : "Select a patient"}
+                                                emptyMessage="No patients found."
+                                            />
+                                        </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
