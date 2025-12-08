@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { type ReactNode, useState, useEffect, useMemo } from 'react';
+import React, { type ReactNode, useState, useEffect } from 'react';
 import { FirebaseProvider } from '@/firebase/provider';
 import { initializeFirebase } from '@/firebase';
 import type { FirebaseApp } from 'firebase/app';
@@ -20,14 +20,13 @@ interface FirebaseServices {
 
 export function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
   // Use state to hold the initialized services. Start with null.
-  // Use useMemo to ensure initializeFirebase() is called only once.
-  const firebaseServices = useMemo(() => {
-    // This will only run on the client, and only once per component lifecycle.
-    if (typeof window !== 'undefined') {
-      return initializeFirebase();
-    }
-    return null;
-  }, []);
+  const [firebaseServices, setFirebaseServices] = useState<FirebaseServices | null>(null);
+
+  useEffect(() => {
+    // This effect runs only once on the client-side after the component mounts.
+    const services = initializeFirebase();
+    setFirebaseServices(services);
+  }, []); // Empty dependency array ensures this runs only once.
 
   return (
     <FirebaseProvider
