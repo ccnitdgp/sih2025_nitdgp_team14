@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -7,31 +8,25 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { FlaskConical, PlusCircle, FileDown, Scan } from 'lucide-react';
+import { FlaskConical, PlusCircle, FileDown, Scan, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
+import { useMemo } from 'react';
 
 const reportIcons = {
   labReport: <FlaskConical className="h-5 w-5 text-primary" />,
   scanReport: <Scan className="h-5 w-5 text-primary" />,
 };
 
-export function LabReportsTab({ patientId }: { patientId: string }) {
-  const firestore = useFirestore();
+export function LabReportsTab({ patientId, healthRecords, isLoading }: { patientId: string, healthRecords: any[] | null, isLoading: boolean }) {
   const { toast } = useToast();
 
-  const healthRecordsQuery = useMemoFirebase(() => {
-    if (!patientId || !firestore) return null;
-    return collection(firestore, `users/${patientId}/healthRecords`);
-  }, [patientId, firestore]);
-  
-  const { data: healthRecords, isLoading } = useCollection(healthRecordsQuery);
-
-  const labAndScanReports = healthRecords?.filter(r => r.recordType === 'labReport' || r.recordType === 'scanReport');
+  const labAndScanReports = useMemo(() => {
+    if (!healthRecords) return [];
+    return healthRecords.filter(r => r.recordType === 'labReport' || r.recordType === 'scanReport');
+  }, [healthRecords]);
 
 
   const handleDownload = async (report: any) => {

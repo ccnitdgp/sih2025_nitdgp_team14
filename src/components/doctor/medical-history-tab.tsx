@@ -1,16 +1,17 @@
+
 'use client';
 
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { History, PlusCircle, Trash2 } from 'lucide-react';
-import { useFirestore, useCollection, useMemoFirebase, useUser, deleteDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase';
+import { useFirestore, useUser, deleteDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase';
 import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export function MedicalHistoryTab({ patientId }: { patientId: string }) {
+export function MedicalHistoryTab({ patientId, healthRecords, isLoading }: { patientId: string, healthRecords: any[] | null, isLoading: boolean }) {
     const { user: doctorUser } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
@@ -18,19 +19,14 @@ export function MedicalHistoryTab({ patientId }: { patientId: string }) {
     const [newHistoryItem, setNewHistoryItem] = useState('');
     const [isAdding, setIsAdding] = useState(false);
 
-    const healthRecordsRef = useMemoFirebase(() => {
-        if (!patientId || !firestore) return null;
-        return collection(firestore, `users/${patientId}/healthRecords`);
-    }, [patientId, firestore]);
-    
-    const { data: healthRecords, isLoading } = useCollection(healthRecordsRef);
-
     const medicalHistory = healthRecords?.filter(r => r.recordType === 'medicalHistory');
 
     const handleAddItem = async () => {
-        if (!newHistoryItem.trim() || !healthRecordsRef || !doctorUser) return;
+        if (!newHistoryItem.trim() || !firestore || !doctorUser || !patientId) return;
         
         setIsAdding(true);
+        const healthRecordsRef = collection(firestore, `users/${patientId}/healthRecords`);
+        
         const medicalHistoryData = {
             recordType: 'medicalHistory',
             details: newHistoryItem,
@@ -54,7 +50,8 @@ export function MedicalHistoryTab({ patientId }: { patientId: string }) {
     };
     
     const handleDeleteItem = (itemId: string) => {
-        if (!healthRecordsRef) return;
+        if (!firestore || !patientId) return;
+        const healthRecordsRef = collection(firestore, `users/${patientId}/healthRecords`);
         const itemDocRef = doc(healthRecordsRef, itemId);
         deleteDocumentNonBlocking(itemDocRef);
         toast({

@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -9,24 +10,18 @@ import {
 } from '@/components/ui/card';
 import { ShieldCheck, FileDown, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
+import { useMemo } from 'react';
 
-export function VaccinationRecordsTab({ patientId }: { patientId: string }) {
-  const firestore = useFirestore();
+export function VaccinationRecordsTab({ patientId, healthRecords, isLoading }: { patientId: string, healthRecords: any[] | null, isLoading: boolean }) {
   const { toast } = useToast();
 
-  const healthRecordsQuery = useMemoFirebase(() => {
-    if (!patientId || !firestore) return null;
-    return collection(firestore, `users/${patientId}/healthRecords`);
-  }, [patientId, firestore]);
-  
-  const { data: healthRecords, isLoading } = useCollection(healthRecordsQuery);
-
-  const vaccinationRecords = healthRecords?.filter(r => r.recordType === 'vaccinationRecord');
+  const vaccinationRecords = useMemo(() => {
+    if (!healthRecords) return [];
+    return healthRecords.filter(r => r.recordType === 'vaccinationRecord');
+  }, [healthRecords]);
 
   const handleDownload = async (record: any) => {
     if (!record.details?.downloadUrl) {

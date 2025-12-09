@@ -17,16 +17,7 @@ const DetailItem = ({ icon: Icon, label, value }) => (
     </div>
 );
 
-export function MedicalDetailsTab({ patientId }: { patientId: string }) {
-  const firestore = useFirestore();
-
-  const patientDocRef = useMemoFirebase(() => {
-    if (!patientId || !firestore) return null;
-    return doc(firestore, 'users', patientId);
-  }, [patientId, firestore]);
-
-  const { data: patientProfile, isLoading } = useDoc(patientDocRef);
-
+export function MedicalDetailsTab({ patientId, patientProfile, isLoading }: { patientId: string, patientProfile: any | null, isLoading: boolean }) {
   if (isLoading) {
     return (
         <Card>
@@ -63,7 +54,7 @@ export function MedicalDetailsTab({ patientId }: { patientId: string }) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-8">
-        {!medicalDetails ? (
+        {!medicalDetails || Object.values(medicalDetails).every(v => !v) ? (
              <p className="text-muted-foreground text-center py-4">No medical details provided by the patient.</p>
         ) : (
             <>

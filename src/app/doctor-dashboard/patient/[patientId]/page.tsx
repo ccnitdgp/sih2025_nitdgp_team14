@@ -39,18 +39,17 @@ export default function PatientDetailPage() {
 
   const { data: patientProfile, isLoading: isProfileLoading } = useDoc(patientDocRef);
 
-  const medicalHistoryQuery = useMemoFirebase(() => {
+  const healthRecordsQuery = useMemoFirebase(() => {
     if (!patientId || !firestore) return null;
     return query(
-      collection(firestore, `users/${patientId}/healthRecords`),
-      where('recordType', '==', 'medicalHistory')
+      collection(firestore, `users/${patientId}/healthRecords`)
     );
   }, [patientId, firestore]);
 
-  const { data: medicalHistory, isLoading: isHistoryLoading } = useCollection(medicalHistoryQuery);
+  const { data: healthRecords, isLoading: isHistoryLoading } = useCollection(healthRecordsQuery);
 
   const handleSummarize = async () => {
-    if (!medicalHistory || medicalHistory.length === 0) {
+    if (!healthRecords || healthRecords.length === 0) {
       toast({
         variant: 'destructive',
         title: "No History Found",
@@ -61,7 +60,12 @@ export default function PatientDetailPage() {
     setIsSummarizing(true);
     setSummary(null);
     try {
-      const notes = medicalHistory.map(item => item.details).join('\n');
+      const notes = healthRecords.filter(r => r.recordType === 'medicalHistory').map(item => item.details).join('\n');
+      if (!notes) {
+          toast({ variant: 'destructive', title: "No notes to summarize."});
+          setIsSummarizing(false);
+          return;
+      }
       const result = await summarizeMedicalHistory({ medicalNotes: notes });
       setSummary(result.summary);
     } catch (error) {
@@ -150,19 +154,19 @@ export default function PatientDetailPage() {
                 <PatientProfileTab patientId={patientId} patientProfile={patientProfile} isLoading={isProfileLoading} />
             </TabsContent>
             <TabsContent value="history" className="mt-6">
-                <MedicalHistoryTab patientId={patientId} />
+                <MedicalHistoryTab patientId={patientId} healthRecords={healthRecords} isLoading={isHistoryLoading} />
             </TabsContent>
             <TabsContent value="details" className="mt-6">
-              <MedicalDetailsTab patientId={patientId} />
+              <MedicalDetailsTab patientId={patientId} patientProfile={patientProfile} isLoading={isProfileLoading} />
             </TabsContent>
             <TabsContent value="prescriptions" className="mt-6">
                 <PrescriptionsTab patientId={patientId} />
             </TabsContent>
             <TabsContent value="reports" className="mt-6">
-                <LabReportsTab patientId={patientId} />
+                <LabReportsTab patientId={patientId} healthRecords={healthRecords} isLoading={isHistoryLoading} />
             </TabsContent>
             <TabsContent value="vaccinations" className="mt-6">
-              <VaccinationRecordsTab patientId={patientId} />
+              <VaccinationRecordsTab patientId={patientId} healthRecords={healthRecords} isLoading={isHistoryLoading} />
             </TabsContent>
           </Tabs>
         </div>
