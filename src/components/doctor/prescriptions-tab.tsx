@@ -63,9 +63,14 @@ export function PrescriptionsTab({ patientId }: { patientId: string }) {
   });
 
   const prescriptionsQuery = useMemoFirebase(() => {
-    if (!patientId || !firestore) return null;
-    return query(collection(firestore, `prescriptions`), where('patientId', '==', patientId));
-  }, [patientId, firestore]);
+    if (!patientId || !firestore || !doctorUser) return null;
+    // This query now correctly filters by both patientId AND doctorId
+    return query(
+        collection(firestore, `prescriptions`), 
+        where('patientId', '==', patientId),
+        where('doctorId', '==', doctorUser.uid)
+    );
+  }, [patientId, firestore, doctorUser]);
   
   const { data: prescriptions, isLoading } = useCollection(prescriptionsQuery);
 
