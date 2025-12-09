@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -119,3 +118,5 @@ export function VaccinationRecordsTab({ patientId }: { patientId: string }) {
     </Card>
   );
 }
+
+    

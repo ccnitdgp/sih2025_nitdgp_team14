@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -135,3 +134,5 @@ export function MedicalHistoryTab({ patientId }: { patientId: string }) {
     </Card>
   );
 }
+
+    
