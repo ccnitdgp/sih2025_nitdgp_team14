@@ -24,7 +24,7 @@ export function LabReportsTab({ patientId }: { patientId: string }) {
     if (!patientId || !firestore) return null;
     return query(
       collection(firestore, `users/${patientId}/healthRecords`),
-      where('recordType', 'in', ['labReport', 'scanReport', 'other']),
+      where('recordType', 'in', ['labReport', 'scanReport']),
       orderBy('dateCreated', 'desc')
     );
   }, [patientId, firestore]);

@@ -11,7 +11,7 @@ import {
 import { FlaskConical, FileDown, Scan, ShieldCheck, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, doc, query, where } from 'firebase/firestore';
+import { collection, doc, query, where, orderBy } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useState, useEffect } from 'react';
 import hi from '@/lib/locales/hi.json';
@@ -77,7 +77,8 @@ export default function LabReportsPage() {
     if (!user || !firestore) return null;
     return query(
         collection(firestore, `users/${user.uid}/healthRecords`),
-        where('recordType', 'in', ['labReport', 'scanReport', 'vaccinationRecord', 'other'])
+        where('recordType', 'in', ['labReport', 'scanReport']),
+        orderBy('dateCreated', 'desc')
     );
   }, [user, firestore]);
   
