@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { History, PlusCircle, Trash2 } from 'lucide-react';
 import { useFirestore, useCollection, useMemoFirebase, useUser, deleteDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, doc, query, where } from 'firebase/firestore';
+import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -22,13 +22,10 @@ export function MedicalHistoryTab({ patientId }: { patientId: string }) {
         if (!patientId || !firestore) return null;
         return collection(firestore, `users/${patientId}/healthRecords`);
     }, [patientId, firestore]);
-
-    const medicalHistoryQuery = useMemoFirebase(() => {
-        if (!healthRecordsRef) return null;
-        return query(healthRecordsRef, where('recordType', '==', 'medicalHistory'));
-    }, [healthRecordsRef]);
     
-    const { data: medicalHistory, isLoading } = useCollection(medicalHistoryQuery);
+    const { data: healthRecords, isLoading } = useCollection(healthRecordsRef);
+
+    const medicalHistory = healthRecords?.filter(r => r.recordType === 'medicalHistory');
 
     const handleAddItem = async () => {
         if (!newHistoryItem.trim() || !healthRecordsRef || !doctorUser) return;
@@ -134,5 +131,3 @@ export function MedicalHistoryTab({ patientId }: { patientId: string }) {
     </Card>
   );
 }
-
-    

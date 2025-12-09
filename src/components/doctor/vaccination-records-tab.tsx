@@ -10,7 +10,7 @@ import {
 import { ShieldCheck, FileDown, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
+import { collection } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
@@ -21,13 +21,12 @@ export function VaccinationRecordsTab({ patientId }: { patientId: string }) {
 
   const healthRecordsQuery = useMemoFirebase(() => {
     if (!patientId || !firestore) return null;
-    return query(
-        collection(firestore, `users/${patientId}/healthRecords`),
-        where('recordType', '==', 'vaccinationRecord')
-    );
+    return collection(firestore, `users/${patientId}/healthRecords`);
   }, [patientId, firestore]);
   
-  const { data: vaccinationRecords, isLoading } = useCollection(healthRecordsQuery);
+  const { data: healthRecords, isLoading } = useCollection(healthRecordsQuery);
+
+  const vaccinationRecords = healthRecords?.filter(r => r.recordType === 'vaccinationRecord');
 
   const handleDownload = async (record: any) => {
     if (!record.details?.downloadUrl) {
@@ -118,5 +117,3 @@ export function VaccinationRecordsTab({ patientId }: { patientId: string }) {
     </Card>
   );
 }
-
-    

@@ -10,10 +10,15 @@ import {
 import { FlaskConical, PlusCircle, FileDown, Scan } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy } from 'firebase/firestore';
+import { collection } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
+
+const reportIcons = {
+  labReport: <FlaskConical className="h-5 w-5 text-primary" />,
+  scanReport: <Scan className="h-5 w-5 text-primary" />,
+};
 
 export function LabReportsTab({ patientId }: { patientId: string }) {
   const firestore = useFirestore();
@@ -21,13 +26,13 @@ export function LabReportsTab({ patientId }: { patientId: string }) {
 
   const healthRecordsQuery = useMemoFirebase(() => {
     if (!patientId || !firestore) return null;
-    return query(
-      collection(firestore, `users/${patientId}/healthRecords`),
-      where('recordType', 'in', ['labReport', 'scanReport'])
-    );
+    return collection(firestore, `users/${patientId}/healthRecords`);
   }, [patientId, firestore]);
   
   const { data: healthRecords, isLoading } = useCollection(healthRecordsQuery);
+
+  const labAndScanReports = healthRecords?.filter(r => r.recordType === 'labReport' || r.recordType === 'scanReport');
+
 
   const handleDownload = async (report: any) => {
     if (!report.details?.downloadUrl) {
@@ -96,13 +101,13 @@ export function LabReportsTab({ patientId }: { patientId: string }) {
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
-        {isLoading ? <SkeletonLoader /> : healthRecords && healthRecords.length > 0 ? (
-            healthRecords
+        {isLoading ? <SkeletonLoader /> : labAndScanReports && labAndScanReports.length > 0 ? (
+            labAndScanReports
               .map((report) => (
               <Card key={report.id} className="p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                   <div className="flex items-center gap-4 flex-1">
                       <div className="p-2 bg-primary/10 rounded-md">
-                          {report.recordType === 'scanReport' ? <Scan className="h-5 w-5 text-primary" /> : <FlaskConical className="h-5 w-5 text-primary" />}
+                          {reportIcons[report.recordType] || <FileText className="h-5 w-5 text-primary" />}
                       </div>
                       <div className="flex-1">
                           <h3 className="font-semibold text-lg">{report.details.name}</h3>
@@ -124,5 +129,3 @@ export function LabReportsTab({ patientId }: { patientId: string }) {
     </Card>
   );
 }
-
-    
