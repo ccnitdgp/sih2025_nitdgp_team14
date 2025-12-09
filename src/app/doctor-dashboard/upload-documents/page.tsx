@@ -57,7 +57,11 @@ export default function UploadDocumentsPage() {
     setFoundPatient(null);
 
     try {
-      const q = query(collection(firestore, 'users'), where('patientId', '==', patientIdInput.trim()));
+      const q = query(
+          collection(firestore, 'users'), 
+          where('patientId', '==', patientIdInput.trim()),
+          where('role', '==', 'patient')
+      );
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
