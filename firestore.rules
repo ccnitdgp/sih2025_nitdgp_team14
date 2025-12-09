@@ -46,11 +46,8 @@ service cloud.firestore {
 
       // Create own profile: id field must match auth.uid & path.
       // A doctor can create a profile for a patient.
-      allow create: if isSignedIn()
-        && (
-            (request.auth.uid == userId && request.resource.data.id == userId) || 
-            (isDoctor() && request.resource.data.role == 'patient')
-        );
+      // TEMP: Allow anyone to create a user profile for development
+      allow create: if true;
 
       // User can always read/update their own profile.
       // An assigned doctor can also read a patient's profile.
