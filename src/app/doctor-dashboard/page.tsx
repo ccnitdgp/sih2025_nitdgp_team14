@@ -4,13 +4,13 @@
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { doc, collection, query, where, collectionGroup } from 'firebase/firestore';
+import { doc, collection, query, where, getDocs } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Calendar, Users, FileText, BriefcaseMedical } from 'lucide-react';
 import Link from 'next/link';
 import { WeeklyActivityChart } from '@/components/doctor/weekly-activity-chart';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { isToday, parseISO } from 'date-fns';
 
 const StatCard = ({ title, value, icon: Icon, isLoading }) => (
@@ -28,6 +28,8 @@ const StatCard = ({ title, value, icon: Icon, isLoading }) => (
 export default function DoctorDashboardPage() {
   const { user } = useUser();
   const firestore = useFirestore();
+  const [totalPrescriptions, setTotalPrescriptions] = useState(0);
+  const [arePrescriptionsLoading, setArePrescriptionsLoading] = useState(true);
 
   const userDocRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
@@ -55,17 +57,30 @@ export default function DoctorDashboardPage() {
 
   const { data: appointments, isLoading: areAppointmentsLoading } = useCollection(appointmentsQuery);
 
-  const prescriptionsQuery = useMemoFirebase(() => {
-    if (!user || !firestore || !userProfile || userProfile.role !== 'doctor') {
-        return null;
-    }
-    return query(
-        collection(firestore, 'prescriptions'),
-        where('doctorId', '==', user.uid)
-    );
-  }, [user, firestore, userProfile]);
+  useEffect(() => {
+    if (!user || !firestore || userProfile?.role !== 'doctor') {
+      setArePrescriptionsLoading(false);
+      return;
+    };
 
-  const { data: prescriptions, isLoading: arePrescriptionsLoading } = useCollection(prescriptionsQuery);
+    const fetchPrescriptions = async () => {
+        setArePrescriptionsLoading(true);
+        const ref = collection(firestore, "prescriptions");
+        const q = query(ref, where("doctorId", "==", user.uid));
+        try {
+            const snapshot = await getDocs(q);
+            setTotalPrescriptions(snapshot.size);
+        } catch (error) {
+            console.error("Failed to fetch prescriptions count:", error);
+            setTotalPrescriptions(0);
+        } finally {
+            setArePrescriptionsLoading(false);
+        }
+    }
+    
+    fetchPrescriptions();
+
+  }, [user, firestore, userProfile]);
 
 
   const upcomingAppointments = useMemo(() => {
@@ -81,7 +96,6 @@ export default function DoctorDashboardPage() {
   }, [upcomingAppointments]);
 
   const totalPatients = patients?.length || 0;
-  const totalPrescriptions = prescriptions?.length || 0;
 
   return (
     <div className="bg-muted/40 min-h-screen">
