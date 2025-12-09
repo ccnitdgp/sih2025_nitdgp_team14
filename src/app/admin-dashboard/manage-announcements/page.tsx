@@ -59,7 +59,10 @@ export default function ManageAnnouncementsPage() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const announcementsRef = useMemoFirebase(() => collection(firestore, 'announcements'), [firestore]);
+  const announcementsRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'announcements');
+  }, [firestore]);
   const { data: announcements, isLoading } = useCollection(announcementsRef);
 
   const form = useForm<z.infer<typeof announcementSchema>>({
@@ -76,15 +79,12 @@ export default function ManageAnnouncementsPage() {
     try {
         const newDocRef = doc(announcementsRef);
         
-        const categoryStyle = categoryStyles[values.category];
-        
         await addDocumentNonBlocking(announcementsRef, {
             id: newDocRef.id,
             title: values.title,
             details: values.details,
             category: values.category,
             date: new Date().toISOString(),
-            ...categoryStyle
         });
         toast({ title: "Announcement Published", description: "The new announcement is now live." });
         form.reset();

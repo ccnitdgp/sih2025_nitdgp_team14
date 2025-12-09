@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, updateDocumentNonBlocking, deleteDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase';
 import { collection, query, orderBy, serverTimestamp, doc, addDoc, arrayUnion, increment, arrayRemove } from 'firebase/firestore';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -440,4 +440,3 @@ export default function ForumPage() {
   );
 }
 
-    

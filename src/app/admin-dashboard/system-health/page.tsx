@@ -15,20 +15,40 @@ import {
   Clock,
   Mail,
   MessageCircle,
-  Database
+  Database,
+  ShieldCheck
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { BackButton } from '@/components/layout/back-button';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
-
+import type { FirebaseError } from '@/types/firebase-errors';
+import type { UserProfile } from '@/types/user-profile';
 
 export default function SystemHealthPage() {
-  const { firestore, isServicesLoading } = useFirestore();
-  const appointmentsQuery = useMemoFirebase(() => collection(firestore, 'appointments'), [firestore]);
+  const { firestore, isServicesLoading } = useFirebase();
+  const appointmentsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'appointments');
+  }, [firestore]);
   const { data: appointments, isLoading: appointmentsLoading } = useCollection(appointmentsQuery);
+  const errorsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'errors');
+  }, [firestore]);
+  const { data: errors, isLoading: errorsLoading } = useCollection<FirebaseError>(errorsQuery);
+  const usersQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'users');
+  }, [firestore]);
+  const { data: users, isLoading: usersLoading } = useCollection<UserProfile>(usersQuery);
 
   const isConnected = !isServicesLoading && !appointmentsLoading && firestore;
+  const complianceData = {
+    totalUsers: users?.length || 0,
+    acceptedPolicy: users?.filter(u => u.hasAcceptedPrivacyPolicy).length || 0,
+    acceptedTos: users?.filter(u => u.hasAcceptedTos).length || 0,
+  };
 
   return (
     <div className="bg-muted/40 min-h-screen">
@@ -67,26 +87,54 @@ export default function SystemHealthPage() {
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
+                        <ShieldCheck />
+                        Security & Compliance
+                    </CardTitle>
+                    <CardDescription>
+                        Live status of user consent and data compliance.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {usersLoading ? (
+                        <p>Loading compliance data...</p>
+                    ) : (
+                        <div className="space-y-4">
+                            <div>
+                                <p>{complianceData.acceptedPolicy} of {complianceData.totalUsers} users have accepted the privacy policy.</p>
+                                <progress value={complianceData.acceptedPolicy} max={complianceData.totalUsers} />
+                            </div>
+                            <div>
+                                <p>{complianceData.acceptedTos} of {complianceData.totalUsers} users have accepted the Terms of Service.</p>
+                                <progress value={complianceData.acceptedTos} max={complianceData.totalUsers} />
+                            </div>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
                         <AlertTriangle />
                         Recent Errors
                     </CardTitle>
                     <CardDescription>
-                       A log of recent critical errors across the system (example data).
+                       A log of recent critical errors across the system.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                    <div className="p-2 border rounded-md bg-destructive/10">
-                        <p className="font-mono text-sm text-destructive">`FirestorePermissionError` at `/users/[userId]`</p>
-                        <p className="text-xs text-destructive/80">Count: 42</p>
-                    </div>
-                     <div className="p-2 border rounded-md">
-                        <p className="font-mono text-sm">`TypeError: Cannot read properties of undefined`</p>
-                        <p className="text-xs text-muted-foreground">Count: 15</p>
-                    </div>
-                     <div className="p-2 border rounded-md">
-                        <p className="font-mono text-sm">`AuthError: token-expired`</p>
-                        <p className="text-xs text-muted-foreground">Count: 8</p>
-                    </div>
+                    {errorsLoading ? (
+                        <p>Loading errors...</p>
+                    ) : errors && errors.length > 0 ? (
+                        errors.map((error) => (
+                            <div key={error.id} className="p-2 border rounded-md bg-destructive/10">
+                                <p className="font-mono text-sm text-destructive">{error.message}</p>
+                                <p className="text-xs text-destructive/80">Count: {error.count}</p>
+                            </div>
+                        ))
+                    ) : (
+                        <p>No recent errors.</p>
+                    )}
                 </CardContent>
             </Card>
         </div>

@@ -1,92 +1,49 @@
+import { addDoc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
+import { toast } from '@/hooks/use-toast';
 
-'use client';
-    
-import {
-  setDoc,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  CollectionReference,
-  DocumentReference,
-  SetOptions,
-} from 'firebase/firestore';
-import { errorEmitter } from '@/firebase/error-emitter';
-import {FirestorePermissionError} from '@/firebase/errors';
+// Non-blocking Firestore operations
 
-/**
- * Initiates a setDoc operation for a document reference.
- * Does NOT await the write operation internally.
- */
-export function setDocumentNonBlocking(docRef: DocumentReference, data: any, options: SetOptions) {
-  setDoc(docRef, data, options).catch(error => {
-    errorEmitter.emit(
-      'permission-error',
-      new FirestorePermissionError({
-        path: docRef.path,
-        operation: options && 'merge' in options && options.merge ? 'update' : 'create',
-        requestResourceData: data,
-      })
-    )
-  })
-  // Execution continues immediately
-}
-
-
-/**
- * Initiates an addDoc operation for a collection reference.
- * Does NOT await the write operation internally.
- * Returns the Promise for the new doc ref, but typically not awaited by caller.
- */
-export function addDocumentNonBlocking(colRef: CollectionReference, data: any) {
-  const promise = addDoc(colRef, data);
-  promise.catch(error => {
-      errorEmitter.emit(
-        'permission-error',
-        new FirestorePermissionError({
-          path: colRef.path,
-          operation: 'create',
-          requestResourceData: data,
-        })
-      )
+export const setDocumentNonBlocking = (docRef, data, options = {}) => {
+  setDoc(docRef, data, options)
+    .then(() => {
+      console.log("Document successfully set!");
+    })
+    .catch((e) => {
+      console.error("Error setting document: ", e);
+      toast({ variant: 'destructive', title: 'Error', description: 'There was a problem setting the document.' });
     });
-  return promise;
-}
+};
 
+export const addDocumentNonBlocking = async (collectionRef, data) => {
+  try {
+    const docRef = await addDoc(collectionRef, data);
+    console.log("Document written with ID: ", docRef.id);
+    return docRef;
+  } catch (e) {
+    console.error("Error adding document: ", e);
+    toast({ variant: 'destructive', title: 'Error', description: 'There was a problem adding the document.' });
+    return null;
+  }
+};
 
-/**
- * Initiates an updateDoc operation for a document reference.
- * Does NOT await the write operation internally.
- */
-export function updateDocumentNonBlocking(docRef: DocumentReference, data: any) {
+export const updateDocumentNonBlocking = (docRef, data) => {
   updateDoc(docRef, data)
-    .catch(error => {
-      errorEmitter.emit(
-        'permission-error',
-        new FirestorePermissionError({
-          path: docRef.path,
-          operation: 'update',
-          requestResourceData: data,
-        })
-      )
+    .then(() => {
+      console.log("Document successfully updated!");
+    })
+    .catch((e) => {
+      console.error("Error updating document: ", e);
+      toast({ variant: 'destructive', title: 'Error', description: 'There was a problem updating the document.' });
     });
-}
+};
 
-
-/**
- * Initiates a deleteDoc operation for a document reference.
- * Does NOT await the write operation internally.
- */
-export function deleteDocumentNonBlocking(docRef: DocumentReference) {
+export const deleteDocumentNonBlocking = (docRef) => {
   deleteDoc(docRef)
-    .catch(error => {
-      errorEmitter.emit(
-        'permission-error',
-        new FirestorePermissionError({
-          path: docRef.path,
-          operation: 'delete',
-        })
-      )
+    .then(() => {
+      console.log("Document successfully deleted!");
+    })
+    .catch((e) => {
+      console.error("Error deleting document: ", e);
+      toast({ variant: 'destructive', title: 'Error', description: 'There was a problem deleting the document.' });
     });
-}
-
-    
+};
