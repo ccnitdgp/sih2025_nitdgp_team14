@@ -227,3 +227,5 @@ export function PrescriptionsTab({ patientId }: { patientId: string }) {
     </Card>
   );
 }
+
+    
