@@ -202,7 +202,7 @@ service cloud.firestore {
       allow get: if isSignedIn() && (resource.data.patientId == request.auth.uid || resource.data.doctorId == request.auth.uid || isAdmin());
       
       // LIST (QUERY): A user can query prescriptions only if they filter by their OWN patientId or doctorId.
-      // A doctor MUST filter by their doctorId. A patient MUST filter by their patientId.
+      // An admin can list all prescriptions.
       allow list: if isSignedIn() && 
         (
           (request.query.where.patientId == request.auth.uid && isPatient()) ||
@@ -330,5 +330,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
