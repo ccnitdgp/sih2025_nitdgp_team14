@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -18,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { useUser, useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking, useDoc, addDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking, useDoc, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
 import { collection, query, where, doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { differenceInYears, parse, addMinutes, parseISO } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -143,16 +144,15 @@ export default function DoctorAppointmentsPage() {
   }
 
   const handleAcceptRequest = (appointment: any) => {
+    if(!firestore || !user) return;
+    // This is the critical step: link the patient to this doctor.
+    const patientUserRef = doc(firestore, 'users', appointment.patientId);
+    setDocumentNonBlocking(patientUserRef, { doctorId: user.uid }, { merge: true });
+
     if (appointment.type === 'Virtual') {
         setSelectedAppointment(appointment);
         setIsScheduleDialogOpen(true);
     } else { // In-Person
-        if(!firestore || !user) return;
-        
-        // Link patient to doctor
-        const patientUserRef = doc(firestore, 'users', appointment.patientId);
-        updateDocumentNonBlocking(patientUserRef, { doctorId: user.uid });
-
         const apptRef = doc(firestore, 'appointments', appointment.id);
         updateDocumentNonBlocking(apptRef, { status: 'Scheduled' });
         toast({ title: "Appointment Accepted", description: `Appointment with ${appointment.patientName} has been scheduled.` });
@@ -162,11 +162,11 @@ export default function DoctorAppointmentsPage() {
   const handleScheduleSubmit = (values: z.infer<typeof scheduleSchema>) => {
     if(!selectedAppointment || !firestore || !user) return;
 
-    // Link patient to doctor
+    // Link patient to doctor (ensure it happens here too)
     const patientUserRef = doc(firestore, 'users', selectedAppointment.patientId);
-    updateDocumentNonBlocking(patientUserRef, { doctorId: user.uid });
+    setDocumentNonBlocking(patientUserRef, { doctorId: user.uid }, { merge: true });
 
-    // Update appointment status
+    // Update appointment status and details
     const apptRef = doc(firestore, 'appointments', selectedAppointment.id);
     updateDocumentNonBlocking(apptRef, {
         status: 'Scheduled',
@@ -503,5 +503,3 @@ export default function DoctorAppointmentsPage() {
     </div>
   );
 }
-
-    
