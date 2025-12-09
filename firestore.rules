@@ -58,7 +58,12 @@ service cloud.firestore {
       allow get: if isSignedIn() && (isOwner(userId) || isDoctorAssignedToPatient(userId) || isAdmin());
       
       // Only the user can update their own profile. A doctor can update a patient's profile they are assigned to.
-      allow update: if isSignedIn() && (isOwner(userId) || isDoctorAssignedToPatient(userId));
+      // A doctor can also become the assigned doctor if one isn't set.
+      allow update: if isSignedIn() && (
+        isOwner(userId) || 
+        isDoctorAssignedToPatient(userId) ||
+        (isDoctor() && request.resource.data.doctorId == request.auth.uid && resource.data.doctorId == null)
+      );
 
 
       // Public can query for patient count. Admins can list all users.
@@ -72,14 +77,8 @@ service cloud.firestore {
       // ----------------------------------------------
       match /healthRecords/{healthRecordId} {
 
-        // For existing docs, userId field must match path.
-        function existingRecordUserMatchesPath() {
-          return resource.data.userId == userId;
-        }
-
         // Create: patient themself, assigned doctor, or admin.
-        // The `userId` in the new data must match the path.
-        allow create: if isSignedIn() && request.resource.data.userId == userId && (
+        allow create: if isSignedIn() && (
             isOwner(userId) ||
             isDoctorAssignedToPatient(userId) ||
             isAdmin()
@@ -90,7 +89,6 @@ service cloud.firestore {
         // - assigned doctor (via patient's doctorId field)
         // - admin
         allow get, list, update, delete: if isSignedIn()
-          && existingRecordUserMatchesPath()
           && (
             isOwner(userId) ||
             isDoctorAssignedToPatient(userId) ||
@@ -204,11 +202,12 @@ service cloud.firestore {
       allow get: if isSignedIn() && (resource.data.patientId == request.auth.uid || resource.data.doctorId == request.auth.uid || isAdmin());
       
       // LIST (QUERY): A user can query prescriptions only if they filter by their OWN patientId or doctorId.
-      allow list: if isSignedIn() && (
-        (request.query.where.doctorId == request.auth.uid && isDoctor()) ||
-        (request.query.where.patientId == request.auth.uid && isPatient()) ||
-        isAdmin()
-      );
+      allow list: if isSignedIn() && 
+        (
+          (request.query.where.patientId == request.auth.uid && isPatient()) ||
+          (request.query.where.doctorId == request.auth.uid && isDoctor()) ||
+          isAdmin()
+        );
 
       // CREATE: A doctor can create a prescription if they are the doctor listed on it.
       allow create: if isSignedIn() && isDoctor() && request.resource.data.doctorId == request.auth.uid;
@@ -330,3 +329,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
