@@ -54,10 +54,11 @@ service cloud.firestore {
 
       // User can always read/update their own profile.
       // An assigned doctor can also read a patient's profile.
-      allow get: if isSignedIn() && (isOwner(userId) || isDoctorAssignedToPatient(userId));
+      // An Admin can read any user profile
+      allow get: if isSignedIn() && (isOwner(userId) || isDoctorAssignedToPatient(userId) || isAdmin());
       
-      // Only the user can update their own profile.
-      allow update: if isSignedIn() && isOwner(userId);
+      // Only the user can update their own profile. A doctor can update a patient's profile they are assigned to.
+      allow update: if isSignedIn() && (isOwner(userId) || isDoctorAssignedToPatient(userId));
 
 
       // Public can query for patient count. Admins can list all users.
@@ -71,25 +72,19 @@ service cloud.firestore {
       // ----------------------------------------------
       match /healthRecords/{healthRecordId} {
 
-        // For new docs, userId field must match path.
-        function newRecordUserMatchesPath() {
-          return request.resource.data.userId == userId;
-        }
-
         // For existing docs, userId field must match path.
         function existingRecordUserMatchesPath() {
           return resource.data.userId == userId;
         }
 
         // Create: patient themself, assigned doctor, or admin.
-        allow create: if isSignedIn()
-          && newRecordUserMatchesPath()
-          && (
+        // The `userId` in the new data must match the path.
+        allow create: if isSignedIn() && request.resource.data.userId == userId && (
             isOwner(userId) ||
             isDoctorAssignedToPatient(userId) ||
             isAdmin()
           );
-
+          
         // Read/list/update/delete:
         // - patient owner
         // - assigned doctor (via patient's doctorId field)
@@ -335,5 +330,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
