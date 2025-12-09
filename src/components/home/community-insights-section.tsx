@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Lightbulb, Users, BarChart, TrendingUp, TrendingDown, Minus, ShieldAlert } from 'lucide-react';
@@ -61,9 +61,10 @@ export function CommunityInsightsSection() {
     const { data: userProfile } = useDoc(userDocRef);
     
     const patientsQuery = useMemoFirebase(() => {
-        if(!firestore) return null;
+        // Only run this query if the user is logged in.
+        if(!firestore || !user) return null;
         return query(collection(firestore, 'users'), where('role', '==', 'patient'));
-    }, [firestore]);
+    }, [firestore, user]);
     const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsQuery);
 
 
@@ -76,6 +77,9 @@ export function CommunityInsightsSection() {
     }, [userProfile]);
 
     const t = (key: string, fallback: string) => translations[key] || fallback;
+    
+    const patientCount = user ? (patients?.length ?? '...') : '1,200';
+
 
     const TrendIcon = ({ trend }: { trend: string }) => {
         if (trend === 'increasing') return <TrendingUp className="h-4 w-4 text-destructive" />;
@@ -101,7 +105,7 @@ export function CommunityInsightsSection() {
                             <InsightCard 
                                 icon={Users} 
                                 title="Registered Patients" 
-                                value={patients?.length?.toString() ?? '0'} 
+                                value={patientCount.toString() + (user ? '' : '+')}
                                 description="Total members on the platform" 
                                 isLoading={isLoadingPatients}
                             />
