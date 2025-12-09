@@ -732,5 +732,3 @@
     "reasoning": "The Firestore data structure has been redesigned for clarity and security. The core change is the introduction of a public `/doctors` collection, which is separate from the private `/users` collection. The `/doctors` collection stores only non-sensitive information necessary for patients to find and view doctor profiles. The `/users` collection holds all private data for both patients and doctors, strictly secured by user UID. This separation prevents permission errors when listing doctors and adheres to security best practices by not exposing the entire user base. Added ForumPost and ForumReply collections for community discussion feature. Added a Feedback collection to store user feedback. Added a dedicated `/prescriptions` collection for better data structure and security. Added a public `/announcements` collection for admin-managed public health advisories."
   }
 }
-
-    

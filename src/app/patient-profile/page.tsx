@@ -334,7 +334,6 @@ export default function PatientProfilePage() {
                               <CardHeader>
                                   <div className='flex justify-between items-center'>
                                       <CardTitle>Health Metrics</CardTitle>
-                                      <Button variant="ghost" size="sm" disabled><Sparkles className='mr-2'/> Analyze</Button>
                                   </div>
                                   <CardDescription>Your latest recorded health metrics.</CardDescription>
                               </CardHeader>
@@ -357,12 +356,10 @@ export default function PatientProfilePage() {
             ) : (
                  <Card className="text-center p-8">
                     <CardTitle>Profile Not Found</CardTitle>
-                    <CardDescription>We couldn't load your profile data. Please create a profile or try again later.</CardDescription>
+                    <CardDescription>We couldn't load your profile data. Please try again later.</CardDescription>
                 </Card>
             )
         )}
     </div>
   );
 }
-
-    

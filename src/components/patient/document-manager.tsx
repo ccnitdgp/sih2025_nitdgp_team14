@@ -200,5 +200,3 @@ export function DocumentManager({ userProfile, userDocRef }: { userProfile: any,
         </Card>
     );
 }
-
-    

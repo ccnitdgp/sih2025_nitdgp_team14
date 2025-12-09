@@ -56,6 +56,15 @@ service firebase.storage {
           isAdmin()
         );
     }
+    
+    // ---------------------------------
+    // User Verification Documents
+    // path: user-documents/{userId}/{fileName}
+    // ---------------------------------
+     match /user-documents/{userId}/{fileName} {
+      allow write: if request.auth.uid == userId;
+      allow read: if request.auth.uid == userId || isAdmin();
+    }
 
 
     // ---------------------------------
@@ -96,5 +105,3 @@ service firebase.storage {
     }
   }
 }
-
-    
