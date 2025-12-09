@@ -148,6 +148,12 @@ export default function DoctorAppointmentsPage() {
         setSelectedAppointment(appointment);
         setIsScheduleDialogOpen(true);
     } else { // In-Person
+        if(!firestore || !user) return;
+        
+        // Link patient to doctor
+        const patientUserRef = doc(firestore, 'users', appointment.patientId);
+        updateDocumentNonBlocking(patientUserRef, { doctorId: user.uid });
+
         const apptRef = doc(firestore, 'appointments', appointment.id);
         updateDocumentNonBlocking(apptRef, { status: 'Scheduled' });
         toast({ title: "Appointment Accepted", description: `Appointment with ${appointment.patientName} has been scheduled.` });

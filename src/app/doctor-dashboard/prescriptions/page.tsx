@@ -45,7 +45,8 @@ export default function DoctorPrescriptionsPage() {
   const [patientIdInput, setPatientIdInput] = useState('');
   const [foundPatient, setFoundPatient] = useState<any | null>(null);
   const [isSearching, setIsSearching] = useState(false);
-
+  const [issuedPrescriptions, setIssuedPrescriptions] = useState<any[]>([]);
+  const [isLoadingPrescriptions, setIsLoadingPrescriptions] = useState(true);
 
   const userDocRef = useMemoFirebase(() => {
     if (!doctorUser || !firestore) return null;
@@ -72,16 +73,31 @@ export default function DoctorPrescriptionsPage() {
     },
   });
   
-  const issuedPrescriptionsQuery = useMemoFirebase(() => {
-    if (!doctorUser || !firestore) return null;
-    return query(
-      collection(firestore, 'prescriptions'),
-      where('doctorId', '==', doctorUser.uid),
-      orderBy('date', 'desc')
-    );
-  }, [doctorUser, firestore]);
+  useEffect(() => {
+    if (!doctorUser || !firestore) {
+      setIsLoadingPrescriptions(false);
+      return;
+    };
 
-  const { data: issuedPrescriptions, isLoading: isLoadingPrescriptions } = useCollection(issuedPrescriptionsQuery);
+    const fetchPrescriptions = async () => {
+        setIsLoadingPrescriptions(true);
+        const ref = collection(firestore, "prescriptions");
+        const q = query(ref, where("doctorId", "==", doctorUser.uid), orderBy('date', 'desc'));
+        try {
+            const snapshot = await getDocs(q);
+            const prescriptionsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setIssuedPrescriptions(prescriptionsData);
+        } catch (error) {
+            console.error("Failed to fetch prescriptions:", error);
+            setIssuedPrescriptions([]);
+        } finally {
+            setIsLoadingPrescriptions(false);
+        }
+    }
+    
+    fetchPrescriptions();
+
+  }, [doctorUser, firestore]);
   
   const handleFindPatient = async () => {
     if (!patientIdInput.trim()) {
@@ -144,6 +160,10 @@ export default function DoctorPrescriptionsPage() {
 
     await setDocumentNonBlocking(newPrescriptionRef, prescriptionData, {});
     toast({ title: "Prescription Issued", description: `Prescription for ${values.medicationName} has been issued to the patient.` });
+    
+    // Manually add to local state to reflect update immediately
+    setIssuedPrescriptions(prev => [prescriptionData, ...prev].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+
     form.reset();
     handleResetPatient();
     setIsSubmitting(false);
@@ -153,6 +173,7 @@ export default function DoctorPrescriptionsPage() {
     if (!firestore) return;
     const docRef = doc(firestore, 'prescriptions', prescriptionId);
     deleteDocumentNonBlocking(docRef);
+    setIssuedPrescriptions(prev => prev.filter(p => p.id !== prescriptionId));
     toast({ title: 'Prescription Deleted', variant: 'destructive' });
   };
 
@@ -332,5 +353,3 @@ export default function DoctorPrescriptionsPage() {
     </div>
   )
 }
-
-    
