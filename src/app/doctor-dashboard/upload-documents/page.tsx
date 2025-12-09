@@ -16,9 +16,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Upload, PlusCircle, Loader2, Search } from 'lucide-react';
+import { Upload, PlusCircle, Loader2, Search, X } from 'lucide-react';
 import { BackButton } from '@/components/layout/back-button';
-import { Combobox } from '@/components/ui/combobox';
 
 const documentSchema = z.object({
   documentName: z.string().min(3, 'Document name is required.'),
@@ -31,10 +30,11 @@ export default function UploadDocumentsPage() {
   const { user: doctorUser } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [patientIdInput, setPatientIdInput] = useState('');
   const [foundPatient, setFoundPatient] = useState<any | null>(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<z.infer<typeof documentSchema>>({
     resolver: zodResolver(documentSchema),
@@ -74,9 +74,15 @@ export default function UploadDocumentsPage() {
     }
   };
 
+  const handleResetPatient = () => {
+    setFoundPatient(null);
+    setPatientIdInput('');
+    reset();
+  }
+
   const onSubmit = async (values: z.infer<typeof documentSchema>) => {
     if (!doctorUser || !firestore || !foundPatient) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Please find and select a patient before uploading.'});
+        toast({ variant: 'destructive', title: 'Error', description: 'A patient must be selected before uploading.'});
         return;
     };
     
@@ -112,9 +118,7 @@ export default function UploadDocumentsPage() {
 
         toast({ title: 'Upload Complete', description: `${file.name} has been successfully uploaded.` });
         
-        reset();
-        setPatientIdInput('');
-        setFoundPatient(null);
+        handleResetPatient();
 
     } catch (error) {
         console.error("Upload or Firestore update failed:", error);
@@ -142,106 +146,113 @@ export default function UploadDocumentsPage() {
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <Form {...form}>
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                        <div className="space-y-2">
-                           <FormItem>
-                                <FormLabel>Patient Unique ID</FormLabel>
-                                <div className="flex items-center space-x-2">
-                                    <FormControl>
-                                        <Input
-                                            placeholder="Enter Patient ID (e.g., PT-XXXXXXXXXX)"
-                                            value={patientIdInput}
-                                            onChange={(e) => setPatientIdInput(e.target.value)}
-                                            disabled={isSearching}
-                                        />
-                                    </FormControl>
-                                    <Button type="button" onClick={handleFindPatient} disabled={isSearching || !patientIdInput}>
-                                        {isSearching ? <Loader2 className="animate-spin" /> : <Search />}
-                                    </Button>
+                {/* Step 1: Find Patient */}
+                {!foundPatient ? (
+                    <div className="space-y-4">
+                        <Label htmlFor="patientId">Patient Unique ID</Label>
+                        <div className="flex items-center space-x-2">
+                            <Input
+                                id="patientId"
+                                placeholder="Enter Patient ID (e.g., PT-XXXXXXXXXX)"
+                                value={patientIdInput}
+                                onChange={(e) => setPatientIdInput(e.target.value)}
+                                disabled={isSearching}
+                            />
+                            <Button type="button" onClick={handleFindPatient} disabled={isSearching || !patientIdInput}>
+                                {isSearching ? <Loader2 className="animate-spin" /> : <Search />}
+                                Find Patient
+                            </Button>
+                        </div>
+                    </div>
+                ) : (
+                    /* Step 2: Upload Form */
+                    <div className="space-y-6">
+                        <div className="p-4 border rounded-lg bg-muted flex items-center justify-between">
+                            <div>
+                                <p className="text-sm font-medium text-muted-foreground">Selected Patient</p>
+                                <p className="font-bold text-lg">{foundPatient.firstName} {foundPatient.lastName} ({foundPatient.patientId})</p>
+                            </div>
+                            <Button variant="ghost" size="icon" onClick={handleResetPatient}>
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
+
+                        <Form {...form}>
+                            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <FormField
+                                        control={control}
+                                        name="documentType"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Document Type</FormLabel>
+                                                <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
+                                                    <FormControl><SelectTrigger><SelectValue placeholder="Select a type..."/></SelectTrigger></FormControl>
+                                                    <SelectContent>
+                                                        <SelectItem value="labReport">Lab Report</SelectItem>
+                                                        <SelectItem value="scanReport">Scan Report (X-Ray, MRI, etc.)</SelectItem>
+                                                        <SelectItem value="vaccinationRecord">Vaccination Record</SelectItem>
+                                                        <SelectItem value="other">Other</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={control}
+                                        name="documentName"
+                                        render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Document Name</FormLabel>
+                                            <FormControl><Input placeholder="e.g., Full Blood Count" {...field} disabled={isSubmitting} /></FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={control}
+                                        name="organization"
+                                        render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Issuing Organization</FormLabel>
+                                            <FormControl><Input placeholder="e.g., City Diagnostics Lab" {...field} disabled={isSubmitting}/></FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={control}
+                                        name="file"
+                                        render={({ field: { onChange, onBlur, name, ref } }) => (
+                                            <FormItem>
+                                                <FormLabel>File (PDF, PNG, JPG)</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        type="file"
+                                                        accept="application/pdf,image/png,image/jpeg"
+                                                        onBlur={onBlur}
+                                                        name={name}
+                                                        ref={ref}
+                                                        onChange={(e) => {
+                                                            onChange(e.target.files?.[0]);
+                                                        }}
+                                                        disabled={isSubmitting}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
                                 </div>
-                                <FormMessage />
-                            </FormItem>
-
-                            {foundPatient && (
-                                <p className="text-sm text-green-600 font-medium">
-                                    Selected: {foundPatient.firstName} {foundPatient.lastName}
-                                </p>
-                            )}
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <FormField
-                                control={control}
-                                name="documentType"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Document Type</FormLabel>
-                                        <Select onValueChange={field.onChange} value={field.value} disabled={!foundPatient || isSubmitting}>
-                                            <FormControl><SelectTrigger><SelectValue placeholder="Select a type..."/></SelectTrigger></FormControl>
-                                            <SelectContent>
-                                                <SelectItem value="labReport">Lab Report</SelectItem>
-                                                <SelectItem value="scanReport">Scan Report (X-Ray, MRI, etc.)</SelectItem>
-                                                <SelectItem value="vaccinationRecord">Vaccination Record</SelectItem>
-                                                <SelectItem value="other">Other</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={control}
-                                name="documentName"
-                                render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Document Name</FormLabel>
-                                    <FormControl><Input placeholder="e.g., Full Blood Count" {...field} disabled={!foundPatient || isSubmitting} /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={control}
-                                name="organization"
-                                render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Issuing Organization</FormLabel>
-                                    <FormControl><Input placeholder="e.g., City Diagnostics Lab" {...field} disabled={!foundPatient || isSubmitting}/></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={control}
-                                name="file"
-                                render={({ field: { onChange, onBlur, name, ref } }) => (
-                                    <FormItem>
-                                        <FormLabel>File (PDF, PNG, JPG)</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                type="file"
-                                                accept="application/pdf,image/png,image/jpeg"
-                                                onBlur={onBlur}
-                                                name={name}
-                                                ref={ref}
-                                                onChange={(e) => {
-                                                    onChange(e.target.files?.[0]);
-                                                }}
-                                                disabled={!foundPatient || isSubmitting}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                        <Button type="submit" disabled={!foundPatient || isSubmitting}>
-                            {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <PlusCircle className="mr-2 h-4 w-4"/>}
-                            {isSubmitting ? 'Uploading...' : 'Upload Document'}
-                        </Button>
-                    </form>
-                </Form>
+                                <Button type="submit" disabled={isSubmitting}>
+                                    {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <PlusCircle className="mr-2 h-4 w-4"/>}
+                                    {isSubmitting ? 'Uploading...' : 'Upload Document'}
+                                </Button>
+                            </form>
+                        </Form>
+                    </div>
+                )}
             </CardContent>
         </Card>
     </div>
