@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useUser, useFirestore, useCollection, useMemoFirebase, setDocumentNonBlocking, useDoc } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, setDocumentNonBlocking, useDoc, deleteDocumentNonBlocking } from '@/firebase';
 import { collection, serverTimestamp, query, where, orderBy, doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -17,7 +17,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CalendarIcon, PlusCircle } from 'lucide-react';
+import { CalendarIcon, PlusCircle, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -124,6 +124,13 @@ export default function DoctorPrescriptionsPage() {
     });
     setSelectedPatientId(null);
     setIsSubmitting(false);
+  };
+
+  const handleDelete = (prescriptionId: string) => {
+    if (!firestore) return;
+    const docRef = doc(firestore, 'prescriptions', prescriptionId);
+    deleteDocumentNonBlocking(docRef);
+    toast({ title: 'Prescription Deleted', variant: 'destructive' });
   };
 
   useEffect(() => {
@@ -268,6 +275,7 @@ export default function DoctorPrescriptionsPage() {
                                 <TableHead>{t('table_header_dosage', 'Dosage')}</TableHead>
                                 <TableHead>{t('table_header_date_issued', 'Date Issued')}</TableHead>
                                 <TableHead>{t('table_header_status', 'Status')}</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -279,6 +287,7 @@ export default function DoctorPrescriptionsPage() {
                                         <TableCell><Skeleton className="h-4 w-32"/></TableCell>
                                         <TableCell><Skeleton className="h-4 w-20"/></TableCell>
                                         <TableCell><Skeleton className="h-6 w-16"/></TableCell>
+                                        <TableCell className="text-right"><Skeleton className="h-8 w-8"/></TableCell>
                                     </TableRow>
                                 ))
                             ) : sortedPrescriptions && sortedPrescriptions.length > 0 ? (
@@ -289,11 +298,16 @@ export default function DoctorPrescriptionsPage() {
                                         <TableCell>{presc.dosage}</TableCell>
                                         <TableCell>{presc.date}</TableCell>
                                         <TableCell><Badge variant={presc.status === 'Active' ? 'default' : 'secondary'}>{presc.status}</Badge></TableCell>
+                                        <TableCell className="text-right">
+                                            <Button variant="ghost" size="icon" onClick={() => handleDelete(presc.id)}>
+                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                            </Button>
+                                        </TableCell>
                                     </TableRow>
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="text-center h-24">{t('no_prescriptions_issued', 'No prescriptions issued yet.')}</TableCell>
+                                    <TableCell colSpan={6} className="text-center h-24">{t('no_prescriptions_issued', 'No prescriptions issued yet.')}</TableCell>
                                 </TableRow>
                             )}
                         </TableBody>
