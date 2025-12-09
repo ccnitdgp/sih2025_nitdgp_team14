@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -154,7 +155,13 @@ export default function DoctorAppointmentsPage() {
   };
   
   const handleScheduleSubmit = (values: z.infer<typeof scheduleSchema>) => {
-    if(!selectedAppointment || !firestore) return;
+    if(!selectedAppointment || !firestore || !user) return;
+
+    // Link patient to doctor
+    const patientUserRef = doc(firestore, 'users', selectedAppointment.patientId);
+    updateDocumentNonBlocking(patientUserRef, { doctorId: user.uid });
+
+    // Update appointment status
     const apptRef = doc(firestore, 'appointments', selectedAppointment.id);
     updateDocumentNonBlocking(apptRef, {
         status: 'Scheduled',
@@ -163,11 +170,7 @@ export default function DoctorAppointmentsPage() {
         meetLink: values.meetLink || null
     });
     
-    // Also create the doctor-patient link
-    const patientUserRef = doc(firestore, 'users', selectedAppointment.patientId);
-    setDoc(patientUserRef, { doctorId: user?.uid }, { merge: true });
-
-    toast({ title: "Appointment Scheduled", description: "The patient has been notified."});
+    toast({ title: "Appointment Scheduled", description: "The patient has been notified and linked."});
     setIsScheduleDialogOpen(false);
   }
 
