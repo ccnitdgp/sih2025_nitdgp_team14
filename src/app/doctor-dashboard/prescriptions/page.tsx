@@ -94,7 +94,7 @@ export default function DoctorPrescriptionsPage() {
     const patientQuery = query(
         collection(firestore, 'users'), 
         where('patientId', '==', patientIdInput.trim()),
-        where('doctorId', '==', doctorUser.uid)
+        where('doctorId', '==', doctorUser?.uid)
     );
     const patientSnapshot = await getDocs(patientQuery);
 
@@ -332,3 +332,5 @@ export default function DoctorPrescriptionsPage() {
     </div>
   )
 }
+
+    
