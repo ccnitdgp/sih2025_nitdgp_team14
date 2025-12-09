@@ -1,19 +1,12 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { useUser, useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
-import { collection, doc } from 'firebase/firestore';
+import { useMemo } from 'react';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { stats } from "@/lib/data";
-import hi from '@/lib/locales/hi.json';
-import bn from '@/lib/locales/bn.json';
-import ta from '@/lib/locales/ta.json';
-import te from '@/lib/locales/te.json';
-import mr from '@/lib/locales/mr.json';
 import { HeartPulse, Stethoscope, Syringe } from 'lucide-react';
-
-const languageFiles = { hi, bn, ta, te, mr };
+import { Skeleton } from '../ui/skeleton';
 
 const staticStats = [
   {
@@ -36,64 +29,83 @@ const staticStats = [
   },
 ];
 
+const StatCard = ({ icon: Icon, value, name, isLoading }) => {
+  return (
+    <Card className="text-center transition-all duration-300 hover:scale-105 hover:shadow-xl border-t-4 border-primary">
+      <CardHeader className="flex flex-col items-center gap-4 pb-2">
+        <div className="p-4 bg-primary/10 rounded-full">
+          <Icon className="h-8 w-8 text-primary" />
+        </div>
+        {isLoading ? (
+          <Skeleton className="h-12 w-24" />
+        ) : (
+          <CardTitle className="text-5xl font-bold">{value}</CardTitle>
+        )}
+      </CardHeader>
+      <CardContent>
+        <p className="text-muted-foreground font-semibold">{name}</p>
+      </CardContent>
+    </Card>
+  )
+}
 
 export function StatsSection() {
-  const { user } = useUser();
   const firestore = useFirestore();
-  const [translations, setTranslations] = useState({});
 
-  const userDocRef = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
-    return doc(firestore, 'users', user.uid);
-  }, [user, firestore]);
-
-  const { data: userProfile } = useDoc(userDocRef);
-  
   const drivesQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return collection(firestore, 'vaccinationDrives');
   }, [firestore]);
   
-  const { data: drives } = useCollection(drivesQuery);
+  const { data: drives, isLoading: isLoadingDrives } = useCollection(drivesQuery);
 
-  useEffect(() => {
-    if (userProfile?.preferredLanguage && languageFiles[userProfile.preferredLanguage]) {
-      setTranslations(languageFiles[userProfile.preferredLanguage]);
-    } else {
-      setTranslations({});
-    }
-  }, [userProfile]);
+  const campsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'healthCamps');
+  }, [firestore]);
 
-  const t = (key: string, fallback: string) => translations[key] || fallback;
+  const { data: camps, isLoading: isLoadingCamps } = useCollection(campsQuery);
 
-  const displayStats = useMemo(() => {
-    const dynamicStats = [...staticStats];
-    if (drives) {
-      const driveStatIndex = dynamicStats.findIndex(s => s.name === 'stat_vaccination_drives');
-      if (driveStatIndex !== -1) {
-        dynamicStats[driveStatIndex].value = `${drives.length}+`;
-      }
-    }
-    return dynamicStats;
-  }, [drives]);
+  const usersQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'users');
+  }, [firestore]);
+
+  const { data: users, isLoading: isLoadingUsers } = useCollection(usersQuery);
+
+  const stats = useMemo(() => {
+    return [
+      {
+        id: 1,
+        name: 'Vaccination Drives',
+        value: drives ? `${drives.length}+` : '0+',
+        icon: Syringe,
+        isLoading: isLoadingDrives,
+      },
+      {
+        id: 2,
+        name: 'Health Camps',
+        value: camps ? `${camps.length}+` : '0+',
+        icon: Stethoscope,
+        isLoading: isLoadingCamps,
+      },
+      {
+        id: 3,
+        name: 'Records Secured',
+        value: users ? `${users.length * 5}+` : '0+', // Example calculation
+        icon: HeartPulse,
+        isLoading: isLoadingUsers,
+      },
+    ];
+  }, [drives, camps, users, isLoadingDrives, isLoadingCamps, isLoadingUsers]);
 
 
   return (
     <section className="py-12 sm:py-24">
       <div className="container mx-auto max-w-7xl px-6">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-          {displayStats.map((stat) => (
-            <Card key={stat.id} className="text-center transition-all duration-300 hover:scale-105 hover:shadow-xl border-t-4 border-primary">
-              <CardHeader className="flex flex-col items-center gap-4 pb-2">
-                <div className="p-4 bg-primary/10 rounded-full">
-                  <stat.icon className="h-8 w-8 text-primary" />
-                </div>
-                <CardTitle className="text-5xl font-bold">{stat.value}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground font-semibold">{t(stat.name, stat.name.replace(/_/g, ' '))}</p>
-              </CardContent>
-            </Card>
+          {stats.map((stat) => (
+            <StatCard key={stat.id} {...stat} />
           ))}
         </div>
       </div>

@@ -4,44 +4,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { MapPin, CalendarDays, ArrowRight, Stethoscope } from "lucide-react";
 import Link from "next/link";
-import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { useState, useEffect } from 'react';
-import { doc } from 'firebase/firestore';
-import { visitingCamps } from "@/lib/data";
-import hi from '@/lib/locales/hi.json';
-import bn from '@/lib/locales/bn.json';
-import ta from '@/lib/locales/ta.json';
-import te from '@/lib/locales/te.json';
-import mr from '@/lib/locales/mr.json';
+import { useFirestore, useMemoFirebase, useCollection } from '@/firebase';
+import { collection, query } from 'firebase/firestore';
 import { Skeleton } from "../ui/skeleton";
 
-const languageFiles = { hi, bn, ta, te, mr };
-
 export function VisitingCampsSection() {
-  const { user } = useUser();
   const firestore = useFirestore();
-  const [translations, setTranslations] = useState({});
-  const [isLoading, setIsLoading] = useState(true);
 
-  const userDocRef = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
-    return doc(firestore, 'users', user.uid);
-  }, [user, firestore]);
+  const campsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'healthCamps'));
+  }, [firestore]);
 
-  const { data: userProfile } = useDoc(userDocRef);
-
-  useEffect(() => {
-    if (userProfile?.preferredLanguage && languageFiles[userProfile.preferredLanguage]) {
-      setTranslations(languageFiles[userProfile.preferredLanguage]);
-    } else {
-      setTranslations({});
-    }
-    // Simulate loading
-    const timer = setTimeout(() => setIsLoading(false), 500);
-    return () => clearTimeout(timer);
-  }, [userProfile]);
-
-  const t = (key: string, fallback: string) => translations[key] || fallback;
+  const { data: visitingCamps, isLoading } = useCollection(campsQuery);
 
   const CampSkeleton = () => (
     <Card className="flex flex-col">
@@ -73,20 +48,20 @@ export function VisitingCampsSection() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-12 gap-4">
             <div className="text-left">
                 <h2 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl">
-                    {t('free_health_camps_title', 'Free Health Check-up Camps')}
+                    Free Health Check-up Camps
                 </h2>
                 <p className="mt-2 text-muted-foreground max-w-2xl">
-                    {t('free_health_camps_desc', 'Get details about upcoming health camps near you for free consultations and check-ups.')}
+                    Get details about upcoming health camps near you for free consultations and check-ups.
                 </p>
             </div>
             <Button asChild variant="outline" className="shrink-0">
                 <Link href="/camps">
-                    {t('view_all_camps_button', 'View All Camps')} <ArrowRight className="ml-2 h-4 w-4" />
+                    View All Camps <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
             </Button>
         </div>
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {isLoading ? (
+          {isLoading && !visitingCamps ? (
             <>
               <CampSkeleton />
               <CampSkeleton />
@@ -100,23 +75,23 @@ export function VisitingCampsSection() {
                     <div className="p-3 bg-primary/10 rounded-full">
                       <Stethoscope className="h-6 w-6 text-primary" />
                     </div>
-                    <CardTitle>{t(camp.name_key, camp.name)}</CardTitle>
+                    <CardTitle>{camp.description}</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent className="flex-grow space-y-4">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <MapPin className="h-4 w-4" />
-                    <span>{t(camp.location_key, camp.location)}</span>
+                    <span>{camp.location}</span>
                   </div>
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <CalendarDays className="h-4 w-4" />
-                    <span>{camp.date}</span>
+                    <span>{new Date(camp.startTime).toLocaleDateString()}</span>
                   </div>
                 </CardContent>
                 <CardFooter>
                   <Button asChild variant="secondary" className="w-full">
                       <Link href="/camps">
-                        {t('learn_more_button', 'Learn More')}
+                        Learn More
                       </Link>
                     </Button>
                 </CardFooter>

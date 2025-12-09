@@ -76,7 +76,7 @@ export default function VaccinationPage() {
   const { data: userProfile } = useDoc(userDocRef);
 
   const drivesQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
+    if (!firestore) return null; // Wait for firestore to be available
     return query(collection(firestore, 'vaccinationDrives'));
   }, [firestore]);
 
@@ -312,7 +312,7 @@ export default function VaccinationPage() {
             {t('vaccination_page_desc', 'Stay protected. Find information about upcoming vaccination drives near you.')}
           </p>
         </div>
-        {isLoading ? (
+        {isLoading && !vaccinationDrives ? (
           <div className="space-y-4">
             <Skeleton className="h-24 w-full" />
             <Skeleton className="h-24 w-full" />
@@ -382,3 +382,4 @@ export default function VaccinationPage() {
     </div>
   );
 }
+
