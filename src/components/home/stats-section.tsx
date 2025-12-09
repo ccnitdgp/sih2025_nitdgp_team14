@@ -2,7 +2,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HeartPulse, Stethoscope, Syringe } from 'lucide-react';
@@ -29,6 +29,7 @@ const StatCard = ({ icon: Icon, value, name, isLoading }) => {
 }
 
 export function StatsSection() {
+  const { user } = useUser();
   const firestore = useFirestore();
 
   const drivesQuery = useMemoFirebase(() => {
@@ -46,15 +47,16 @@ export function StatsSection() {
   const { data: camps, isLoading: isLoadingCamps } = useCollection(campsQuery);
 
   const patientsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    // This query is allowed by security rules for all users.
+    // Only run this query if the user is logged in.
+    if (!firestore || !user) return null;
     return query(collection(firestore, 'users'), where('role', '==', 'patient'));
-  }, [firestore]);
+  }, [firestore, user]);
 
   const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsQuery);
 
   const stats = useMemo(() => {
     const patientCount = patients?.length || 0;
+    const recordsSecuredValue = user ? `${patientCount * 3}+` : "25k+";
 
     return [
       {
@@ -74,12 +76,12 @@ export function StatsSection() {
       {
         id: 3,
         name: 'Records Secured',
-        value: isLoadingPatients ? '0+' : `${patientCount * 3}+`, // Use a simple multiplier for effect
+        value: recordsSecuredValue,
         icon: HeartPulse,
-        isLoading: isLoadingPatients,
+        isLoading: user ? isLoadingPatients : false, // Only loading if a user is logged in
       },
     ];
-  }, [drives, camps, patients, isLoadingDrives, isLoadingCamps, isLoadingPatients]);
+  }, [drives, camps, patients, isLoadingDrives, isLoadingCamps, isLoadingPatients, user]);
 
 
   return (
