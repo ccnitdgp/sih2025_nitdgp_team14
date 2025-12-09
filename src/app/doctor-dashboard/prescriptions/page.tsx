@@ -6,7 +6,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useUser, useFirestore, useCollection, useMemoFirebase, setDocumentNonBlocking, useDoc, deleteDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, query, where, orderBy, doc } from 'firebase/firestore';
+import { collection, serverTimestamp, query, where, orderBy, doc, getDocs } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
@@ -16,7 +16,6 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CalendarIcon, PlusCircle, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -31,7 +30,7 @@ import mr from '@/lib/locales/mr.json';
 const languageFiles = { hi, bn, ta, te, mr };
 
 const prescriptionSchema = z.object({
-  patientId: z.string().min(1, 'Please select a patient.'),
+  patientId: z.string().min(1, 'Please enter a Patient ID.'),
   medicationName: z.string().min(1, 'Medication name is required.'),
   dosage: z.string().min(1, 'Dosage and instructions are required.'),
   endDate: z.date().optional(),
@@ -42,7 +41,6 @@ export default function DoctorPrescriptionsPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [translations, setTranslations] = useState({});
 
   const userDocRef = useMemoFirebase(() => {
@@ -71,17 +69,6 @@ export default function DoctorPrescriptionsPage() {
     },
   });
   
-  const patientsQuery = useMemoFirebase(() => {
-    if (!doctorUser || !firestore) return null;
-    return query(
-      collection(firestore, 'users'),
-      where('role', '==', 'patient'),
-      where('doctorId', '==', doctorUser.uid)
-    );
-  }, [doctorUser, firestore]);
-
-  const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsQuery);
-
   const issuedPrescriptionsQuery = useMemoFirebase(() => {
     if (!doctorUser || !firestore) return null;
     return query(
@@ -92,19 +79,35 @@ export default function DoctorPrescriptionsPage() {
 
   const { data: issuedPrescriptions, isLoading: isLoadingPrescriptions } = useCollection(issuedPrescriptionsQuery);
   
-  const onSubmit = (values: z.infer<typeof prescriptionSchema>) => {
+  const onSubmit = async (values: z.infer<typeof prescriptionSchema>) => {
     if (!doctorUser || !firestore || !userProfile) return;
 
     setIsSubmitting(true);
     
+    // Find patient by their custom patientId
+    const patientQuery = query(collection(firestore, 'users'), where('patientId', '==', values.patientId), where('doctorId', '==', doctorUser.uid));
+    const patientSnapshot = await getDocs(patientQuery);
+
+    if (patientSnapshot.empty) {
+        toast({
+            variant: "destructive",
+            title: "Patient Not Found",
+            description: "No patient with this ID is assigned to you.",
+        });
+        setIsSubmitting(false);
+        return;
+    }
+    
+    const patientDoc = patientSnapshot.docs[0];
+    const patientData = patientDoc.data();
+    
     const prescriptionsRef = collection(firestore, 'prescriptions');
     const newPrescriptionRef = doc(prescriptionsRef);
-    const selectedPatient = patients?.find(p => p.id === values.patientId);
 
     const prescriptionData = {
         id: newPrescriptionRef.id,
-        patientId: values.patientId,
-        patientName: selectedPatient ? `${selectedPatient.firstName} ${selectedPatient.lastName}` : 'Unknown Patient',
+        patientId: patientDoc.id, // Use the user's UID for the patientId field
+        patientName: `${patientData.firstName} ${patientData.lastName}`,
         doctorId: doctorUser.uid,
         doctorName: `Dr. ${userProfile.firstName} ${userProfile.lastName}`,
         medication: values.medicationName,
@@ -114,7 +117,7 @@ export default function DoctorPrescriptionsPage() {
         status: 'Active',
     };
 
-    setDocumentNonBlocking(newPrescriptionRef, prescriptionData, {});
+    await setDocumentNonBlocking(newPrescriptionRef, prescriptionData, {});
     toast({ title: "Prescription Issued", description: `Prescription for ${values.medicationName} has been issued to the patient.` });
     form.reset({
         patientId: '',
@@ -122,7 +125,6 @@ export default function DoctorPrescriptionsPage() {
         dosage: '',
         endDate: undefined,
     });
-    setSelectedPatientId(null);
     setIsSubmitting(false);
   };
 
@@ -132,15 +134,6 @@ export default function DoctorPrescriptionsPage() {
     deleteDocumentNonBlocking(docRef);
     toast({ title: 'Prescription Deleted', variant: 'destructive' });
   };
-
-  useEffect(() => {
-    const subscription = form.watch((value, { name }) => {
-      if (name === 'patientId') {
-        setSelectedPatientId(value.patientId || null);
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [form]);
 
   const sortedPrescriptions = useMemo(() => {
     if (!issuedPrescriptions) return [];
@@ -164,21 +157,10 @@ export default function DoctorPrescriptionsPage() {
                                 name="patientId"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>{t('patient_label', 'Patient')}</FormLabel>
-                                        <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingPatients}>
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder={isLoadingPatients ? t('loading_patients', 'Loading patients...') : t('select_patient', 'Select a patient')} />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                {patients?.map(p => (
-                                                    <SelectItem key={p.id} value={p.id}>
-                                                        {p.firstName} {p.lastName}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
+                                        <FormLabel>{t('patient_label', 'Patient ID')}</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="e.g., PT-XXXXXXXXXX" {...field} />
+                                        </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
