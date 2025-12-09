@@ -1,0 +1,1001 @@
+age,gender,month,location,city,state,symptom,disease
+36,Other,April,Urban,Malappuram,Kerala,Vomiting and stomach cramps,Norovirus
+11,M,August,Urban,Kottayam,Kerala,Persistent cough,Tuberculosis
+53,F,April,Urban,Kollam,Kerala,Sore throat and fever,Influenza
+15,M,June,Rural,Kozhikode,Kerala,Swollen lymph nodes,Rubella
+12,Other,April,Rural,Kannur,Kerala,Muscle pain and headache,Leptospirosis
+29,Other,March,Urban,Thrissur,Kerala,Yellow eyes and skin,Jaundice
+22,Other,October,Urban,Kollam,Kerala,Skin rash with blisters,Chickenpox
+12,M,November,Urban,Kottayam,Kerala,High fever with body pain,Dengue
+34,F,March,Urban,Kasaragod,Kerala,Loose motions,Diarrhea
+41,Other,March,Rural,Malappuram,Kerala,Loose motions,Diarrhea
+42,Other,May,Rural,Thrissur,Kerala,Vomiting and stomach cramps,Norovirus
+12,F,July,Urban,Kollam,Kerala,Shivering and chills,Malaria
+35,F,September,Rural,Palakkad,Kerala,Red rash and koplik spots,Measles
+36,Other,December,Rural,Thrissur,Kerala,Chest pain and breathing difficulty,Pneumonia
+11,Other,November,Urban,Kottayam,Kerala,High fever with body pain,Dengue
+42,M,August,Urban,Palakkad,Kerala,Swollen lymph nodes,Rubella
+18,F,November,Rural,Palakkad,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+4,F,August,Urban,Kannur,Kerala,Prolonged fever and weakness,Typhoid
+11,M,April,Urban,Idukki,Kerala,Vomiting and stomach cramps,Norovirus
+19,Other,March,Rural,Kochi,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+19,Other,July,Urban,Kollam,Kerala,Severe joint pain,Chikungunya
+22,Other,February,Rural,Kollam,Kerala,Breathing difficulty and fatigue,H1N1
+39,M,August,Rural,Kollam,Kerala,Prolonged fever and weakness,Typhoid
+19,F,February,Urban,Palakkad,Kerala,Sore throat and fever,Influenza
+39,F,May,Rural,Kozhikode,Kerala,Yellow eyes and skin,Jaundice
+6,F,September,Urban,Kollam,Kerala,Swollen lymph nodes,Rubella
+67,Other,January,Rural,Thrissur,Kerala,Wheezing in breathing,RSV
+48,M,September,Rural,Kozhikode,Kerala,Sore throat and fever,Influenza
+16,Other,February,Rural,Kozhikode,Kerala,Muscle pain and headache,Leptospirosis
+28,M,December,Rural,Palakkad,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+14,Other,January,Urban,Kannur,Kerala,Prolonged fever and weakness,Typhoid
+43,Other,February,Urban,Thrissur,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+13,F,November,Rural,Alappuzha,Kerala,Fever and dry cough,COVID
+57,M,June,Rural,Kozhikode,Kerala,Shivering and chills,Malaria
+53,F,December,Rural,Pathanamthitta,Kerala,Fever and dry cough,COVID
+38,Other,November,Rural,Thiruvananthapuram,Kerala,Sore throat and fever,Influenza
+13,M,February,Urban,Thrissur,Kerala,Persistent cough,Tuberculosis
+16,Other,August,Rural,Thrissur,Kerala,Persistent cough,Tuberculosis
+38,F,October,Urban,Kollam,Kerala,Prolonged fever and weakness,Typhoid
+23,M,March,Urban,Malappuram,Kerala,Persistent cough,Tuberculosis
+70,F,October,Rural,Thiruvananthapuram,Kerala,Swollen cheeks,Mumps
+17,M,September,Urban,Thiruvananthapuram,Kerala,Swollen lymph nodes,Rubella
+28,M,January,Rural,Thiruvananthapuram,Kerala,Chest pain and breathing difficulty,Pneumonia
+30,Other,October,Rural,Thiruvananthapuram,Kerala,Sore throat and fever,Influenza
+44,F,May,Rural,Kochi,Kerala,Breathing difficulty and fatigue,H1N1
+39,M,October,Rural,Palakkad,Kerala,Loose motions,Diarrhea
+18,M,May,Urban,Malappuram,Kerala,Severe joint pain,Chikungunya
+24,Other,January,Rural,Kasaragod,Kerala,Shivering and chills,Malaria
+39,M,September,Rural,Thrissur,Kerala,Red rash and koplik spots,Measles
+31,Other,October,Urban,Palakkad,Kerala,Sore throat and fever,Influenza
+25,F,November,Urban,Kollam,Kerala,High fever with body pain,Dengue
+25,Other,March,Rural,Thrissur,Kerala,Skin rash with blisters,Chickenpox
+24,Other,May,Rural,Kozhikode,Kerala,Chest pain and breathing difficulty,Pneumonia
+32,Other,November,Rural,Kottayam,Kerala,Wheezing in breathing,RSV
+20,M,February,Urban,Malappuram,Kerala,Red rash and koplik spots,Measles
+29,M,November,Rural,Kollam,Kerala,Prolonged fever and weakness,Typhoid
+9,Other,December,Urban,Malappuram,Kerala,Severe joint pain,Chikungunya
+33,M,November,Rural,Idukki,Kerala,Breathing difficulty and fatigue,H1N1
+68,Other,November,Urban,Alappuzha,Kerala,Severe joint pain,Chikungunya
+63,F,December,Rural,Idukki,Kerala,Loose motions,Diarrhea
+37,F,March,Urban,Pathanamthitta,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+10,Other,November,Rural,Thiruvananthapuram,Kerala,Sore throat and fever,Influenza
+37,M,July,Rural,Kottayam,Kerala,Persistent cough,Tuberculosis
+15,M,September,Urban,Pathanamthitta,Kerala,Severe joint pain,Chikungunya
+2,M,March,Rural,Malappuram,Kerala,High fever with body pain,Dengue
+20,M,November,Urban,Kannur,Kerala,Severe joint pain,Chikungunya
+28,M,July,Urban,Malappuram,Kerala,Swollen cheeks,Mumps
+37,F,May,Rural,Kottayam,Kerala,Red rash and koplik spots,Measles
+27,Other,September,Urban,Palakkad,Kerala,Swollen lymph nodes,Rubella
+31,F,December,Rural,Kozhikode,Kerala,Sore throat and fever,Influenza
+7,Other,April,Urban,Thrissur,Kerala,Chest pain and breathing difficulty,Pneumonia
+32,Other,February,Urban,Idukki,Kerala,Swollen lymph nodes,Rubella
+25,M,November,Rural,Malappuram,Kerala,Severe joint pain,Chikungunya
+12,Other,November,Urban,Idukki,Kerala,Breathing difficulty and fatigue,H1N1
+34,Other,April,Rural,Kollam,Kerala,Yellow eyes and skin,Jaundice
+19,Other,February,Urban,Malappuram,Kerala,Persistent cough,Tuberculosis
+45,F,October,Urban,Kannur,Kerala,Severe joint pain,Chikungunya
+15,M,November,Urban,Kollam,Kerala,Yellow eyes and skin,Jaundice
+55,F,November,Urban,Palakkad,Kerala,Severe diarrhea,Rotavirus
+49,M,April,Urban,Wayanad,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+63,F,December,Rural,Thrissur,Kerala,Sore throat and fever,Influenza
+3,Other,June,Urban,Kochi,Kerala,Prolonged fever and weakness,Typhoid
+60,F,June,Urban,Wayanad,Kerala,High fever with body pain,Dengue
+25,M,November,Rural,Wayanad,Kerala,Prolonged fever and weakness,Typhoid
+57,F,April,Urban,Alappuzha,Kerala,Red rash and koplik spots,Measles
+53,F,July,Rural,Palakkad,Kerala,Swollen cheeks,Mumps
+7,Other,April,Rural,Kottayam,Kerala,Wheezing in breathing,RSV
+36,F,August,Urban,Wayanad,Kerala,Severe diarrhea,Rotavirus
+23,Other,February,Urban,Pathanamthitta,Kerala,Sore throat and fever,Influenza
+31,M,September,Rural,Palakkad,Kerala,Vomiting and stomach cramps,Norovirus
+38,Other,July,Urban,Thiruvananthapuram,Kerala,Wheezing in breathing,RSV
+13,M,February,Urban,Malappuram,Kerala,Prolonged fever and weakness,Typhoid
+6,M,February,Urban,Wayanad,Kerala,Severe diarrhea,Rotavirus
+1,Other,June,Rural,Thrissur,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+50,F,May,Rural,Kasaragod,Kerala,Wheezing in breathing,RSV
+26,F,April,Rural,Kasaragod,Kerala,Wheezing in breathing,RSV
+31,F,October,Urban,Kasaragod,Kerala,Muscle pain and headache,Leptospirosis
+2,F,May,Rural,Kochi,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+61,F,March,Rural,Malappuram,Kerala,Chest pain and breathing difficulty,Pneumonia
+14,F,April,Urban,Alappuzha,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+11,F,July,Rural,Thiruvananthapuram,Kerala,Severe joint pain,Chikungunya
+14,M,August,Rural,Kottayam,Kerala,Shivering and chills,Malaria
+29,M,October,Rural,Thrissur,Kerala,Wheezing in breathing,RSV
+36,Other,November,Urban,Kottayam,Kerala,Swollen cheeks,Mumps
+54,M,December,Rural,Thiruvananthapuram,Kerala,Fever and dry cough,COVID
+7,M,March,Rural,Alappuzha,Kerala,Prolonged fever and weakness,Typhoid
+9,F,August,Rural,Pathanamthitta,Kerala,High fever with body pain,Dengue
+3,M,April,Urban,Pathanamthitta,Kerala,Skin rash with blisters,Chickenpox
+16,Other,May,Rural,Kochi,Kerala,Persistent cough,Tuberculosis
+69,Other,December,Rural,Kasaragod,Kerala,Sore throat and fever,Influenza
+46,Other,December,Urban,Palakkad,Kerala,Skin rash with blisters,Chickenpox
+20,F,November,Urban,Malappuram,Kerala,High fever with body pain,Dengue
+19,Other,April,Urban,Palakkad,Kerala,Red rash and koplik spots,Measles
+15,Other,April,Rural,Malappuram,Kerala,Sore throat and fever,Influenza
+8,M,March,Rural,Kollam,Kerala,Swollen lymph nodes,Rubella
+41,F,April,Urban,Kochi,Kerala,Persistent cough,Tuberculosis
+62,F,May,Urban,Malappuram,Kerala,Sore throat and fever,Influenza
+43,F,August,Urban,Thrissur,Kerala,High fever with body pain,Dengue
+31,F,November,Urban,Malappuram,Kerala,Yellow eyes and skin,Jaundice
+14,F,February,Rural,Alappuzha,Kerala,Persistent cough,Tuberculosis
+57,Other,February,Urban,Kollam,Kerala,Swollen cheeks,Mumps
+59,Other,October,Rural,Thiruvananthapuram,Kerala,Prolonged fever and weakness,Typhoid
+15,M,August,Rural,Thiruvananthapuram,Kerala,Breathing difficulty and fatigue,H1N1
+43,Other,February,Rural,Malappuram,Kerala,Vomiting and stomach cramps,Norovirus
+10,Other,May,Urban,Kasaragod,Kerala,Yellow eyes and skin,Jaundice
+35,Other,August,Rural,Alappuzha,Kerala,Shivering and chills,Malaria
+27,M,February,Rural,Pathanamthitta,Kerala,Breathing difficulty and fatigue,H1N1
+47,Other,January,Urban,Kottayam,Kerala,Wheezing in breathing,RSV
+22,Other,June,Rural,Kannur,Kerala,Skin rash with blisters,Chickenpox
+11,M,November,Urban,Kottayam,Kerala,Vomiting and stomach cramps,Norovirus
+16,M,May,Rural,Pathanamthitta,Kerala,Swollen lymph nodes,Rubella
+13,Other,May,Urban,Kottayam,Kerala,Red rash and koplik spots,Measles
+47,M,August,Rural,Kasaragod,Kerala,Severe joint pain,Chikungunya
+10,M,July,Rural,Kottayam,Kerala,Severe joint pain,Chikungunya
+26,Other,August,Urban,Kasaragod,Kerala,Severe diarrhea,Rotavirus
+47,F,January,Rural,Thrissur,Kerala,Fever and dry cough,COVID
+25,Other,March,Urban,Thiruvananthapuram,Kerala,Chest pain and breathing difficulty,Pneumonia
+14,Other,November,Urban,Pathanamthitta,Kerala,Skin rash with blisters,Chickenpox
+13,F,September,Rural,Kochi,Kerala,Fever and dry cough,COVID
+32,F,May,Rural,Thrissur,Kerala,Severe joint pain,Chikungunya
+11,F,December,Rural,Kochi,Kerala,Prolonged fever and weakness,Typhoid
+36,M,December,Rural,Kottayam,Kerala,Loose motions,Diarrhea
+6,F,March,Rural,Kollam,Kerala,Chest pain and breathing difficulty,Pneumonia
+48,M,April,Rural,Alappuzha,Kerala,Sore throat and fever,Influenza
+20,Other,June,Urban,Kannur,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+38,F,January,Rural,Thrissur,Kerala,Chest pain and breathing difficulty,Pneumonia
+16,Other,September,Rural,Palakkad,Kerala,Sore throat and fever,Influenza
+14,Other,May,Urban,Thrissur,Kerala,Red rash and koplik spots,Measles
+7,M,May,Rural,Kochi,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+27,Other,July,Urban,Alappuzha,Kerala,Shivering and chills,Malaria
+34,F,March,Urban,Palakkad,Kerala,Red rash and koplik spots,Measles
+44,M,February,Urban,Kollam,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+38,M,January,Rural,Kozhikode,Kerala,Skin rash with blisters,Chickenpox
+45,M,October,Urban,Kannur,Kerala,Severe diarrhea,Rotavirus
+38,M,March,Rural,Idukki,Kerala,Prolonged fever and weakness,Typhoid
+42,F,May,Rural,Kasaragod,Kerala,Chest pain and breathing difficulty,Pneumonia
+40,Other,September,Rural,Kannur,Kerala,Swollen cheeks,Mumps
+37,M,June,Urban,Wayanad,Kerala,Red rash and koplik spots,Measles
+29,F,February,Rural,Kochi,Kerala,Wheezing in breathing,RSV
+1,M,August,Rural,Kannur,Kerala,Skin rash with blisters,Chickenpox
+2,M,December,Rural,Pathanamthitta,Kerala,Sore throat and fever,Influenza
+31,F,October,Urban,Kollam,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+23,F,March,Urban,Malappuram,Kerala,Persistent cough,Tuberculosis
+19,Other,March,Rural,Alappuzha,Kerala,High fever with body pain,Dengue
+48,Other,November,Urban,Idukki,Kerala,Swollen cheeks,Mumps
+67,Other,May,Rural,Kozhikode,Kerala,Severe diarrhea,Rotavirus
+29,F,January,Rural,Malappuram,Kerala,Red rash and koplik spots,Measles
+20,Other,February,Rural,Wayanad,Kerala,Red rash and koplik spots,Measles
+2,Other,October,Rural,Kannur,Kerala,Prolonged fever and weakness,Typhoid
+34,M,April,Urban,Kollam,Kerala,Chest pain and breathing difficulty,Pneumonia
+38,M,October,Urban,Palakkad,Kerala,Breathing difficulty and fatigue,H1N1
+55,Other,April,Urban,Kottayam,Kerala,Wheezing in breathing,RSV
+24,Other,April,Urban,Kozhikode,Kerala,Persistent cough,Tuberculosis
+6,M,October,Urban,Palakkad,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+7,M,September,Urban,Pathanamthitta,Kerala,Red rash and koplik spots,Measles
+14,Other,May,Rural,Kottayam,Kerala,High fever with body pain,Dengue
+9,F,June,Rural,Kollam,Kerala,Prolonged fever and weakness,Typhoid
+26,F,December,Rural,Idukki,Kerala,Sore throat and fever,Influenza
+40,F,November,Urban,Alappuzha,Kerala,Swollen lymph nodes,Rubella
+38,M,March,Rural,Kasaragod,Kerala,Yellow eyes and skin,Jaundice
+4,F,November,Rural,Kannur,Kerala,Yellow eyes and skin,Jaundice
+13,Other,September,Urban,Wayanad,Kerala,High fever with body pain,Dengue
+43,F,June,Urban,Idukki,Kerala,High fever with body pain,Dengue
+5,M,June,Rural,Pathanamthitta,Kerala,Loose motions,Diarrhea
+8,F,May,Urban,Kozhikode,Kerala,Breathing difficulty and fatigue,H1N1
+11,Other,July,Rural,Palakkad,Kerala,Persistent cough,Tuberculosis
+34,Other,September,Urban,Kollam,Kerala,Chest pain and breathing difficulty,Pneumonia
+2,Other,June,Rural,Pathanamthitta,Kerala,High fever with body pain,Dengue
+31,Other,May,Rural,Alappuzha,Kerala,Red rash and koplik spots,Measles
+23,F,December,Urban,Palakkad,Kerala,Fever and dry cough,COVID
+62,M,April,Rural,Kottayam,Kerala,Swollen cheeks,Mumps
+65,Other,February,Urban,Pathanamthitta,Kerala,Severe joint pain,Chikungunya
+28,F,September,Urban,Palakkad,Kerala,Swollen cheeks,Mumps
+4,M,July,Rural,Thiruvananthapuram,Kerala,Vomiting and stomach cramps,Norovirus
+36,F,March,Urban,Kozhikode,Kerala,Shivering and chills,Malaria
+40,F,January,Urban,Kasaragod,Kerala,Skin rash with blisters,Chickenpox
+2,F,November,Rural,Palakkad,Kerala,Red rash and koplik spots,Measles
+7,F,February,Rural,Kasaragod,Kerala,Muscle pain and headache,Leptospirosis
+60,Other,April,Rural,Kochi,Kerala,Muscle pain and headache,Leptospirosis
+53,F,March,Urban,Wayanad,Kerala,Persistent cough,Tuberculosis
+25,F,October,Rural,Idukki,Kerala,Muscle pain and headache,Leptospirosis
+35,M,April,Rural,Kochi,Kerala,Red rash and koplik spots,Measles
+16,Other,May,Rural,Palakkad,Kerala,Loose motions,Diarrhea
+39,F,December,Urban,Wayanad,Kerala,Wheezing in breathing,RSV
+5,Other,February,Urban,Kottayam,Kerala,Sore throat and fever,Influenza
+7,M,June,Rural,Kottayam,Kerala,Muscle pain and headache,Leptospirosis
+10,F,May,Urban,Idukki,Kerala,Muscle pain and headache,Leptospirosis
+34,M,March,Urban,Pathanamthitta,Kerala,Skin rash with blisters,Chickenpox
+20,Other,January,Urban,Kochi,Kerala,Vomiting and stomach cramps,Norovirus
+67,M,June,Urban,Kochi,Kerala,Shivering and chills,Malaria
+6,Other,November,Urban,Thiruvananthapuram,Kerala,Severe diarrhea,Rotavirus
+11,Other,June,Rural,Kollam,Kerala,Yellow eyes and skin,Jaundice
+53,F,September,Rural,Thrissur,Kerala,Wheezing in breathing,RSV
+32,Other,August,Urban,Thiruvananthapuram,Kerala,Fever and dry cough,COVID
+29,M,December,Rural,Kottayam,Kerala,Red rash and koplik spots,Measles
+49,Other,February,Rural,Kochi,Kerala,Fever and dry cough,COVID
+47,Other,February,Urban,Kasaragod,Kerala,Persistent cough,Tuberculosis
+19,M,February,Rural,Kollam,Kerala,Red rash and koplik spots,Measles
+9,F,April,Rural,Wayanad,Kerala,Severe joint pain,Chikungunya
+19,M,February,Rural,Pathanamthitta,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+15,M,August,Rural,Pathanamthitta,Kerala,Yellow eyes and skin,Jaundice
+23,Other,August,Urban,Kochi,Kerala,High fever with body pain,Dengue
+30,M,December,Rural,Thrissur,Kerala,Yellow eyes and skin,Jaundice
+8,Other,August,Urban,Kochi,Kerala,Persistent cough,Tuberculosis
+54,F,April,Rural,Thiruvananthapuram,Kerala,Persistent cough,Tuberculosis
+38,M,August,Urban,Palakkad,Kerala,Loose motions,Diarrhea
+67,F,October,Rural,Thiruvananthapuram,Kerala,Skin rash with blisters,Chickenpox
+29,Other,June,Rural,Kochi,Kerala,Shivering and chills,Malaria
+29,M,September,Urban,Kozhikode,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+53,M,September,Rural,Palakkad,Kerala,Shivering and chills,Malaria
+70,F,October,Rural,Kollam,Kerala,Skin rash with blisters,Chickenpox
+46,F,October,Rural,Alappuzha,Kerala,Persistent cough,Tuberculosis
+18,F,February,Rural,Kollam,Kerala,High fever with body pain,Dengue
+46,F,March,Rural,Thiruvananthapuram,Kerala,Skin rash with blisters,Chickenpox
+54,Other,September,Urban,Kochi,Kerala,Skin rash with blisters,Chickenpox
+21,F,February,Urban,Thrissur,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+26,M,March,Rural,Idukki,Kerala,Wheezing in breathing,RSV
+22,F,November,Rural,Kozhikode,Kerala,Skin rash with blisters,Chickenpox
+9,F,December,Urban,Kottayam,Kerala,Muscle pain and headache,Leptospirosis
+38,Other,June,Rural,Wayanad,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+44,M,May,Rural,Thiruvananthapuram,Kerala,Vomiting and stomach cramps,Norovirus
+19,F,May,Urban,Wayanad,Kerala,Wheezing in breathing,RSV
+60,Other,September,Rural,Pathanamthitta,Kerala,Severe joint pain,Chikungunya
+39,Other,May,Rural,Kozhikode,Kerala,Red rash and koplik spots,Measles
+22,F,February,Rural,Kasaragod,Kerala,Loose motions,Diarrhea
+53,Other,January,Rural,Kollam,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+5,Other,September,Urban,Kasaragod,Kerala,Wheezing in breathing,RSV
+1,F,December,Rural,Thiruvananthapuram,Kerala,Severe diarrhea,Rotavirus
+45,M,December,Urban,Kochi,Kerala,Red rash and koplik spots,Measles
+42,Other,August,Urban,Palakkad,Kerala,Breathing difficulty and fatigue,H1N1
+9,Other,November,Rural,Kannur,Kerala,Sore throat and fever,Influenza
+13,Other,January,Urban,Thrissur,Kerala,Wheezing in breathing,RSV
+64,F,November,Rural,Pathanamthitta,Kerala,Severe diarrhea,Rotavirus
+20,Other,March,Urban,Malappuram,Kerala,Chest pain and breathing difficulty,Pneumonia
+17,Other,August,Urban,Alappuzha,Kerala,Swollen lymph nodes,Rubella
+36,M,June,Rural,Kollam,Kerala,Yellow eyes and skin,Jaundice
+8,M,July,Rural,Wayanad,Kerala,Sore throat and fever,Influenza
+2,Other,April,Urban,Kannur,Kerala,Red rash and koplik spots,Measles
+26,M,February,Urban,Kasaragod,Kerala,Breathing difficulty and fatigue,H1N1
+64,F,October,Rural,Pathanamthitta,Kerala,Severe diarrhea,Rotavirus
+7,F,June,Urban,Thrissur,Kerala,Yellow eyes and skin,Jaundice
+25,M,November,Urban,Thiruvananthapuram,Kerala,Muscle pain and headache,Leptospirosis
+38,Other,June,Rural,Kochi,Kerala,Swollen cheeks,Mumps
+61,F,November,Rural,Kozhikode,Kerala,Shivering and chills,Malaria
+47,F,October,Urban,Kottayam,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+36,Other,March,Urban,Kollam,Kerala,Severe diarrhea,Rotavirus
+41,M,July,Urban,Kottayam,Kerala,Swollen lymph nodes,Rubella
+31,Other,July,Urban,Kasaragod,Kerala,Muscle pain and headache,Leptospirosis
+3,F,March,Rural,Alappuzha,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+27,M,March,Rural,Malappuram,Kerala,Prolonged fever and weakness,Typhoid
+33,F,June,Urban,Thrissur,Kerala,Yellow eyes and skin,Jaundice
+22,Other,October,Rural,Thrissur,Kerala,Loose motions,Diarrhea
+41,M,March,Urban,Kollam,Kerala,Red rash and koplik spots,Measles
+30,M,November,Urban,Kasaragod,Kerala,Vomiting and stomach cramps,Norovirus
+38,Other,March,Urban,Kochi,Kerala,Yellow eyes and skin,Jaundice
+20,F,August,Rural,Palakkad,Kerala,Breathing difficulty and fatigue,H1N1
+54,M,February,Rural,Thrissur,Kerala,High fever with body pain,Dengue
+45,M,January,Urban,Alappuzha,Kerala,Swollen cheeks,Mumps
+26,F,March,Urban,Kottayam,Kerala,Breathing difficulty and fatigue,H1N1
+12,F,April,Urban,Idukki,Kerala,Severe diarrhea,Rotavirus
+41,M,July,Rural,Palakkad,Kerala,Severe joint pain,Chikungunya
+18,F,September,Rural,Thiruvananthapuram,Kerala,Sore throat and fever,Influenza
+11,Other,December,Rural,Thiruvananthapuram,Kerala,Chest pain and breathing difficulty,Pneumonia
+45,M,July,Rural,Kochi,Kerala,Chest pain and breathing difficulty,Pneumonia
+3,F,April,Rural,Alappuzha,Kerala,Loose motions,Diarrhea
+30,M,July,Urban,Pathanamthitta,Kerala,Swollen cheeks,Mumps
+3,Other,October,Rural,Idukki,Kerala,Swollen cheeks,Mumps
+16,F,July,Urban,Alappuzha,Kerala,High fever with body pain,Dengue
+18,M,July,Urban,Kannur,Kerala,Loose motions,Diarrhea
+11,M,February,Rural,Wayanad,Kerala,Swollen lymph nodes,Rubella
+31,F,July,Urban,Pathanamthitta,Kerala,Breathing difficulty and fatigue,H1N1
+49,Other,January,Rural,Idukki,Kerala,Wheezing in breathing,RSV
+69,F,May,Urban,Thiruvananthapuram,Kerala,Persistent cough,Tuberculosis
+5,M,February,Rural,Kasaragod,Kerala,Muscle pain and headache,Leptospirosis
+8,Other,December,Urban,Kollam,Kerala,Sore throat and fever,Influenza
+38,F,March,Rural,Thrissur,Kerala,Skin rash with blisters,Chickenpox
+22,M,April,Rural,Kasaragod,Kerala,Prolonged fever and weakness,Typhoid
+16,M,December,Urban,Idukki,Kerala,Shivering and chills,Malaria
+16,Other,December,Rural,Kochi,Kerala,Fever and dry cough,COVID
+26,Other,May,Urban,Kozhikode,Kerala,Chest pain and breathing difficulty,Pneumonia
+30,M,December,Urban,Thiruvananthapuram,Kerala,Persistent cough,Tuberculosis
+12,M,July,Urban,Pathanamthitta,Kerala,Muscle pain and headache,Leptospirosis
+14,Other,February,Rural,Thiruvananthapuram,Kerala,Swollen cheeks,Mumps
+12,F,March,Urban,Wayanad,Kerala,Skin rash with blisters,Chickenpox
+40,F,December,Rural,Alappuzha,Kerala,Wheezing in breathing,RSV
+10,F,September,Urban,Wayanad,Kerala,Breathing difficulty and fatigue,H1N1
+41,F,September,Urban,Kasaragod,Kerala,High fever with body pain,Dengue
+43,Other,September,Urban,Kannur,Kerala,Muscle pain and headache,Leptospirosis
+7,F,August,Rural,Wayanad,Kerala,Loose motions,Diarrhea
+21,F,February,Rural,Alappuzha,Kerala,Prolonged fever and weakness,Typhoid
+38,F,July,Rural,Thiruvananthapuram,Kerala,Vomiting and stomach cramps,Norovirus
+5,M,November,Rural,Idukki,Kerala,Vomiting and stomach cramps,Norovirus
+7,Other,June,Rural,Kochi,Kerala,High fever with body pain,Dengue
+8,Other,November,Rural,Kozhikode,Kerala,Muscle pain and headache,Leptospirosis
+10,M,June,Urban,Thrissur,Kerala,Red rash and koplik spots,Measles
+9,Other,July,Rural,Kollam,Kerala,Wheezing in breathing,RSV
+6,F,March,Urban,Pathanamthitta,Kerala,Sore throat and fever,Influenza
+25,M,August,Rural,Kottayam,Kerala,Loose motions,Diarrhea
+15,M,July,Rural,Pathanamthitta,Kerala,Severe diarrhea,Rotavirus
+48,Other,July,Urban,Idukki,Kerala,High fever with body pain,Dengue
+31,M,June,Urban,Palakkad,Kerala,Breathing difficulty and fatigue,H1N1
+22,Other,September,Rural,Alappuzha,Kerala,Fever and dry cough,COVID
+33,Other,April,Urban,Kasaragod,Kerala,Skin rash with blisters,Chickenpox
+8,F,July,Rural,Alappuzha,Kerala,Loose motions,Diarrhea
+53,Other,December,Urban,Malappuram,Kerala,Chest pain and breathing difficulty,Pneumonia
+34,Other,August,Rural,Kannur,Kerala,Shivering and chills,Malaria
+40,Other,November,Rural,Kozhikode,Kerala,Swollen lymph nodes,Rubella
+39,M,November,Urban,Palakkad,Kerala,Severe diarrhea,Rotavirus
+51,M,June,Rural,Kannur,Kerala,Prolonged fever and weakness,Typhoid
+30,F,October,Urban,Idukki,Kerala,Swollen lymph nodes,Rubella
+25,M,January,Urban,Pathanamthitta,Kerala,Loose motions,Diarrhea
+31,F,January,Urban,Alappuzha,Kerala,Persistent cough,Tuberculosis
+20,F,November,Urban,Thiruvananthapuram,Kerala,Breathing difficulty and fatigue,H1N1
+35,M,October,Rural,Pathanamthitta,Kerala,Persistent cough,Tuberculosis
+22,F,January,Urban,Pathanamthitta,Kerala,Swollen lymph nodes,Rubella
+55,F,February,Rural,Kannur,Kerala,Muscle pain and headache,Leptospirosis
+20,F,October,Rural,Thiruvananthapuram,Kerala,High fever with body pain,Dengue
+30,Other,March,Urban,Alappuzha,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+69,Other,September,Rural,Kottayam,Kerala,Skin rash with blisters,Chickenpox
+37,M,August,Urban,Thiruvananthapuram,Kerala,Chest pain and breathing difficulty,Pneumonia
+54,M,April,Urban,Pathanamthitta,Kerala,Swollen lymph nodes,Rubella
+39,Other,February,Rural,Kannur,Kerala,Persistent cough,Tuberculosis
+40,Other,October,Rural,Malappuram,Kerala,Sore throat and fever,Influenza
+44,M,September,Urban,Kochi,Kerala,Chest pain and breathing difficulty,Pneumonia
+43,M,April,Urban,Kottayam,Kerala,Swollen lymph nodes,Rubella
+18,F,July,Urban,Malappuram,Kerala,Vomiting and stomach cramps,Norovirus
+32,M,October,Rural,Alappuzha,Kerala,Red rash and koplik spots,Measles
+6,F,November,Rural,Kochi,Kerala,Yellow eyes and skin,Jaundice
+65,M,January,Urban,Kottayam,Kerala,Loose motions,Diarrhea
+16,F,February,Rural,Pathanamthitta,Kerala,Vomiting and stomach cramps,Norovirus
+9,Other,December,Urban,Wayanad,Kerala,Red rash and koplik spots,Measles
+13,F,November,Rural,Thrissur,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+22,M,March,Urban,Pathanamthitta,Kerala,Prolonged fever and weakness,Typhoid
+38,M,November,Urban,Kottayam,Kerala,Severe joint pain,Chikungunya
+35,F,February,Rural,Thrissur,Kerala,Vomiting and stomach cramps,Norovirus
+37,Other,September,Rural,Kozhikode,Kerala,Red rash and koplik spots,Measles
+41,F,July,Rural,Idukki,Kerala,Swollen cheeks,Mumps
+18,M,May,Rural,Kottayam,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+14,M,March,Urban,Kozhikode,Kerala,Wheezing in breathing,RSV
+29,M,February,Rural,Kozhikode,Kerala,Red rash and koplik spots,Measles
+40,Other,May,Urban,Kollam,Kerala,Prolonged fever and weakness,Typhoid
+33,M,December,Urban,Idukki,Kerala,Loose motions,Diarrhea
+9,Other,June,Urban,Palakkad,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+66,F,December,Urban,Malappuram,Kerala,High fever with body pain,Dengue
+39,Other,February,Rural,Palakkad,Kerala,Sore throat and fever,Influenza
+19,M,June,Rural,Kannur,Kerala,Shivering and chills,Malaria
+27,Other,June,Rural,Kozhikode,Kerala,Red rash and koplik spots,Measles
+3,F,December,Urban,Malappuram,Kerala,Prolonged fever and weakness,Typhoid
+60,F,April,Urban,Kottayam,Kerala,High fever with body pain,Dengue
+13,Other,August,Rural,Palakkad,Kerala,Muscle pain and headache,Leptospirosis
+45,F,February,Urban,Thrissur,Kerala,Severe joint pain,Chikungunya
+29,F,February,Rural,Pathanamthitta,Kerala,Wheezing in breathing,RSV
+13,M,October,Rural,Malappuram,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+1,M,March,Rural,Malappuram,Kerala,Sore throat and fever,Influenza
+64,F,February,Rural,Kannur,Kerala,Prolonged fever and weakness,Typhoid
+17,Other,May,Urban,Kozhikode,Kerala,Chest pain and breathing difficulty,Pneumonia
+43,Other,March,Urban,Palakkad,Kerala,Red rash and koplik spots,Measles
+59,M,August,Urban,Kozhikode,Kerala,Muscle pain and headache,Leptospirosis
+13,F,December,Urban,Thrissur,Kerala,Chest pain and breathing difficulty,Pneumonia
+25,Other,January,Rural,Kozhikode,Kerala,Breathing difficulty and fatigue,H1N1
+6,F,September,Rural,Malappuram,Kerala,Fever and dry cough,COVID
+21,M,June,Rural,Kannur,Kerala,Fever and dry cough,COVID
+68,Other,December,Urban,Kozhikode,Kerala,Skin rash with blisters,Chickenpox
+21,Other,November,Urban,Thiruvananthapuram,Kerala,Severe diarrhea,Rotavirus
+5,M,January,Rural,Alappuzha,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+12,Other,August,Rural,Malappuram,Kerala,Breathing difficulty and fatigue,H1N1
+19,M,October,Urban,Palakkad,Kerala,Severe diarrhea,Rotavirus
+14,M,December,Rural,Kochi,Kerala,Red rash and koplik spots,Measles
+8,Other,March,Urban,Thiruvananthapuram,Kerala,Vomiting and stomach cramps,Norovirus
+27,M,January,Rural,Kasaragod,Kerala,Vomiting and stomach cramps,Norovirus
+40,F,January,Urban,Thiruvananthapuram,Kerala,Loose motions,Diarrhea
+26,F,December,Rural,Wayanad,Kerala,Shivering and chills,Malaria
+6,M,June,Urban,Thrissur,Kerala,Shivering and chills,Malaria
+14,M,March,Rural,Wayanad,Kerala,Loose motions,Diarrhea
+19,M,July,Rural,Idukki,Kerala,High fever with body pain,Dengue
+19,Other,December,Rural,Kochi,Kerala,Shivering and chills,Malaria
+69,F,July,Rural,Kochi,Kerala,Fever and dry cough,COVID
+14,Other,January,Rural,Kottayam,Kerala,Severe joint pain,Chikungunya
+30,F,November,Rural,Thiruvananthapuram,Kerala,Wheezing in breathing,RSV
+59,M,February,Urban,Wayanad,Kerala,Skin rash with blisters,Chickenpox
+10,Other,September,Rural,Kannur,Kerala,Swollen lymph nodes,Rubella
+4,Other,June,Rural,Kollam,Kerala,Swollen cheeks,Mumps
+41,F,February,Rural,Palakkad,Kerala,Fever and dry cough,COVID
+52,F,April,Rural,Alappuzha,Kerala,Prolonged fever and weakness,Typhoid
+15,F,March,Rural,Alappuzha,Kerala,Severe joint pain,Chikungunya
+69,M,April,Urban,Idukki,Kerala,Prolonged fever and weakness,Typhoid
+35,M,December,Urban,Kannur,Kerala,Shivering and chills,Malaria
+23,M,February,Rural,Kozhikode,Kerala,Severe joint pain,Chikungunya
+5,M,January,Urban,Idukki,Kerala,Wheezing in breathing,RSV
+22,Other,September,Rural,Alappuzha,Kerala,Severe joint pain,Chikungunya
+5,Other,December,Rural,Kollam,Kerala,Swollen lymph nodes,Rubella
+14,M,June,Urban,Idukki,Kerala,Fever and dry cough,COVID
+34,M,July,Rural,Thiruvananthapuram,Kerala,High fever with body pain,Dengue
+14,M,December,Rural,Thiruvananthapuram,Kerala,Sore throat and fever,Influenza
+6,F,November,Rural,Malappuram,Kerala,Swollen cheeks,Mumps
+14,Other,July,Urban,Kottayam,Kerala,Yellow eyes and skin,Jaundice
+32,F,June,Rural,Palakkad,Kerala,Vomiting and stomach cramps,Norovirus
+19,M,October,Rural,Palakkad,Kerala,Sore throat and fever,Influenza
+25,Other,May,Urban,Kottayam,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+29,F,April,Rural,Malappuram,Kerala,Vomiting and stomach cramps,Norovirus
+57,M,November,Rural,Thiruvananthapuram,Kerala,Shivering and chills,Malaria
+3,Other,January,Urban,Thiruvananthapuram,Kerala,Loose motions,Diarrhea
+49,Other,November,Urban,Kannur,Kerala,Skin rash with blisters,Chickenpox
+11,Other,November,Rural,Idukki,Kerala,Breathing difficulty and fatigue,H1N1
+23,M,December,Urban,Kottayam,Kerala,Loose motions,Diarrhea
+45,Other,March,Rural,Thiruvananthapuram,Kerala,Sore throat and fever,Influenza
+24,F,April,Urban,Idukki,Kerala,Swollen cheeks,Mumps
+68,F,January,Rural,Pathanamthitta,Kerala,Yellow eyes and skin,Jaundice
+42,F,December,Urban,Kottayam,Kerala,Shivering and chills,Malaria
+45,Other,August,Urban,Wayanad,Kerala,Severe diarrhea,Rotavirus
+17,Other,November,Rural,Wayanad,Kerala,Sore throat and fever,Influenza
+1,Other,August,Rural,Idukki,Kerala,Prolonged fever and weakness,Typhoid
+7,Other,November,Rural,Thiruvananthapuram,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+38,M,November,Urban,Thrissur,Kerala,High fever with body pain,Dengue
+21,F,February,Rural,Alappuzha,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+19,Other,September,Urban,Thiruvananthapuram,Kerala,Yellow eyes and skin,Jaundice
+42,F,December,Rural,Kozhikode,Kerala,Swollen cheeks,Mumps
+54,M,December,Rural,Pathanamthitta,Kerala,Swollen lymph nodes,Rubella
+28,F,January,Rural,Thrissur,Kerala,Breathing difficulty and fatigue,H1N1
+23,F,June,Urban,Kottayam,Kerala,Chest pain and breathing difficulty,Pneumonia
+27,M,July,Urban,Thiruvananthapuram,Kerala,Sore throat and fever,Influenza
+13,Other,December,Rural,Idukki,Kerala,Wheezing in breathing,RSV
+58,F,September,Urban,Malappuram,Kerala,Fever and dry cough,COVID
+22,Other,August,Urban,Idukki,Kerala,Vomiting and stomach cramps,Norovirus
+55,F,May,Urban,Kottayam,Kerala,Severe joint pain,Chikungunya
+7,M,January,Urban,Palakkad,Kerala,Chest pain and breathing difficulty,Pneumonia
+22,F,August,Urban,Alappuzha,Kerala,Shivering and chills,Malaria
+35,Other,May,Urban,Kochi,Kerala,Red rash and koplik spots,Measles
+41,Other,June,Urban,Wayanad,Kerala,Yellow eyes and skin,Jaundice
+15,F,December,Rural,Kasaragod,Kerala,Red rash and koplik spots,Measles
+22,M,May,Rural,Kozhikode,Kerala,Muscle pain and headache,Leptospirosis
+9,F,May,Urban,Alappuzha,Kerala,Loose motions,Diarrhea
+23,M,October,Rural,Kottayam,Kerala,Severe diarrhea,Rotavirus
+1,M,December,Urban,Kochi,Kerala,Prolonged fever and weakness,Typhoid
+41,Other,February,Rural,Kasaragod,Kerala,Yellow eyes and skin,Jaundice
+8,M,October,Urban,Pathanamthitta,Kerala,Skin rash with blisters,Chickenpox
+19,Other,December,Rural,Thiruvananthapuram,Kerala,Vomiting and stomach cramps,Norovirus
+5,Other,March,Urban,Kochi,Kerala,Severe joint pain,Chikungunya
+31,F,November,Rural,Pathanamthitta,Kerala,High fever with body pain,Dengue
+16,Other,January,Urban,Wayanad,Kerala,Shivering and chills,Malaria
+70,Other,January,Rural,Palakkad,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+31,F,March,Urban,Kannur,Kerala,Loose motions,Diarrhea
+70,M,October,Rural,Thrissur,Kerala,Severe joint pain,Chikungunya
+9,F,October,Rural,Kottayam,Kerala,Chest pain and breathing difficulty,Pneumonia
+17,M,August,Rural,Kasaragod,Kerala,Wheezing in breathing,RSV
+10,M,October,Urban,Kasaragod,Kerala,Swollen cheeks,Mumps
+38,Other,February,Rural,Kasaragod,Kerala,Fever and dry cough,COVID
+12,Other,June,Urban,Alappuzha,Kerala,Shivering and chills,Malaria
+13,Other,November,Rural,Thrissur,Kerala,Severe joint pain,Chikungunya
+18,M,August,Urban,Pathanamthitta,Kerala,Muscle pain and headache,Leptospirosis
+51,M,October,Rural,Kozhikode,Kerala,Swollen cheeks,Mumps
+31,Other,February,Urban,Idukki,Kerala,Yellow eyes and skin,Jaundice
+1,Other,April,Rural,Idukki,Kerala,Wheezing in breathing,RSV
+41,Other,April,Rural,Kannur,Kerala,High fever with body pain,Dengue
+35,M,July,Rural,Kannur,Kerala,Sore throat and fever,Influenza
+21,F,April,Rural,Kottayam,Kerala,Swollen lymph nodes,Rubella
+41,M,June,Rural,Thiruvananthapuram,Kerala,Fever and dry cough,COVID
+35,M,January,Rural,Kasaragod,Kerala,Swollen lymph nodes,Rubella
+41,M,May,Urban,Alappuzha,Kerala,Breathing difficulty and fatigue,H1N1
+11,F,June,Rural,Kollam,Kerala,Severe joint pain,Chikungunya
+30,F,November,Urban,Idukki,Kerala,Swollen lymph nodes,Rubella
+67,M,August,Urban,Malappuram,Kerala,Sore throat and fever,Influenza
+61,M,August,Rural,Kannur,Kerala,Prolonged fever and weakness,Typhoid
+37,Other,November,Urban,Alappuzha,Kerala,Shivering and chills,Malaria
+30,Other,January,Rural,Kozhikode,Kerala,Sore throat and fever,Influenza
+23,M,October,Rural,Malappuram,Kerala,Muscle pain and headache,Leptospirosis
+40,Other,July,Rural,Thiruvananthapuram,Kerala,Severe diarrhea,Rotavirus
+26,F,January,Rural,Wayanad,Kerala,Vomiting and stomach cramps,Norovirus
+24,F,July,Urban,Wayanad,Kerala,Fever and dry cough,COVID
+17,M,November,Urban,Kannur,Kerala,Swollen lymph nodes,Rubella
+20,M,July,Rural,Pathanamthitta,Kerala,Shivering and chills,Malaria
+29,M,February,Urban,Palakkad,Kerala,Skin rash with blisters,Chickenpox
+11,Other,August,Rural,Kollam,Kerala,High fever with body pain,Dengue
+32,F,July,Rural,Alappuzha,Kerala,High fever with body pain,Dengue
+20,M,December,Rural,Kollam,Kerala,Severe diarrhea,Rotavirus
+23,Other,May,Urban,Wayanad,Kerala,Chest pain and breathing difficulty,Pneumonia
+40,M,May,Rural,Kottayam,Kerala,Breathing difficulty and fatigue,H1N1
+31,M,May,Rural,Alappuzha,Kerala,Loose motions,Diarrhea
+37,M,February,Urban,Kannur,Kerala,Prolonged fever and weakness,Typhoid
+22,Other,November,Rural,Kannur,Kerala,Swollen cheeks,Mumps
+2,F,September,Urban,Wayanad,Kerala,Swollen cheeks,Mumps
+64,M,January,Urban,Kottayam,Kerala,Prolonged fever and weakness,Typhoid
+23,Other,May,Urban,Palakkad,Kerala,Red rash and koplik spots,Measles
+28,F,July,Urban,Thrissur,Kerala,Shivering and chills,Malaria
+36,Other,September,Urban,Wayanad,Kerala,Chest pain and breathing difficulty,Pneumonia
+17,Other,October,Urban,Malappuram,Kerala,Vomiting and stomach cramps,Norovirus
+19,Other,May,Urban,Kottayam,Kerala,Red rash and koplik spots,Measles
+12,Other,September,Urban,Wayanad,Kerala,Fever and dry cough,COVID
+36,Other,August,Rural,Kannur,Kerala,Severe diarrhea,Rotavirus
+63,Other,August,Rural,Palakkad,Kerala,Red rash and koplik spots,Measles
+53,F,March,Urban,Thrissur,Kerala,Severe diarrhea,Rotavirus
+22,Other,July,Urban,Thiruvananthapuram,Kerala,Vomiting and stomach cramps,Norovirus
+18,F,February,Urban,Thrissur,Kerala,Breathing difficulty and fatigue,H1N1
+36,F,May,Urban,Pathanamthitta,Kerala,Vomiting and stomach cramps,Norovirus
+12,M,July,Urban,Wayanad,Kerala,Prolonged fever and weakness,Typhoid
+22,F,February,Rural,Idukki,Kerala,High fever with body pain,Dengue
+17,M,February,Urban,Kochi,Kerala,Swollen cheeks,Mumps
+4,M,July,Rural,Alappuzha,Kerala,Shivering and chills,Malaria
+12,Other,March,Rural,Thrissur,Kerala,Red rash and koplik spots,Measles
+11,Other,February,Urban,Alappuzha,Kerala,Loose motions,Diarrhea
+13,F,March,Rural,Idukki,Kerala,Persistent cough,Tuberculosis
+7,M,December,Urban,Kasaragod,Kerala,Loose motions,Diarrhea
+39,Other,May,Urban,Kannur,Kerala,Swollen lymph nodes,Rubella
+30,Other,November,Urban,Idukki,Kerala,Severe joint pain,Chikungunya
+66,M,October,Rural,Thiruvananthapuram,Kerala,Skin rash with blisters,Chickenpox
+35,M,October,Rural,Kochi,Kerala,Chest pain and breathing difficulty,Pneumonia
+14,F,July,Rural,Kollam,Kerala,Severe joint pain,Chikungunya
+34,M,May,Urban,Idukki,Kerala,Red rash and koplik spots,Measles
+22,Other,March,Rural,Kannur,Kerala,Shivering and chills,Malaria
+15,F,May,Rural,Thrissur,Kerala,Red rash and koplik spots,Measles
+36,M,August,Urban,Kannur,Kerala,Swollen cheeks,Mumps
+30,F,April,Urban,Thiruvananthapuram,Kerala,Severe joint pain,Chikungunya
+63,F,March,Urban,Kollam,Kerala,Shivering and chills,Malaria
+26,F,November,Rural,Palakkad,Kerala,High fever with body pain,Dengue
+34,F,July,Rural,Wayanad,Kerala,Fever and dry cough,COVID
+40,F,September,Urban,Kannur,Kerala,Severe joint pain,Chikungunya
+37,M,August,Urban,Idukki,Kerala,Persistent cough,Tuberculosis
+32,M,December,Rural,Palakkad,Kerala,Fever and dry cough,COVID
+16,F,June,Urban,Alappuzha,Kerala,Shivering and chills,Malaria
+23,Other,April,Urban,Kochi,Kerala,Fever and dry cough,COVID
+23,M,September,Rural,Kannur,Kerala,Skin rash with blisters,Chickenpox
+26,Other,February,Urban,Pathanamthitta,Kerala,High fever with body pain,Dengue
+24,F,November,Rural,Kochi,Kerala,High fever with body pain,Dengue
+46,F,March,Urban,Kozhikode,Kerala,Vomiting and stomach cramps,Norovirus
+3,Other,September,Rural,Kozhikode,Kerala,Muscle pain and headache,Leptospirosis
+22,Other,January,Urban,Alappuzha,Kerala,Wheezing in breathing,RSV
+9,F,September,Urban,Kochi,Kerala,Loose motions,Diarrhea
+12,Other,September,Rural,Kochi,Kerala,Shivering and chills,Malaria
+3,F,October,Rural,Alappuzha,Kerala,Wheezing in breathing,RSV
+28,Other,April,Rural,Thiruvananthapuram,Kerala,Breathing difficulty and fatigue,H1N1
+18,F,January,Rural,Kottayam,Kerala,Persistent cough,Tuberculosis
+3,Other,June,Urban,Palakkad,Kerala,Red rash and koplik spots,Measles
+4,M,June,Urban,Kochi,Kerala,Shivering and chills,Malaria
+43,F,August,Urban,Thiruvananthapuram,Kerala,Sore throat and fever,Influenza
+34,F,January,Urban,Kasaragod,Kerala,Wheezing in breathing,RSV
+36,M,May,Urban,Palakkad,Kerala,Muscle pain and headache,Leptospirosis
+27,M,November,Rural,Palakkad,Kerala,Yellow eyes and skin,Jaundice
+25,F,May,Urban,Thiruvananthapuram,Kerala,Swollen cheeks,Mumps
+32,F,May,Rural,Thiruvananthapuram,Kerala,Severe joint pain,Chikungunya
+30,F,August,Rural,Kasaragod,Kerala,Loose motions,Diarrhea
+35,F,October,Urban,Idukki,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+33,Other,April,Rural,Kottayam,Kerala,Severe diarrhea,Rotavirus
+36,F,April,Urban,Wayanad,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+43,M,July,Rural,Malappuram,Kerala,High fever with body pain,Dengue
+18,M,October,Urban,Palakkad,Kerala,Severe joint pain,Chikungunya
+62,F,January,Rural,Kollam,Kerala,Yellow eyes and skin,Jaundice
+65,M,September,Urban,Alappuzha,Kerala,Wheezing in breathing,RSV
+44,M,September,Rural,Kollam,Kerala,Vomiting and stomach cramps,Norovirus
+13,M,October,Urban,Kannur,Kerala,Skin rash with blisters,Chickenpox
+28,Other,March,Rural,Alappuzha,Kerala,Severe diarrhea,Rotavirus
+25,M,May,Urban,Kochi,Kerala,Breathing difficulty and fatigue,H1N1
+12,Other,June,Rural,Thiruvananthapuram,Kerala,Yellow eyes and skin,Jaundice
+7,F,March,Rural,Idukki,Kerala,High fever with body pain,Dengue
+50,F,April,Urban,Kozhikode,Kerala,Swollen cheeks,Mumps
+10,F,May,Urban,Wayanad,Kerala,Swollen cheeks,Mumps
+20,F,December,Rural,Kochi,Kerala,Swollen lymph nodes,Rubella
+34,Other,April,Rural,Kasaragod,Kerala,Severe diarrhea,Rotavirus
+20,Other,September,Urban,Alappuzha,Kerala,Swollen lymph nodes,Rubella
+11,F,August,Urban,Pathanamthitta,Kerala,Severe joint pain,Chikungunya
+66,F,September,Rural,Kochi,Kerala,High fever with body pain,Dengue
+25,F,July,Rural,Idukki,Kerala,Wheezing in breathing,RSV
+63,Other,December,Rural,Kollam,Kerala,Yellow eyes and skin,Jaundice
+20,M,January,Urban,Palakkad,Kerala,Prolonged fever and weakness,Typhoid
+66,Other,October,Urban,Idukki,Kerala,High fever with body pain,Dengue
+20,F,March,Rural,Pathanamthitta,Kerala,Sore throat and fever,Influenza
+34,M,March,Rural,Kannur,Kerala,Persistent cough,Tuberculosis
+16,F,June,Urban,Kozhikode,Kerala,Shivering and chills,Malaria
+35,Other,June,Rural,Kasaragod,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+22,Other,March,Rural,Idukki,Kerala,Persistent cough,Tuberculosis
+21,Other,July,Urban,Kochi,Kerala,Shivering and chills,Malaria
+45,Other,December,Urban,Kottayam,Kerala,Red rash and koplik spots,Measles
+39,M,April,Rural,Malappuram,Kerala,Red rash and koplik spots,Measles
+34,Other,July,Rural,Kasaragod,Kerala,Shivering and chills,Malaria
+12,F,March,Rural,Pathanamthitta,Kerala,Sore throat and fever,Influenza
+13,Other,June,Rural,Kochi,Kerala,Fever and dry cough,COVID
+27,Other,December,Urban,Kannur,Kerala,Persistent cough,Tuberculosis
+55,F,August,Rural,Kochi,Kerala,Loose motions,Diarrhea
+23,M,September,Rural,Kollam,Kerala,Swollen lymph nodes,Rubella
+1,Other,July,Rural,Kannur,Kerala,Severe diarrhea,Rotavirus
+33,Other,August,Rural,Kannur,Kerala,Prolonged fever and weakness,Typhoid
+38,F,January,Rural,Alappuzha,Kerala,Swollen lymph nodes,Rubella
+65,F,August,Rural,Thiruvananthapuram,Kerala,Skin rash with blisters,Chickenpox
+26,F,October,Urban,Kottayam,Kerala,Muscle pain and headache,Leptospirosis
+52,Other,May,Rural,Wayanad,Kerala,Persistent cough,Tuberculosis
+14,F,June,Rural,Alappuzha,Kerala,Skin rash with blisters,Chickenpox
+9,F,October,Rural,Kozhikode,Kerala,Skin rash with blisters,Chickenpox
+11,Other,May,Urban,Pathanamthitta,Kerala,Sore throat and fever,Influenza
+69,F,June,Urban,Pathanamthitta,Kerala,Loose motions,Diarrhea
+13,F,August,Urban,Kochi,Kerala,Wheezing in breathing,RSV
+70,M,July,Urban,Alappuzha,Kerala,Swollen cheeks,Mumps
+46,Other,August,Rural,Kasaragod,Kerala,Fever and dry cough,COVID
+1,M,January,Rural,Kollam,Kerala,Loose motions,Diarrhea
+66,M,February,Urban,Idukki,Kerala,Swollen cheeks,Mumps
+24,F,April,Rural,Palakkad,Kerala,Yellow eyes and skin,Jaundice
+59,F,September,Urban,Kochi,Kerala,Persistent cough,Tuberculosis
+21,F,November,Urban,Kasaragod,Kerala,Prolonged fever and weakness,Typhoid
+32,F,November,Urban,Kozhikode,Kerala,Wheezing in breathing,RSV
+24,Other,June,Rural,Kollam,Kerala,Yellow eyes and skin,Jaundice
+6,M,March,Urban,Wayanad,Kerala,Skin rash with blisters,Chickenpox
+15,F,July,Urban,Thiruvananthapuram,Kerala,High fever with body pain,Dengue
+6,Other,June,Urban,Wayanad,Kerala,Vomiting and stomach cramps,Norovirus
+10,M,September,Rural,Pathanamthitta,Kerala,High fever with body pain,Dengue
+44,M,October,Rural,Kottayam,Kerala,Persistent cough,Tuberculosis
+38,F,December,Rural,Palakkad,Kerala,Vomiting and stomach cramps,Norovirus
+20,M,February,Rural,Alappuzha,Kerala,Chest pain and breathing difficulty,Pneumonia
+65,F,December,Rural,Palakkad,Kerala,Loose motions,Diarrhea
+42,M,February,Urban,Kollam,Kerala,Yellow eyes and skin,Jaundice
+31,M,September,Urban,Thiruvananthapuram,Kerala,Sore throat and fever,Influenza
+1,M,January,Rural,Pathanamthitta,Kerala,Muscle pain and headache,Leptospirosis
+13,F,August,Rural,Kannur,Kerala,Loose motions,Diarrhea
+12,M,March,Urban,Pathanamthitta,Kerala,High fever with body pain,Dengue
+30,F,February,Rural,Idukki,Kerala,Sore throat and fever,Influenza
+20,M,May,Urban,Malappuram,Kerala,Severe joint pain,Chikungunya
+20,F,June,Urban,Pathanamthitta,Kerala,Swollen cheeks,Mumps
+11,M,May,Urban,Palakkad,Kerala,Vomiting and stomach cramps,Norovirus
+9,F,March,Rural,Thiruvananthapuram,Kerala,Breathing difficulty and fatigue,H1N1
+2,M,September,Urban,Wayanad,Kerala,Vomiting and stomach cramps,Norovirus
+18,M,May,Urban,Kottayam,Kerala,Swollen lymph nodes,Rubella
+36,Other,March,Urban,Kollam,Kerala,Severe joint pain,Chikungunya
+8,M,November,Urban,Alappuzha,Kerala,Shivering and chills,Malaria
+59,M,October,Urban,Kollam,Kerala,Breathing difficulty and fatigue,H1N1
+59,Other,October,Rural,Wayanad,Kerala,Severe joint pain,Chikungunya
+26,F,December,Urban,Kozhikode,Kerala,Loose motions,Diarrhea
+22,F,June,Urban,Kottayam,Kerala,Prolonged fever and weakness,Typhoid
+7,M,August,Urban,Kochi,Kerala,Skin rash with blisters,Chickenpox
+57,Other,August,Urban,Kasaragod,Kerala,Wheezing in breathing,RSV
+13,Other,November,Urban,Wayanad,Kerala,Severe joint pain,Chikungunya
+39,M,November,Urban,Palakkad,Kerala,Skin rash with blisters,Chickenpox
+12,F,March,Rural,Kasaragod,Kerala,Vomiting and stomach cramps,Norovirus
+6,F,July,Rural,Thrissur,Kerala,Loose motions,Diarrhea
+15,M,December,Rural,Kollam,Kerala,Swollen lymph nodes,Rubella
+45,Other,June,Urban,Idukki,Kerala,Yellow eyes and skin,Jaundice
+13,F,March,Rural,Palakkad,Kerala,Fever and dry cough,COVID
+13,M,September,Rural,Wayanad,Kerala,Shivering and chills,Malaria
+6,M,October,Urban,Wayanad,Kerala,Prolonged fever and weakness,Typhoid
+5,M,May,Urban,Kasaragod,Kerala,High fever with body pain,Dengue
+4,F,July,Rural,Kasaragod,Kerala,Fever and dry cough,COVID
+3,Other,September,Urban,Kochi,Kerala,Fever and dry cough,COVID
+4,Other,January,Rural,Kottayam,Kerala,Severe joint pain,Chikungunya
+32,M,September,Rural,Kozhikode,Kerala,Persistent cough,Tuberculosis
+1,Other,February,Rural,Kasaragod,Kerala,High fever with body pain,Dengue
+45,F,February,Rural,Kottayam,Kerala,Wheezing in breathing,RSV
+42,M,March,Urban,Kasaragod,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+22,F,July,Rural,Malappuram,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+12,M,January,Rural,Idukki,Kerala,Vomiting and stomach cramps,Norovirus
+50,M,June,Rural,Thiruvananthapuram,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+28,F,July,Urban,Thiruvananthapuram,Kerala,Shivering and chills,Malaria
+20,Other,June,Urban,Wayanad,Kerala,Breathing difficulty and fatigue,H1N1
+30,Other,August,Urban,Pathanamthitta,Kerala,Shivering and chills,Malaria
+33,M,February,Urban,Thiruvananthapuram,Kerala,Breathing difficulty and fatigue,H1N1
+14,F,October,Rural,Malappuram,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+59,Other,July,Rural,Kozhikode,Kerala,Swollen cheeks,Mumps
+35,M,March,Urban,Kasaragod,Kerala,Red rash and koplik spots,Measles
+28,F,May,Rural,Kochi,Kerala,Breathing difficulty and fatigue,H1N1
+26,F,July,Urban,Alappuzha,Kerala,Severe joint pain,Chikungunya
+11,F,October,Urban,Kasaragod,Kerala,Loose motions,Diarrhea
+19,F,January,Urban,Kannur,Kerala,Wheezing in breathing,RSV
+53,F,November,Rural,Kollam,Kerala,Yellow eyes and skin,Jaundice
+9,F,June,Urban,Alappuzha,Kerala,Shivering and chills,Malaria
+4,Other,January,Urban,Wayanad,Kerala,Fever and dry cough,COVID
+20,Other,April,Rural,Pathanamthitta,Kerala,Swollen lymph nodes,Rubella
+50,F,December,Urban,Thiruvananthapuram,Kerala,Sore throat and fever,Influenza
+40,F,August,Rural,Kollam,Kerala,Persistent cough,Tuberculosis
+31,Other,January,Rural,Malappuram,Kerala,Shivering and chills,Malaria
+9,F,January,Rural,Thiruvananthapuram,Kerala,Fever and dry cough,COVID
+26,M,October,Rural,Palakkad,Kerala,Wheezing in breathing,RSV
+36,F,December,Rural,Kannur,Kerala,Sore throat and fever,Influenza
+19,Other,June,Rural,Kasaragod,Kerala,Severe diarrhea,Rotavirus
+21,Other,October,Urban,Kottayam,Kerala,Swollen lymph nodes,Rubella
+19,F,March,Rural,Thiruvananthapuram,Kerala,Wheezing in breathing,RSV
+12,M,January,Rural,Kollam,Kerala,Persistent cough,Tuberculosis
+15,F,May,Rural,Kannur,Kerala,Muscle pain and headache,Leptospirosis
+18,M,February,Urban,Wayanad,Kerala,Swollen cheeks,Mumps
+14,Other,January,Urban,Kasaragod,Kerala,Chest pain and breathing difficulty,Pneumonia
+58,F,January,Urban,Kochi,Kerala,Skin rash with blisters,Chickenpox
+26,Other,November,Rural,Kozhikode,Kerala,Red rash and koplik spots,Measles
+26,Other,April,Urban,Kollam,Kerala,Breathing difficulty and fatigue,H1N1
+36,M,March,Urban,Kollam,Kerala,Red rash and koplik spots,Measles
+13,M,February,Rural,Malappuram,Kerala,High fever with body pain,Dengue
+5,F,July,Urban,Pathanamthitta,Kerala,Shivering and chills,Malaria
+24,Other,July,Urban,Thrissur,Kerala,Shivering and chills,Malaria
+11,M,December,Rural,Wayanad,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+34,F,July,Urban,Kasaragod,Kerala,Yellow eyes and skin,Jaundice
+5,Other,May,Urban,Kasaragod,Kerala,Swollen cheeks,Mumps
+30,M,May,Rural,Idukki,Kerala,Skin rash with blisters,Chickenpox
+46,M,September,Urban,Wayanad,Kerala,Muscle pain and headache,Leptospirosis
+27,F,January,Urban,Kottayam,Kerala,Fever and dry cough,COVID
+9,F,January,Rural,Malappuram,Kerala,Sore throat and fever,Influenza
+16,Other,October,Rural,Kasaragod,Kerala,Severe joint pain,Chikungunya
+1,M,February,Rural,Kannur,Kerala,Muscle pain and headache,Leptospirosis
+3,M,June,Urban,Malappuram,Kerala,Shivering and chills,Malaria
+23,Other,July,Rural,Wayanad,Kerala,Fever and dry cough,COVID
+21,F,July,Urban,Wayanad,Kerala,Wheezing in breathing,RSV
+37,Other,November,Urban,Thiruvananthapuram,Kerala,Shivering and chills,Malaria
+52,F,August,Urban,Kozhikode,Kerala,High fever with body pain,Dengue
+25,M,July,Rural,Kollam,Kerala,Persistent cough,Tuberculosis
+3,F,February,Rural,Pathanamthitta,Kerala,Wheezing in breathing,RSV
+46,F,October,Urban,Palakkad,Kerala,Sore throat and fever,Influenza
+38,F,January,Rural,Kozhikode,Kerala,Skin rash with blisters,Chickenpox
+27,F,January,Rural,Malappuram,Kerala,Muscle pain and headache,Leptospirosis
+8,Other,May,Urban,Palakkad,Kerala,Red rash and koplik spots,Measles
+32,F,February,Urban,Pathanamthitta,Kerala,Wheezing in breathing,RSV
+18,F,December,Urban,Kottayam,Kerala,Swollen lymph nodes,Rubella
+16,Other,December,Urban,Wayanad,Kerala,Loose motions,Diarrhea
+56,Other,January,Rural,Palakkad,Kerala,Swollen cheeks,Mumps
+9,Other,November,Rural,Kollam,Kerala,Skin rash with blisters,Chickenpox
+38,F,December,Rural,Kottayam,Kerala,Breathing difficulty and fatigue,H1N1
+25,Other,June,Rural,Kannur,Kerala,Wheezing in breathing,RSV
+41,M,March,Rural,Kollam,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+51,M,June,Rural,Thiruvananthapuram,Kerala,High fever with body pain,Dengue
+18,Other,March,Urban,Idukki,Kerala,Severe joint pain,Chikungunya
+30,Other,March,Rural,Kottayam,Kerala,Skin rash with blisters,Chickenpox
+42,F,January,Urban,Pathanamthitta,Kerala,Muscle pain and headache,Leptospirosis
+30,M,February,Urban,Idukki,Kerala,Wheezing in breathing,RSV
+8,Other,January,Rural,Kollam,Kerala,Chest pain and breathing difficulty,Pneumonia
+40,F,October,Urban,Wayanad,Kerala,Red rash and koplik spots,Measles
+15,Other,June,Urban,Kottayam,Kerala,Chest pain and breathing difficulty,Pneumonia
+19,Other,May,Urban,Thiruvananthapuram,Kerala,Chest pain and breathing difficulty,Pneumonia
+15,M,July,Urban,Thiruvananthapuram,Kerala,Red rash and koplik spots,Measles
+62,M,November,Urban,Kottayam,Kerala,Sore throat and fever,Influenza
+34,M,November,Rural,Kollam,Kerala,Red rash and koplik spots,Measles
+46,M,April,Urban,Kozhikode,Kerala,Swollen lymph nodes,Rubella
+63,F,December,Rural,Palakkad,Kerala,Swollen lymph nodes,Rubella
+46,F,November,Urban,Kollam,Kerala,Muscle pain and headache,Leptospirosis
+2,M,June,Urban,Thiruvananthapuram,Kerala,Breathing difficulty and fatigue,H1N1
+27,M,September,Rural,Malappuram,Kerala,Prolonged fever and weakness,Typhoid
+10,F,October,Rural,Kottayam,Kerala,Severe diarrhea,Rotavirus
+17,Other,March,Rural,Kozhikode,Kerala,Skin rash with blisters,Chickenpox
+54,M,March,Rural,Kollam,Kerala,Prolonged fever and weakness,Typhoid
+53,Other,May,Rural,Kollam,Kerala,Yellow eyes and skin,Jaundice
+10,Other,December,Urban,Idukki,Kerala,Breathing difficulty and fatigue,H1N1
+29,F,September,Urban,Pathanamthitta,Kerala,Breathing difficulty and fatigue,H1N1
+59,Other,January,Rural,Idukki,Kerala,Fever and dry cough,COVID
+30,M,November,Urban,Thiruvananthapuram,Kerala,Loose motions,Diarrhea
+5,Other,January,Rural,Thiruvananthapuram,Kerala,Breathing difficulty and fatigue,H1N1
+54,M,December,Urban,Kollam,Kerala,Wheezing in breathing,RSV
+40,M,April,Urban,Thrissur,Kerala,Wheezing in breathing,RSV
+63,F,February,Rural,Kannur,Kerala,Prolonged fever and weakness,Typhoid
+42,M,July,Rural,Kannur,Kerala,Swollen lymph nodes,Rubella
+47,F,August,Rural,Alappuzha,Kerala,Red rash and koplik spots,Measles
+38,M,October,Rural,Palakkad,Kerala,Shivering and chills,Malaria
+34,Other,September,Urban,Thiruvananthapuram,Kerala,Shivering and chills,Malaria
+64,M,April,Urban,Kochi,Kerala,Persistent cough,Tuberculosis
+23,F,February,Urban,Malappuram,Kerala,Swollen lymph nodes,Rubella
+14,F,January,Rural,Kozhikode,Kerala,Chest pain and breathing difficulty,Pneumonia
+16,M,April,Rural,Kollam,Kerala,Severe joint pain,Chikungunya
+15,Other,September,Urban,Kollam,Kerala,Swollen cheeks,Mumps
+2,F,April,Rural,Kannur,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+26,M,September,Rural,Thiruvananthapuram,Kerala,Sore throat and fever,Influenza
+25,Other,May,Urban,Wayanad,Kerala,Vomiting and stomach cramps,Norovirus
+17,F,November,Urban,Idukki,Kerala,Red rash and koplik spots,Measles
+34,M,November,Rural,Kochi,Kerala,Prolonged fever and weakness,Typhoid
+32,M,February,Urban,Thrissur,Kerala,Red rash and koplik spots,Measles
+39,M,June,Urban,Kozhikode,Kerala,Fever and dry cough,COVID
+11,Other,June,Rural,Wayanad,Kerala,Sore throat and fever,Influenza
+37,Other,April,Urban,Wayanad,Kerala,Muscle pain and headache,Leptospirosis
+20,M,October,Urban,Wayanad,Kerala,Chest pain and breathing difficulty,Pneumonia
+17,F,January,Rural,Idukki,Kerala,Swollen lymph nodes,Rubella
+26,Other,January,Rural,Thiruvananthapuram,Kerala,Chest pain and breathing difficulty,Pneumonia
+3,M,September,Urban,Thiruvananthapuram,Kerala,Prolonged fever and weakness,Typhoid
+6,M,April,Urban,Kollam,Kerala,Skin rash with blisters,Chickenpox
+23,M,March,Urban,Kottayam,Kerala,Yellow eyes and skin,Jaundice
+25,F,April,Urban,Kottayam,Kerala,High fever with body pain,Dengue
+2,Other,February,Rural,Malappuram,Kerala,Chest pain and breathing difficulty,Pneumonia
+22,F,November,Rural,Palakkad,Kerala,Yellow eyes and skin,Jaundice
+18,Other,February,Urban,Pathanamthitta,Kerala,Fever and dry cough,COVID
+37,Other,March,Rural,Kozhikode,Kerala,Severe diarrhea,Rotavirus
+21,F,January,Urban,Wayanad,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+5,Other,June,Urban,Wayanad,Kerala,Loose motions,Diarrhea
+55,F,August,Urban,Kottayam,Kerala,Vomiting and stomach cramps,Norovirus
+14,M,July,Rural,Kochi,Kerala,Vomiting and stomach cramps,Norovirus
+43,Other,November,Urban,Kochi,Kerala,Persistent cough,Tuberculosis
+14,F,September,Rural,Palakkad,Kerala,Prolonged fever and weakness,Typhoid
+6,M,February,Rural,Kasaragod,Kerala,Sore throat and fever,Influenza
+31,M,July,Urban,Alappuzha,Kerala,Fever and dry cough,COVID
+1,F,February,Urban,Kannur,Kerala,High fever with body pain,Dengue
+12,F,June,Rural,Kottayam,Kerala,Loose motions,Diarrhea
+1,M,July,Rural,Kollam,Kerala,Severe diarrhea,Rotavirus
+2,Other,July,Rural,Kannur,Kerala,Loose motions,Diarrhea
+38,M,June,Rural,Thrissur,Kerala,Sore throat and fever,Influenza
+46,Other,April,Rural,Kannur,Kerala,Muscle pain and headache,Leptospirosis
+18,F,November,Urban,Kasaragod,Kerala,Sore throat and fever,Influenza
+5,F,August,Urban,Kannur,Kerala,Shivering and chills,Malaria
+9,F,August,Urban,Alappuzha,Kerala,Red rash and koplik spots,Measles
+30,Other,June,Urban,Kochi,Kerala,Severe diarrhea,Rotavirus
+24,F,December,Urban,Alappuzha,Kerala,High fever with body pain,Dengue
+22,M,September,Rural,Kottayam,Kerala,Fever and dry cough,COVID
+17,Other,January,Urban,Malappuram,Kerala,High fever with body pain,Dengue
+12,F,February,Rural,Thrissur,Kerala,Severe diarrhea,Rotavirus
+27,Other,December,Rural,Pathanamthitta,Kerala,Red rash and koplik spots,Measles
+41,F,June,Urban,Thiruvananthapuram,Kerala,Shivering and chills,Malaria
+33,M,January,Rural,Thiruvananthapuram,Kerala,Muscle pain and headache,Leptospirosis
+34,Other,April,Urban,Thrissur,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+29,M,January,Urban,Kozhikode,Kerala,Wheezing in breathing,RSV
+37,M,April,Rural,Kottayam,Kerala,Shivering and chills,Malaria
+23,F,April,Rural,Idukki,Kerala,Sore throat and fever,Influenza
+24,F,December,Rural,Alappuzha,Kerala,Yellow eyes and skin,Jaundice
+43,F,September,Urban,Malappuram,Kerala,Shivering and chills,Malaria
+37,Other,September,Rural,Thrissur,Kerala,Wheezing in breathing,RSV
+2,F,September,Rural,Kasaragod,Kerala,Swollen cheeks,Mumps
+17,F,April,Urban,Malappuram,Kerala,Prolonged fever and weakness,Typhoid
+31,Other,August,Urban,Kannur,Kerala,Shivering and chills,Malaria
+37,F,February,Urban,Alappuzha,Kerala,Sore throat and fever,Influenza
+16,Other,January,Urban,Kasaragod,Kerala,Fever and dry cough,COVID
+20,M,November,Rural,Kasaragod,Kerala,Prolonged fever and weakness,Typhoid
+20,Other,December,Urban,Kochi,Kerala,Swollen cheeks,Mumps
+30,Other,November,Rural,Kochi,Kerala,Severe diarrhea,Rotavirus
+44,Other,October,Urban,Palakkad,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+20,F,October,Rural,Alappuzha,Kerala,High fever with body pain,Dengue
+14,M,February,Rural,Wayanad,Kerala,Shivering and chills,Malaria
+3,F,September,Rural,Thiruvananthapuram,Kerala,Wheezing in breathing,RSV
+43,Other,July,Rural,Kottayam,Kerala,Chest pain and breathing difficulty,Pneumonia
+29,M,October,Urban,Thiruvananthapuram,Kerala,Chest pain and breathing difficulty,Pneumonia
+21,M,March,Rural,Idukki,Kerala,Chest pain and breathing difficulty,Pneumonia
+12,Other,April,Rural,Alappuzha,Kerala,Swollen lymph nodes,Rubella
+30,Other,October,Urban,Malappuram,Kerala,Sore throat and fever,Influenza
+45,M,October,Urban,Malappuram,Kerala,Swollen cheeks,Mumps
+3,F,June,Rural,Wayanad,Kerala,Severe joint pain,Chikungunya
+27,M,October,Urban,Idukki,Kerala,High fever with body pain,Dengue
+37,F,May,Rural,Thrissur,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+18,M,February,Rural,Kozhikode,Kerala,Shivering and chills,Malaria
+45,Other,December,Rural,Idukki,Kerala,Severe joint pain,Chikungunya
+17,F,April,Urban,Alappuzha,Kerala,Shivering and chills,Malaria
+45,M,November,Rural,Malappuram,Kerala,Skin rash with blisters,Chickenpox
+16,Other,January,Rural,Kollam,Kerala,Prolonged fever and weakness,Typhoid
+21,F,September,Urban,Kottayam,Kerala,Shivering and chills,Malaria
+17,F,June,Rural,Thiruvananthapuram,Kerala,High fever with body pain,Dengue
+42,F,May,Rural,Palakkad,Kerala,Swollen cheeks,Mumps
+9,M,May,Rural,Kasaragod,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+7,F,November,Rural,Thrissur,Kerala,Breathing difficulty and fatigue,H1N1
+8,M,June,Urban,Kottayam,Kerala,High fever with body pain,Dengue
+1,Other,May,Rural,Kochi,Kerala,Wheezing in breathing,RSV
+14,Other,October,Rural,Wayanad,Kerala,Severe diarrhea,Rotavirus
+48,Other,February,Rural,Malappuram,Kerala,Severe joint pain,Chikungunya
+1,M,May,Rural,Thrissur,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+55,F,November,Rural,Palakkad,Kerala,Muscle pain and headache,Leptospirosis
+17,F,March,Urban,Kottayam,Kerala,Skin rash with blisters,Chickenpox
+7,F,August,Rural,Kottayam,Kerala,Red rash and koplik spots,Measles
+19,M,September,Rural,Wayanad,Kerala,High fever with body pain,Dengue
+52,M,October,Urban,Kollam,Kerala,Red rash and koplik spots,Measles
+52,Other,February,Urban,Thiruvananthapuram,Kerala,Persistent cough,Tuberculosis
+20,Other,September,Urban,Thrissur,Kerala,Shivering and chills,Malaria
+4,F,June,Urban,Thrissur,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+39,F,June,Urban,Thrissur,Kerala,Severe joint pain,Chikungunya
+28,Other,September,Urban,Idukki,Kerala,Severe joint pain,Chikungunya
+2,F,August,Urban,Kozhikode,Kerala,Severe diarrhea,Rotavirus
+56,Other,July,Rural,Thiruvananthapuram,Kerala,Sore throat and fever,Influenza
+5,Other,September,Urban,Pathanamthitta,Kerala,Wheezing in breathing,RSV
+20,Other,July,Rural,Malappuram,Kerala,High fever with body pain,Dengue
+29,Other,June,Urban,Kasaragod,Kerala,Wheezing in breathing,RSV
+16,Other,May,Rural,Idukki,Kerala,Red rash and koplik spots,Measles
+4,M,July,Urban,Kannur,Kerala,Yellow eyes and skin,Jaundice
+10,Other,May,Urban,Kasaragod,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+16,F,November,Urban,Kozhikode,Kerala,Chest pain and breathing difficulty,Pneumonia
+67,F,February,Rural,Idukki,Kerala,Swollen lymph nodes,Rubella
+26,Other,July,Rural,Kochi,Kerala,Chest pain and breathing difficulty,Pneumonia
+27,F,January,Rural,Kozhikode,Kerala,Chest pain and breathing difficulty,Pneumonia
+19,F,October,Urban,Thiruvananthapuram,Kerala,Persistent cough,Tuberculosis
+5,F,July,Urban,Thiruvananthapuram,Kerala,Severe joint pain,Chikungunya
+54,Other,March,Urban,Kottayam,Kerala,High fever with body pain,Dengue
+35,M,October,Urban,Malappuram,Kerala,Severe diarrhea,Rotavirus
+34,M,November,Rural,Pathanamthitta,Kerala,Swollen cheeks,Mumps
+12,M,November,Urban,Malappuram,Kerala,High fever with body pain,Dengue
+58,M,August,Urban,Kochi,Kerala,Shivering and chills,Malaria
+54,Other,September,Rural,Kochi,Kerala,Yellow eyes and skin,Jaundice
+11,M,September,Urban,Kochi,Kerala,Shivering and chills,Malaria
+56,Other,June,Urban,Malappuram,Kerala,Wheezing in breathing,RSV
+20,Other,March,Urban,Kannur,Kerala,Swollen cheeks,Mumps
+18,F,September,Urban,Kottayam,Kerala,Swollen cheeks,Mumps
+21,F,January,Rural,Kozhikode,Kerala,Vomiting and stomach cramps,Norovirus
+24,F,December,Urban,Malappuram,Kerala,Severe joint pain,Chikungunya
+53,Other,January,Urban,Thiruvananthapuram,Kerala,Severe diarrhea,Rotavirus
+37,F,June,Rural,Thrissur,Kerala,Vomiting and stomach cramps,Norovirus
+11,M,February,Rural,Kochi,Kerala,Fever and dry cough,COVID
+39,F,August,Rural,Kochi,Kerala,Fever and dry cough,COVID
+39,F,January,Urban,Kasaragod,Kerala,Fever and dry cough,COVID
+22,M,March,Urban,Wayanad,Kerala,Shivering and chills,Malaria
+44,M,September,Urban,Kannur,Kerala,Chest pain and breathing difficulty,Pneumonia
+15,Other,July,Rural,Wayanad,Kerala,Wheezing in breathing,RSV
+58,Other,January,Rural,Kannur,Kerala,Swollen lymph nodes,Rubella
+24,M,March,Rural,Kottayam,Kerala,Muscle pain and headache,Leptospirosis
+45,M,February,Rural,Idukki,Kerala,Yellow eyes and skin,Jaundice
+19,M,March,Urban,Kottayam,Kerala,Swollen lymph nodes,Rubella
+11,Other,February,Urban,Kochi,Kerala,Wheezing in breathing,RSV
+38,F,August,Urban,Malappuram,Kerala,High fever with body pain,Dengue
+20,Other,April,Urban,Kasaragod,Kerala,Skin rash with blisters,Chickenpox
+20,F,August,Urban,Kottayam,Kerala,Red rash and koplik spots,Measles
+21,M,September,Urban,Thiruvananthapuram,Kerala,High fever with body pain,Dengue
+31,M,March,Urban,Wayanad,Kerala,Red rash and koplik spots,Measles
+30,M,January,Urban,Thiruvananthapuram,Kerala,Chest pain and breathing difficulty,Pneumonia
+17,M,February,Urban,Kochi,Kerala,Chest pain and breathing difficulty,Pneumonia
+43,Other,October,Rural,Kozhikode,Kerala,Severe joint pain,Chikungunya
+9,Other,February,Rural,Idukki,Kerala,Vomiting and stomach cramps,Norovirus
+19,M,July,Rural,Kozhikode,Kerala,Wheezing in breathing,RSV
+47,Other,November,Urban,Kannur,Kerala,Shivering and chills,Malaria
+29,Other,November,Rural,Palakkad,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+62,Other,April,Rural,Wayanad,Kerala,Severe diarrhea,Rotavirus
+45,Other,October,Rural,Kasaragod,Kerala,Breathing difficulty and fatigue,H1N1
+15,Other,January,Rural,Idukki,Kerala,Severe diarrhea,Rotavirus
+21,F,April,Rural,Kottayam,Kerala,High fever with body pain,Dengue
+31,Other,June,Rural,Thrissur,Kerala,Red rash and koplik spots,Measles
+23,M,May,Rural,Kollam,Kerala,Loose motions,Diarrhea
+25,M,May,Rural,Kasaragod,Kerala,High fever with body pain,Dengue
+15,M,April,Rural,Wayanad,Kerala,Sore throat and fever,Influenza
+13,Other,February,Rural,Kozhikode,Kerala,Severe diarrhea,Rotavirus
+25,M,November,Urban,Kochi,Kerala,Loose motions,Diarrhea
+23,M,March,Urban,Kochi,Kerala,Chest pain and breathing difficulty,Pneumonia
+25,F,February,Rural,Alappuzha,Kerala,Skin rash with blisters,Chickenpox
+10,F,September,Urban,Alappuzha,Kerala,Chest pain and breathing difficulty,Pneumonia
+39,Other,December,Urban,Alappuzha,Kerala,Severe diarrhea,Rotavirus
+17,Other,January,Urban,Kottayam,Kerala,Wheezing in breathing,RSV
+13,Other,December,Urban,Pathanamthitta,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+36,Other,March,Rural,Kozhikode,Kerala,Fever and dry cough,COVID
+5,M,June,Urban,Kozhikode,Kerala,Yellow eyes and skin,Jaundice
+38,F,April,Urban,Thrissur,Kerala,Red rash and koplik spots,Measles
+32,M,September,Rural,Malappuram,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+31,M,October,Urban,Kollam,Kerala,Sore throat and fever,Influenza
+2,F,May,Urban,Kannur,Kerala,Breathing difficulty and fatigue,H1N1
+30,Other,March,Rural,Kochi,Kerala,Wheezing in breathing,RSV
+48,F,July,Rural,Kozhikode,Kerala,Red rash and koplik spots,Measles
+23,M,August,Rural,Wayanad,Kerala,Red rash and koplik spots,Measles
+47,F,August,Urban,Kasaragod,Kerala,Yellow eyes and skin,Jaundice
+58,M,October,Rural,Palakkad,Kerala,Fever and dry cough,COVID
+40,F,July,Urban,Kottayam,Kerala,High fever with body pain,Dengue
+32,Other,September,Urban,Kozhikode,Kerala,Prolonged fever and weakness,Typhoid
+41,Other,November,Rural,Idukki,Kerala,Shivering and chills,Malaria
+15,Other,May,Rural,Kozhikode,Kerala,Persistent cough,Tuberculosis
+18,F,September,Rural,Malappuram,Kerala,Persistent cough,Tuberculosis
+15,F,June,Urban,Kannur,Kerala,Muscle pain and headache,Leptospirosis
+3,Other,January,Rural,Alappuzha,Kerala,Wheezing in breathing,RSV
+25,Other,September,Rural,Thiruvananthapuram,Kerala,Skin rash with blisters,Chickenpox
+23,F,January,Rural,Pathanamthitta,Kerala,Vomiting and stomach cramps,Norovirus
+13,M,December,Rural,Malappuram,Kerala,High fever with body pain,Dengue
+43,Other,August,Urban,Kasaragod,Kerala,Skin rash with blisters,Chickenpox
+24,M,January,Urban,Pathanamthitta,Kerala,Fever and dry cough,COVID
+25,F,July,Rural,Kannur,Kerala,Vomiting and stomach cramps,Norovirus
+13,F,May,Rural,Wayanad,Kerala,Fever and dry cough,COVID
+51,F,August,Rural,Palakkad,Kerala,Skin rash with blisters,Chickenpox
+38,F,December,Urban,Thrissur,Kerala,Vomiting and stomach cramps,Norovirus
+20,F,December,Rural,Kollam,Kerala,Sore throat and fever,Influenza
+16,Other,May,Rural,Kozhikode,Kerala,Swollen cheeks,Mumps
+26,F,November,Rural,Idukki,Kerala,High fever with body pain,Dengue
+30,F,November,Urban,Alappuzha,Kerala,Chest pain and breathing difficulty,Pneumonia
+57,M,April,Urban,Kochi,Kerala,Skin rash with blisters,Chickenpox
+39,M,September,Urban,Palakkad,Kerala,Severe joint pain,Chikungunya
+19,F,August,Rural,Kasaragod,Kerala,Yellow eyes and skin,Jaundice
+3,Other,April,Urban,Kottayam,Kerala,Skin rash with blisters,Chickenpox
+53,F,August,Rural,Alappuzha,Kerala,Skin rash with blisters,Chickenpox
+38,M,April,Urban,Kollam,Kerala,Skin rash with blisters,Chickenpox
+61,F,May,Urban,Kollam,Kerala,Sore throat and fever,Influenza
+16,Other,October,Rural,Kollam,Kerala,Severe diarrhea,Rotavirus
+30,F,December,Rural,Idukki,Kerala,Persistent cough,Tuberculosis
+30,Other,February,Rural,Kollam,Kerala,Fever and dry cough,COVID
+50,F,December,Rural,Idukki,Kerala,Sore throat and fever,Influenza
+28,F,May,Rural,Malappuram,Kerala,Breathing difficulty and fatigue,H1N1
+24,F,May,Rural,Kottayam,Kerala,Muscle pain and headache,Leptospirosis
+42,Other,November,Rural,Thiruvananthapuram,Kerala,Vomiting and stomach cramps,Norovirus
+13,M,May,Urban,Kasaragod,Kerala,Skin rash with blisters,Chickenpox
+20,F,July,Urban,Thiruvananthapuram,Kerala,Shivering and chills,Malaria
+31,M,February,Urban,Kochi,Kerala,Fever and dry cough,COVID
+23,F,October,Rural,Kollam,Kerala,Vomiting and stomach cramps,Norovirus
+19,F,January,Rural,Palakkad,Kerala,Loose motions,Diarrhea
+11,Other,January,Rural,Kannur,Kerala,Red rash and koplik spots,Measles
+64,F,July,Rural,Thiruvananthapuram,Kerala,Shivering and chills,Malaria
+6,F,November,Urban,Thrissur,Kerala,Prolonged fever and weakness,Typhoid
+20,M,April,Urban,Kozhikode,Kerala,Mouth ulcers and rash on hands/feet,HFMD
+14,Other,June,Rural,Kozhikode,Kerala,Red rash and koplik spots,Measles
+30,F,August,Rural,Kannur,Kerala,Breathing difficulty and fatigue,H1N1
+50,Other,July,Urban,Kozhikode,Kerala,Sore throat and fever,Influenza
+17,M,September,Urban,Kollam,Kerala,Sore throat and fever,Influenza
+35,F,October,Urban,Kasaragod,Kerala,Persistent cough,Tuberculosis
+66,M,June,Rural,Kannur,Kerala,Severe diarrhea,Rotavirus
+7,F,November,Urban,Kasaragod,Kerala,Swollen lymph nodes,Rubella
+26,F,February,Rural,Kozhikode,Kerala,Sore throat and fever,Influenza
+58,F,August,Urban,Wayanad,Kerala,Shivering and chills,Malaria
+44,F,August,Urban,Pathanamthitta,Kerala,Fever and dry cough,COVID
+5,M,November,Urban,Palakkad,Kerala,Shivering and chills,Malaria
+35,Other,November,Urban,Idukki,Kerala,Yellow eyes and skin,Jaundice
+69,M,September,Rural,Alappuzha,Kerala,Swollen cheeks,Mumps
+5,Other,November,Urban,Kochi,Kerala,Chest pain and breathing difficulty,Pneumonia
