@@ -60,15 +60,10 @@ export default function KpiCardsPage() {
     () => (firestore ? collection(firestore, 'appointments') : null),
     [firestore]
   );
-  const prescriptionsQuery = useMemoFirebase(
-    () => (firestore ? collection(firestore, 'prescriptions') : null),
-    [firestore]
-  );
 
   const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsQuery);
   const { data: doctors, isLoading: isLoadingDoctors } = useCollection(doctorsQuery);
   const { data: appointments, isLoading: isLoadingAppointments } = useCollection(appointmentsQuery);
-  const { data: prescriptions, isLoading: isLoadingPrescriptions } = useCollection(prescriptionsQuery);
 
 
   const appointmentsThisMonth = useMemo(() => {
@@ -120,13 +115,6 @@ export default function KpiCardsPage() {
                     icon={Calendar}
                     description="Scheduled this calendar month"
                     isLoading={isLoadingAppointments}
-                />
-                <StatCard
-                    title="Prescriptions Written"
-                    value={prescriptions?.length.toLocaleString() || '0'}
-                    icon={FileText}
-                    description="Total prescriptions issued"
-                    isLoading={isLoadingPrescriptions}
                 />
                  <StatCard
                     title="Active Outbreak Signals"

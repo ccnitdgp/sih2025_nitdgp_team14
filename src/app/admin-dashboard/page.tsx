@@ -65,12 +65,6 @@ export default function AdminDashboardPage() {
   );
   const { data: appointments, isLoading: isLoadingAppointments } = useCollection(appointmentsQuery);
   
-  const prescriptionsQuery = useMemoFirebase(
-    () => (firestore ? collection(firestore, 'prescriptions') : null),
-    [firestore]
-  );
-  const { data: prescriptions, isLoading: isLoadingPrescriptions } = useCollection(prescriptionsQuery);
-
 
   function handleExport() {
     const headers = 'Category,Value,Description\n';
@@ -79,7 +73,6 @@ export default function AdminDashboardPage() {
       `Total Doctors,${doctors?.length || 0},Total doctors on the platform`,
       `Unverified Doctors,${unverifiedDoctors?.length || 0},Doctors awaiting profile verification`,
       `Total Appointments,${appointments?.length || 0},Total appointments scheduled all-time`,
-      `Total Prescriptions,${prescriptions?.length || 0},Total prescriptions written all-time`,
       'Active Outbreak Signals,2,Flu & Dengue in Sector-15 (Static Example)',
     ].join('\n');
 
@@ -139,7 +132,7 @@ export default function AdminDashboardPage() {
                 Aggregated public health insights and operational statistics.
               </p>
             </div>
-            <Button onClick={handleExport} disabled={isLoadingPatients || isLoadingTotalDoctors || isLoadingAppointments || isLoadingPrescriptions}>
+            <Button onClick={handleExport} disabled={isLoadingPatients || isLoadingTotalDoctors || isLoadingAppointments}>
               <FileDown className="mr-2 h-4 w-4" />
               Export Report
             </Button>
