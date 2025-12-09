@@ -82,11 +82,13 @@ export default function DoctorPrescriptionsPage() {
     const fetchPrescriptions = async () => {
         setIsLoadingPrescriptions(true);
         const ref = collection(firestore, "prescriptions");
-        const q = query(ref, where("doctorId", "==", doctorUser.uid), orderBy('date', 'desc'));
+        const q = query(ref, where("doctorId", "==", doctorUser.uid));
         try {
             const snapshot = await getDocs(q);
             const prescriptionsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setIssuedPrescriptions(prescriptionsData);
+            // Sort on the client-side
+            const sortedData = prescriptionsData.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            setIssuedPrescriptions(sortedData);
         } catch (error) {
             console.error("Failed to fetch prescriptions:", error);
             setIssuedPrescriptions([]);
