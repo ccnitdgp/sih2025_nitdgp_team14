@@ -53,6 +53,8 @@ export default function MedicalInfoPage() {
       toast({ variant: 'destructive', title: 'Patient ID is required.' });
       return;
     }
+    if (!firestore) return;
+
     setIsSearching(true);
     setFoundPatient(null);
 

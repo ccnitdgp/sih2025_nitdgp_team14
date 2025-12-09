@@ -106,13 +106,15 @@ export default function DoctorPrescriptionsPage() {
       toast({ variant: 'destructive', title: 'Patient ID is required.' });
       return;
     }
+    if (!firestore || !doctorUser) return;
+
     setIsSearching(true);
     setFoundPatient(null);
 
     const patientQuery = query(
         collection(firestore, 'users'), 
         where('patientId', '==', patientIdInput.trim()),
-        where('doctorId', '==', doctorUser?.uid)
+        where('role', '==', 'patient')
     );
     const patientSnapshot = await getDocs(patientQuery);
 
@@ -120,7 +122,7 @@ export default function DoctorPrescriptionsPage() {
         toast({
             variant: "destructive",
             title: "Patient Not Found",
-            description: "No patient with this ID is assigned to you.",
+            description: "No patient with this ID was found.",
         });
     } else {
         const patientData = { id: patientSnapshot.docs[0].id, ...patientSnapshot.docs[0].data() };
