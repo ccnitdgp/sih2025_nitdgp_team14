@@ -3,7 +3,7 @@
 
 import { useMemo } from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HeartPulse, Stethoscope, Syringe } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
@@ -45,18 +45,16 @@ export function StatsSection() {
 
   const { data: camps, isLoading: isLoadingCamps } = useCollection(campsQuery);
 
-  const usersQuery = useMemoFirebase(() => {
+  const patientsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    // This query is intentionally simple and may not represent the full user count
-    // accurately if rules are restrictive. It's for display purposes.
-    return query(collection(firestore, 'users'));
+    // This query is allowed by security rules for all users.
+    return query(collection(firestore, 'users'), where('role', '==', 'patient'));
   }, [firestore]);
 
-  const { data: users, isLoading: isLoadingUsers } = useCollection(usersQuery);
+  const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsQuery);
 
   const stats = useMemo(() => {
-    // A simple client-side estimation to avoid complex/insecure queries
-    const userCount = users?.length || 0;
+    const patientCount = patients?.length || 0;
 
     return [
       {
@@ -76,12 +74,12 @@ export function StatsSection() {
       {
         id: 3,
         name: 'Records Secured',
-        value: isLoadingUsers ? '0+' : `${userCount * 3}+`, // Use a simple multiplier for effect
+        value: isLoadingPatients ? '0+' : `${patientCount * 3}+`, // Use a simple multiplier for effect
         icon: HeartPulse,
-        isLoading: isLoadingUsers,
+        isLoading: isLoadingPatients,
       },
     ];
-  }, [drives, camps, users, isLoadingDrives, isLoadingCamps, isLoadingUsers]);
+  }, [drives, camps, patients, isLoadingDrives, isLoadingCamps, isLoadingPatients]);
 
 
   return (
