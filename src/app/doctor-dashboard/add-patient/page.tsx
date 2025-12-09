@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useFirestore, useUser, addDocumentNonBlocking } from "@/firebase";
+import { useFirestore, useUser, addDocumentNonBlocking, setDocumentNonBlocking } from "@/firebase";
 import { doc, collection } from 'firebase/firestore';
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
@@ -87,8 +87,10 @@ export default function AddPatientPage() {
 
     try {
       const customPatientId = generatePatientId();
+      const newPatientUserRef = doc(collection(firestore, 'users'));
 
       const userProfile = {
+        id: newPatientUserRef.id,
         patientId: customPatientId,
         firstName: values.firstName,
         lastName: values.lastName,
@@ -107,9 +109,7 @@ export default function AddPatientPage() {
         doctorId: doctorUser.uid,
       };
 
-      // Create a document in a temporary `unclaimedProfiles` collection
-      const unclaimedProfileRef = doc(collection(firestore, 'unclaimedProfiles'));
-      await addDocumentNonBlocking(collection(firestore, 'unclaimedProfiles'), { id: unclaimedProfileRef.id, ...userProfile });
+      await setDocumentNonBlocking(newPatientUserRef, userProfile, {});
       
       toast({
         title: "Patient Pre-registered",
@@ -301,3 +301,5 @@ export default function AddPatientPage() {
     </div>
   )
 }
+
+    
