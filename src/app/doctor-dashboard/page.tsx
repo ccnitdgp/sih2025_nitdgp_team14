@@ -38,7 +38,7 @@ export default function DoctorDashboardPage() {
 
   const patientsCollectionRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
-    return collection(firestore, `users/${user.uid}/patients`);
+    return query(collection(firestore, 'users'), where('role', '==', 'patient'), where('doctorId', '==', user.uid));
   }, [user, firestore]);
 
   const { data: patients, isLoading: arePatientsLoading } = useCollection(patientsCollectionRef);
@@ -56,9 +56,9 @@ export default function DoctorDashboardPage() {
   const { data: appointments, isLoading: areAppointmentsLoading } = useCollection(appointmentsQuery);
 
   const prescriptionsQuery = useMemoFirebase(() => {
-      if (!user || !firestore) return null;
+      if (!user || !firestore || !userProfile || userProfile.role !== 'doctor') return null;
       return query(collection(firestore, 'prescriptions'), where('doctorId', '==', user.uid));
-  }, [user, firestore]);
+  }, [user, firestore, userProfile]);
 
   const { data: prescriptions, isLoading: arePrescriptionsLoading } = useCollection(prescriptionsQuery);
 
