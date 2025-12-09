@@ -55,6 +55,19 @@ export default function DoctorDashboardPage() {
 
   const { data: appointments, isLoading: areAppointmentsLoading } = useCollection(appointmentsQuery);
 
+  const prescriptionsQuery = useMemoFirebase(() => {
+    if (!user || !firestore || !userProfile || userProfile.role !== 'doctor') {
+        return null;
+    }
+    return query(
+        collection(firestore, 'prescriptions'),
+        where('doctorId', '==', user.uid)
+    );
+  }, [user, firestore, userProfile]);
+
+  const { data: prescriptions, isLoading: arePrescriptionsLoading } = useCollection(prescriptionsQuery);
+
+
   const upcomingAppointments = useMemo(() => {
     if (!appointments) return [];
     return appointments
@@ -68,6 +81,7 @@ export default function DoctorDashboardPage() {
   }, [upcomingAppointments]);
 
   const totalPatients = patients?.length || 0;
+  const totalPrescriptions = prescriptions?.length || 0;
 
   return (
     <div className="bg-muted/40 min-h-screen">
@@ -100,7 +114,7 @@ export default function DoctorDashboardPage() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
              <StatCard title="Today's Appointments" value={todayAppointmentsCount} icon={Calendar} isLoading={areAppointmentsLoading} />
              <StatCard title="Total Patients" value={totalPatients} icon={Users} isLoading={arePatientsLoading} />
-             <StatCard title="Prescriptions Written" value="0" icon={FileText} isLoading={false} />
+             <StatCard title="Prescriptions Written" value={totalPrescriptions} icon={FileText} isLoading={arePrescriptionsLoading} />
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
