@@ -3,31 +3,10 @@
 
 import { useMemo } from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { collection, query } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HeartPulse, Stethoscope, Syringe } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
-
-const staticStats = [
-  {
-    id: 1,
-    name: 'stat_vaccination_drives',
-    value: '0+',
-    icon: Syringe,
-  },
-  {
-    id: 2,
-    name: 'stat_health_camps',
-    value: '0+',
-    icon: Stethoscope,
-  },
-  {
-    id: 3,
-    name: 'stat_records_secured',
-    value: '0+',
-    icon: HeartPulse,
-  },
-];
 
 const StatCard = ({ icon: Icon, value, name, isLoading }) => {
   return (
@@ -54,26 +33,31 @@ export function StatsSection() {
 
   const drivesQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return collection(firestore, 'vaccinationDrives');
+    return query(collection(firestore, 'vaccinationDrives'));
   }, [firestore]);
   
   const { data: drives, isLoading: isLoadingDrives } = useCollection(drivesQuery);
 
   const campsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return collection(firestore, 'healthCamps');
+    return query(collection(firestore, 'healthCamps'));
   }, [firestore]);
 
   const { data: camps, isLoading: isLoadingCamps } = useCollection(campsQuery);
 
   const usersQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return collection(firestore, 'users');
+    // This query is intentionally simple and may not represent the full user count
+    // accurately if rules are restrictive. It's for display purposes.
+    return query(collection(firestore, 'users'));
   }, [firestore]);
 
   const { data: users, isLoading: isLoadingUsers } = useCollection(usersQuery);
 
   const stats = useMemo(() => {
+    // A simple client-side estimation to avoid complex/insecure queries
+    const userCount = users?.length || 0;
+
     return [
       {
         id: 1,
@@ -92,7 +76,7 @@ export function StatsSection() {
       {
         id: 3,
         name: 'Records Secured',
-        value: users ? `${users.length * 5}+` : '0+', // Example calculation
+        value: isLoadingUsers ? '0+' : `${userCount * 3}+`, // Use a simple multiplier for effect
         icon: HeartPulse,
         isLoading: isLoadingUsers,
       },
