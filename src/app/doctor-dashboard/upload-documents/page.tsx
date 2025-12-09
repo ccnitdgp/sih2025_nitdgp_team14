@@ -5,8 +5,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
-import { collection, query, where, getDocs, doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { useUser, useFirestore } from '@/firebase';
+import { collection, query, where, getDocs, doc, serverTimestamp, addDoc, setDoc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -258,4 +258,3 @@ export default function UploadDocumentsPage() {
     </div>
   );
 }
-
